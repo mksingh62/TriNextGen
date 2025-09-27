@@ -24,7 +24,7 @@ const About = () => {
       role: 'Co-Founder & CTO',
       bio: 'Technical expert specializing in scalable architectures and emerging technologies. Committed to building robust, future-ready software solutions.',
       skills: ['System Architecture', 'Cloud Computing', 'DevOps', 'Technical Innovation'],
-      image: '/api/placeholder/300/300'
+      image: '/Co-Founder.jpg'
     }
   ];
 
