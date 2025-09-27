@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import Index from "./pages/Index";
 import Careers from "./pages/Careers";
 import NotFound from "./pages/NotFound";
+import CookieConsent from "./components/CookieConsent";
 import About from "./pages/About";
 import Services from "./pages/Services";
 
@@ -27,6 +28,7 @@ const App = () => (
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <CookieConsent />
         </BrowserRouter>
       </TooltipProvider>
     </ThemeProvider>
