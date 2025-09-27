@@ -111,7 +111,7 @@ const Contact = () => {
     {
       icon: Mail,
       label: 'Email',
-      value: 'hello@cloudnova.com',
+      value: 'hello@trinextgen.com',
       description: 'Send us an email anytime'
     },
     {
@@ -141,7 +141,7 @@ const Contact = () => {
           </h2>
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
             Ready to transform your ideas into reality? Get in touch with our team to discuss your project
-            and discover how CloudNova can help accelerate your digital transformation.
+            and discover how TriNextGen can help accelerate your digital transformation.
           </p>
         </div>
 

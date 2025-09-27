@@ -65,67 +65,39 @@ const Hero = () => {
   ];
 
   const testimonials = [
-    { text: "CloudNova transformed our business with their innovative solutions", author: "Sarah Johnson", company: "TechCorp" },
+    { text: "TriNextGen transformed our business with their innovative solutions", author: "Sarah Johnson", company: "TechCorp" },
     { text: "Outstanding service and cutting-edge technology", author: "Mike Chen", company: "StartupXYZ" },
     { text: "The best software development partner we've worked with", author: "Emily Davis", company: "Enterprise Inc" }
   ];
 
   return (
-    <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden hero-bg noise-overlay pt-20">
-      {/* Enhanced Background Pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `radial-gradient(circle at 25% 25%, hsl(var(--primary)) 0%, transparent 50%),
-                           radial-gradient(circle at 75% 75%, hsl(var(--primary-light)) 0%, transparent 50%),
-                           radial-gradient(circle at 50% 50%, hsl(var(--primary)) 0%, transparent 30%)`
-        }}></div>
-      </div>
-
-      {/* Animated Grid Pattern */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `
-            linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px),
-            linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px)
-          `,
-          backgroundSize: '50px 50px',
-          animation: 'gridMove 20s linear infinite'
-        }}></div>
-      </div>
-
-      {/* Enhanced Floating Elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-20 left-10 w-20 h-20 bg-white/10 rounded-full animate-float hover-glow"></div>
-        <div className="absolute top-40 right-20 w-32 h-32 bg-primary/10 rounded-full animate-float hover-glow" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute bottom-20 left-20 w-16 h-16 bg-white/15 rounded-full animate-float hover-glow" style={{ animationDelay: '4s' }}></div>
-        <div className="absolute bottom-40 right-10 w-24 h-24 bg-primary/15 rounded-full animate-float hover-glow" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute top-1/2 left-1/4 w-12 h-12 bg-white/8 rounded-full animate-float hover-glow" style={{ animationDelay: '3s' }}></div>
-        <div className="absolute top-1/3 right-1/3 w-8 h-8 bg-primary/8 rounded-full animate-float hover-glow" style={{ animationDelay: '5s' }}></div>
-      </div>
+    <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden section-bg pt-20">
 
       {/* Main Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-foreground">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start lg:items-center min-h-[calc(100vh-8rem)]">
           {/* Left Column - Main Content */}
           <div className="text-center lg:text-left">
             <div className="animate-fade-in">
               {/* Badge */}
-              <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/30 text-white text-sm font-semibold mb-8 drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]">
+              <div className="inline-flex items-center px-4 py-2 rounded-full bg-primary/10 backdrop-blur-sm border border-primary/30 text-primary text-sm font-semibold mb-8 drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]">
                 <Sparkles className="w-4 h-4 mr-2" />
                 Innovative Software Solutions
               </div>
 
               {/* Main Heading */}
-              <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-white mb-6 leading-tight animate-slide-up drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]">
-                Building the
-                <span className="block gradient-text-primary animate-pulse-glow drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)]">
+              <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-foreground mb-6 leading-tight animate-slide-up">
+                <span className="inline-block animate-float bg-gradient-to-r from-[#1125A1] to-[#5EFA54] bg-clip-text text-transparent">
+                  Building the
+                </span>
+                <span className="block gradient-text-primary">
                   Future of Software
                 </span>
               </h1>
 
               {/* Subheading */}
-              <p className="text-lg md:text-xl text-white/90 mb-8 max-w-2xl leading-relaxed animate-fade-in drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)] font-semibold" style={{ animationDelay: '0.5s' }}>
-                CloudNova delivers cutting-edge software solutions that transform businesses and accelerate digital innovation.
+              <p className="text-lg md:text-xl text-foreground mb-8 max-w-2xl leading-relaxed animate-fade-in font-semibold" style={{ animationDelay: '0.5s' }}>
+                TriNextGen delivers cutting-edge software solutions that transform businesses and accelerate digital innovation.
                 Experience the power of modern technology with our expert team.
               </p>
 
@@ -134,7 +106,7 @@ const Hero = () => {
                 <Button
                   onClick={() => scrollToSection('contact')}
                   size="lg"
-                  className="bg-white text-primary hover:bg-gray-50 hover:shadow-strong transition-all duration-300 px-8 py-4 text-lg font-semibold group hover-lift hover-glow"
+                  className="bg-primary text-primary-foreground hover:bg-primary-dark transition-all duration-300 px-8 py-4 text-lg font-semibold group hover-lift hover-glow"
                 >
                   Start Your Project
                   <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -143,7 +115,7 @@ const Hero = () => {
                   onClick={() => scrollToSection('services')}
                   variant="outline"
                   size="lg"
-                  className="border-white/30  hover:bg-white/10 backdrop-blur-sm px-8 py-4 text-lg font-semibold hover-lift hover-glow"
+                  className="border-primary text-primary hover:bg-primary/10 backdrop-blur-sm px-8 py-4 text-lg font-semibold hover-lift hover-glow"
                 >
                   Our Services
                 </Button>
@@ -156,12 +128,12 @@ const Hero = () => {
                   return (
                     <div key={index} className="text-center hover-scale transition-all duration-300">
                       <div className="w-12 h-12 bg-white/10 rounded-full mx-auto mb-2 flex items-center justify-center">
-                        <IconComponent className="w-6 h-6 text-white" />
+                        <IconComponent className="w-6 h-6 text-primary" />
                       </div>
-                      <div className="text-2xl md:text-3xl font-extrabold text-white mb-1 animate-bounce-in drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]" style={{ animationDelay: `${1.2 + index * 0.1}s` }}>
+                      <div className="text-2xl md:text-3xl font-extrabold text-foreground mb-1 animate-bounce-in drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]" style={{ animationDelay: `${1.2 + index * 0.1}s` }}>
                         {achievement.number}
                       </div>
-                      <div className="text-white/80 text-xs font-semibold">{achievement.label}</div>
+                      <div className="text-muted-foreground text-xs font-semibold">{achievement.label}</div>
                     </div>
                   );
                 })}
@@ -175,22 +147,12 @@ const Hero = () => {
               ref={tiltRef}
               onMouseMove={handleMouseMove}
               onMouseLeave={handleMouseLeave}
-              className="relative w-full max-w-lg mx-auto aspect-square will-change-transform"
+              className="relative w-full max-w-sm mx-auto aspect-square will-change-transform"
               style={{ transform: `perspective(1000px) rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg)` }}
             >
-              {/* Sweep light layer */}
-              <div className="absolute inset-0 rounded-full overflow-hidden pointer-events-none">
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background: 'conic-gradient(from 0deg at 50% 50%, rgba(255,255,255,0.0), rgba(255,255,255,0.15), rgba(255,255,255,0.0) 25%)',
-                    animation: 'sweepCone 12s linear infinite'
-                  }}
-                />
-              </div>
               {/* Rotating ring - darker */}
-              <div className="absolute inset-0 rounded-full border-2 border-white/30" />
-              <div className="absolute inset-0 rounded-full border border-white/40 blur-sm" />
+              <div className="absolute inset-0 rounded-full border-2 border-black/10 dark:border-white/30" />
+              <div className="absolute inset-0 rounded-full border border-black/10 dark:border-white/40 blur-sm" />
 
               {/* Orbit container */}
               <div className="absolute inset-0 animate-[orbitWobble_20s_ease-in-out_infinite]">
@@ -239,39 +201,13 @@ const Hero = () => {
                 </div>
               </div>
 
-              {/* Pulse rings - darker */}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <span className="absolute w-2/3 h-2/3 rounded-full border border-white/40" style={{ animation: 'pulseRing 3.6s ease-out infinite' }}></span>
-                <span className="absolute w-3/4 h-3/4 rounded-full border border-white/30" style={{ animation: 'pulseRing 4.2s ease-out infinite 0.8s' }}></span>
-                <span className="absolute w-full h-full rounded-full border border-white/20" style={{ animation: 'pulseRing 5s ease-out infinite 1.6s' }}></span>
-              </div>
-
-              {/* Floating blobs (morph + hue drift) */}
-              <div className="absolute -top-6 -left-6 w-24 h-24 bg-primary/30 blur-xl animate-[blobMorph_14s_ease-in-out_infinite]" style={{ animation: 'blobMorph 14s ease-in-out infinite, hueDrift 16s linear infinite' }} />
-              <div className="absolute -bottom-8 -right-8 w-28 h-28 bg-white/20 blur-xl" style={{ animation: 'blobMorph 16s ease-in-out infinite 1.5s, hueDrift 18s linear infinite' }} />
-              <div className="absolute top-1/3 -right-6 w-16 h-16 bg-primary-light/30 blur-md" style={{ animation: 'blobMorph 12s ease-in-out infinite 0.7s, hueDrift 14s linear infinite' }} />
-
-              {/* Spark particles */}
-              <div className="pointer-events-none">
-                {Array.from({ length: 12 }).map((_, i) => (
-                  <span
-                    key={i}
-                    className="absolute w-1 h-1 bg-white/80 rounded-full"
-                    style={{
-                      top: `${10 + (i * 7) % 80}%`,
-                      left: `${5 + (i * 11) % 90}%`,
-                      animation: `sparkle ${2 + (i % 5) * 0.3}s ease-in-out ${i * 0.15}s infinite`
-                    }}
-                  />
-                ))}
-              </div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Scroll Indicator */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce hidden md:block">
         <div className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center">
           <div className="w-1 h-3 bg-white/70 rounded-full mt-2"></div>
         </div>

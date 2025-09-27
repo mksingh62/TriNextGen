@@ -1,10 +1,21 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Code,
+  Cloud,
+  Smartphone,
+  Database,
+  Shield,
+  Zap,
+  Globe,
+  Lightbulb,
+  Rocket
+} from 'lucide-react';
 
 type Service = {
           title: string;
@@ -13,6 +24,27 @@ type Service = {
 };
 
 const Services = () => {
+          const tiltRef = useRef<HTMLDivElement>(null);
+          const [tilt, setTilt] = useState<{ rx: number; ry: number }>({ rx: 0, ry: 0 });
+
+          const handleMouseMove: React.MouseEventHandler<HTMLDivElement> = (e) => {
+            const el = tiltRef.current;
+            if (!el) return;
+            const rect = el.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            const maxTilt = 8; // degrees
+            const ry = ((x - centerX) / centerX) * maxTilt; // rotateY
+            const rx = -((y - centerY) / centerY) * maxTilt; // rotateX
+            setTilt({ rx, ry });
+          };
+
+          const handleMouseLeave: React.MouseEventHandler<HTMLDivElement> = () => {
+            setTilt({ rx: 0, ry: 0 });
+          };
+
           const services: Service[] = [
                     {
                               title: 'Product Engineering',
@@ -75,18 +107,19 @@ const Services = () => {
                               <Navbar />
                               <main>
                                         {/* Hero */}
-                                        <section className="relative pt-28 pb-16 hero-bg noise-overlay">
-                                                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                                                            <div className="max-w-3xl">
-                                                                      <Badge className="mb-4 bg-white/10 dark:bg-white/10 text-white border-white/20">Our Services</Badge>
-                                                                      <h1 className="text-4xl md:text-5xl font-extrabold text-white leading-tight mb-4">
-                                                                                Practical engineering. Beautiful experiences.
-                                                                      </h1>
-                                                                      <p className="text-white/80 text-lg max-w-2xl">
-                                                                                We partner with teams to ship reliable products, accelerate roadmaps, and raise the quality bar.
-                                                                      </p>
-                                                            </div>
-                                                  </div>
+                                        <section className="relative pt-28 pb-16 section-bg">
+                                          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                                            <div className="animate-fade-in">
+                                              <Badge variant="secondary" className="mb-4">Our Services</Badge>
+                                              <h1 className="text-4xl md:text-5xl font-extrabold text-foreground leading-tight mb-4 animate-slide-up">
+                                                Practical engineering.
+                                                <span className="block gradient-text-primary">Beautiful experiences.</span>
+                                              </h1>
+                                              <p className="text-muted-foreground text-lg max-w-2xl mx-auto" style={{ animationDelay: '0.3s' }}>
+                                                We partner with teams to ship reliable products, accelerate roadmaps, and raise the quality bar.
+                                              </p>
+                                            </div>
+                                          </div>
                                         </section>
 
                                         {/* Services Grid */}

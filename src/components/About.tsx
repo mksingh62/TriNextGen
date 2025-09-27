@@ -10,7 +10,7 @@ const About = () => {
       role: 'Founder & CEO',
       bio: 'Visionary leader with 8+ years in software development and business strategy. Passionate about creating innovative solutions that drive digital transformation.',
       skills: ['Strategic Planning', 'Product Vision', 'Team Leadership', 'Business Development'],
-      image: '/api/placeholder/300/300'
+      image: '/founder_pic.jpg'
     },
     {
       name: 'Nikhil Kashyap',
@@ -34,13 +34,13 @@ const About = () => {
         {/* Section Header */}
         <div className="text-center mb-16 animate-fade-in">
           <Badge variant="secondary" className="mb-4 px-4 py-2 text-sm font-medium">
-            About CloudNova
+            About TriNextGen
           </Badge>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">
             Meet Our Team
           </h2>
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Founded by passionate technologists, CloudNova is dedicated to delivering exceptional software solutions
+            Founded by passionate technologists, TriNextGen is dedicated to delivering exceptional software solutions
             that empower businesses to achieve their digital goals and stay ahead in the competitive landscape.
           </p>
         </div>
@@ -51,7 +51,7 @@ const About = () => {
             <CardContent className="p-8">
               <h3 className="text-2xl font-bold text-foreground mb-4">Our Story</h3>
               <p className="text-muted-foreground leading-relaxed text-lg">
-                CloudNova was born from a vision to bridge the gap between innovative technology and practical business solutions.
+                TriNextGen was born from a vision to bridge the gap between innovative technology and practical business solutions.
                 Our founders, with their complementary expertise in business strategy and technical excellence,
                 recognized the need for a software company that truly understands both the technical challenges
                 and business objectives of modern enterprises.
@@ -65,7 +65,7 @@ const About = () => {
         </div>
 
         {/* Founders Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
           {founders.map((founder, index) => (
             <Card
               key={founder.name}
@@ -75,11 +75,11 @@ const About = () => {
               <CardContent className="p-8">
                 <div className="flex flex-col items-center text-center">
                   {/* Profile Image Placeholder */}
-                  <div className="w-32 h-32 bg-primary rounded-full mb-6 flex items-center justify-center group-hover:scale-105 transition-transform">
-                    <div className="text-white text-4xl font-bold">
-                      {founder.name.split(' ').map(n => n[0]).join('')}
-                    </div>
-                  </div>
+                  <img
+                    src={founder.image}
+                    alt={founder.name}
+                    className="w-32 h-32 rounded-full mt-4 mb-6 object-cover object-top bg-secondary group-hover:scale-105 transition-transform"
+                  />
 
                   <h3 className="text-2xl font-bold text-foreground mb-2">{founder.name}</h3>
                   <Badge variant="outline" className="mb-4 bg-primary/10 text-primary border-primary/20">

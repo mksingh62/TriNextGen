@@ -35,7 +35,7 @@ const Chatbot = () => {
           const [messages, setMessages] = useState<Message[]>([
                     {
                               id: '1',
-                              text: "Hello! I'm CloudNova's AI assistant. How can I help you today?",
+                              text: "Hello! I'm TriNextGen's AI assistant. How can I help you today?",
                               sender: 'bot',
                               timestamp: new Date(),
                               type: 'text'
@@ -116,7 +116,7 @@ const Chatbot = () => {
 
           const botResponses = [
                     "That's a great question! Let me help you with that.",
-                    "I understand you're looking for software solutions. CloudNova specializes in...",
+                    "I understand you're looking for software solutions. TriNextGen specializes in...",
                     "Based on your requirements, I'd recommend our...",
                     "Let me connect you with our technical team for a detailed discussion.",
                     "We have extensive experience in that area. Here's what we can offer...",
@@ -209,7 +209,7 @@ const Chatbot = () => {
                                                                                           <Bot className="w-5 h-5" />
                                                                                 </div>
                                                                                 <div>
-                                                                                          <CardTitle className="text-lg font-semibold">CloudNova Assistant</CardTitle>
+                                                                                          <CardTitle className="text-lg font-semibold">TriNextGen Assistant</CardTitle>
                                                                                           <div className="flex items-center space-x-1">
                                                                                                     <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                                                                                                     <span className="text-xs text-white/80">Online</span>

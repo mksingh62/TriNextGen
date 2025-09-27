@@ -53,13 +53,14 @@ const Navbar = () => {
               onClick={() => (isHome ? scrollToSection('hero') : null)}
               className="text-2xl font-bold text-primary hover:scale-105 transition-smooth"
             >
-              <Link to="/">CloudNova</Link>
+              <Link to="/">TriNextGen</Link>
             </button>
           </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:block">
-            <div className="ml-10 flex items-baseline space-x-4">
+          {/* Right side of Navbar */}
+          <div className="hidden md:flex items-center space-x-4">
+            {/* Desktop Navigation */}
+            <div className="flex items-baseline space-x-4">
               {navItems.map((item) => {
                 const isSectionOnly = item.label === 'Home' || item.label === 'Contact';
                 if (isHome && isSectionOnly) {
@@ -93,10 +94,8 @@ const Navbar = () => {
                 <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></span>
               </Link>
             </div>
-          </div>
 
-          {/* Theme Toggle and CTA Button */}
-          <div className="hidden md:flex items-center space-x-4">
+            {/* Theme Toggle and CTA Button */}
             <ThemeToggle />
             <Button
               onClick={() => (isHome ? scrollToSection('contact') : undefined)}

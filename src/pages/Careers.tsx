@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,7 +12,17 @@ import {
           DialogDescription,
           DialogFooter
 } from '@/components/ui/dialog';
-import { MapPin, Briefcase, DollarSign, Clock } from 'lucide-react';
+import {
+  MapPin, Briefcase, DollarSign, Clock, Code,
+  Cloud,
+  Smartphone,
+  Database,
+  Shield,
+  Zap,
+  Globe,
+  Lightbulb,
+  Rocket
+} from 'lucide-react';
 
 type Job = {
           id: string;
@@ -59,12 +69,33 @@ const jobs: Job[] = [
 ];
 
 const Careers = () => {
+          const tiltRef = useRef<HTMLDivElement>(null);
+          const [tilt, setTilt] = useState<{ rx: number; ry: number }>({ rx: 0, ry: 0 });
+
+          const handleMouseMove: React.MouseEventHandler<HTMLDivElement> = (e) => {
+            const el = tiltRef.current;
+            if (!el) return;
+            const rect = el.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            const maxTilt = 8; // degrees
+            const ry = ((x - centerX) / centerX) * maxTilt; // rotateY
+            const rx = -((y - centerY) / centerY) * maxTilt; // rotateX
+            setTilt({ rx, ry });
+          };
+
+          const handleMouseLeave: React.MouseEventHandler<HTMLDivElement> = () => {
+            setTilt({ rx: 0, ry: 0 });
+          };
+
           const [selectedJob, setSelectedJob] = React.useState<Job | null>(null);
           const [isDialogOpen, setIsDialogOpen] = React.useState(false);
           const openMail = (job: Job) => {
                     const subject = encodeURIComponent(`Application: ${job.title} (${job.id})`);
-                    const body = encodeURIComponent(`Hi CloudNova Team,%0D%0A%0D%0AI'd like to apply for ${job.title}.%0D%0A%0D%0ALinks/Portfolio:%0D%0A%0D%0AThanks!`);
-                    window.location.href = `mailto:hello@cloudnova.com?subject=${subject}&body=${body}`;
+                    const body = encodeURIComponent(`Hi TriNextGen Team,%0D%0A%0D%0AI'd like to apply for ${job.title}.%0D%0A%0D%0ALinks/Portfolio:%0D%0A%0D%0AThanks!`);
+                    window.location.href = `mailto:hello@trinextgen.com?subject=${subject}&body=${body}`;
           };
           const openDetails = (job: Job) => {
                     setSelectedJob(job);
@@ -76,18 +107,19 @@ const Careers = () => {
                               <Navbar />
                               <main>
                                         {/* Hero */}
-                                        <section className="relative pt-28 pb-16 hero-bg noise-overlay">
-                                                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                                                            <div className="max-w-3xl">
-                                                                      <Badge className="mb-4 bg-white/10 dark:bg-white/10 text-white border-white/20">We are hiring</Badge>
-                                                                      <h1 className="text-4xl md:text-5xl font-extrabold text-white leading-tight mb-4">
-                                                                                Build the future with CloudNova
-                                                                      </h1>
-                                                                      <p className="text-white/80 text-lg max-w-2xl">
-                                                                                Join a world-class team creating delightful products and impactful platforms.
-                                                                      </p>
-                                                            </div>
-                                                  </div>
+                                        <section className="relative pt-28 pb-16 section-bg">
+                                          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                                            <div className="animate-fade-in">
+                                              <Badge variant="secondary" className="mb-4">We are hiring</Badge>
+                                              <h1 className="text-4xl md:text-5xl font-extrabold text-foreground leading-tight mb-4 animate-slide-up">
+                                                Build the future
+                                                <span className="block gradient-text-primary">with TriNextGen</span>
+                                              </h1>
+                                              <p className="text-muted-foreground text-lg max-w-2xl mx-auto" style={{ animationDelay: '0.3s' }}>
+                                                Join a world-class team creating delightful products and impactful platforms.
+                                              </p>
+                                            </div>
+                                          </div>
                                         </section>
 
                                         {/* Job listings */}
@@ -177,5 +209,3 @@ const Careers = () => {
 };
 
 export default Careers;
-
-

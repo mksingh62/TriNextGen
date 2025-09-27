@@ -39,7 +39,7 @@ const Footer = () => {
     { icon: Linkedin, href: '#', label: 'LinkedIn' },
     { icon: Twitter, href: '#', label: 'Twitter' },
     { icon: Github, href: '#', label: 'GitHub' },
-    { icon: Mail, href: 'mailto:hello@cloudnova.com', label: 'Email' },
+    { icon: Mail, href: 'mailto:hello@trinextgen.com', label: 'Email' },
   ];
 
   return (
@@ -51,7 +51,7 @@ const Footer = () => {
           <div className="lg:col-span-1">
             <div className="mb-6">
               <h3 className="text-2xl font-bold text-primary mb-4">
-                CloudNova
+                TriNextGen
               </h3>
               <p className="text-muted-foreground leading-relaxed">
                 Building the future of software with innovative solutions that transform businesses 
@@ -118,10 +118,10 @@ const Footer = () => {
               <div>
                 <p className="text-muted-foreground text-sm">Email</p>
                 <a 
-                  href="mailto:hello@cloudnova.com" 
+                  href="mailto:hello@trinextgen.com" 
                   className="text-primary hover:underline font-medium"
                 >
-                  hello@cloudnova.com
+                  hello@trinextgen.com
                 </a>
               </div>
               <div>
@@ -147,7 +147,7 @@ const Footer = () => {
         <div className="py-8 flex flex-col md:flex-row justify-between items-center">
           <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6">
             <p className="text-muted-foreground text-sm">
-              © 2025 CloudNova. All rights reserved.
+              © 2025 TriNextGen. All rights reserved.
             </p>
             <div className="flex space-x-6">
               <button className="text-muted-foreground hover:text-primary text-sm transition-smooth">

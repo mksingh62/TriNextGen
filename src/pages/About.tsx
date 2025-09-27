@@ -1,27 +1,60 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import {
+  Code,
+  Cloud,
+  Smartphone,
+  Database,
+  Shield,
+  Zap,
+  Globe,
+  Lightbulb,
+  Rocket
+} from 'lucide-react';
 
 const About = () => {
+          const tiltRef = useRef<HTMLDivElement>(null);
+          const [tilt, setTilt] = useState<{ rx: number; ry: number }>({ rx: 0, ry: 0 });
+
+          const handleMouseMove: React.MouseEventHandler<HTMLDivElement> = (e) => {
+            const el = tiltRef.current;
+            if (!el) return;
+            const rect = el.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            const maxTilt = 8; // degrees
+            const ry = ((x - centerX) / centerX) * maxTilt; // rotateY
+            const rx = -((y - centerY) / centerY) * maxTilt; // rotateX
+            setTilt({ rx, ry });
+          };
+
+          const handleMouseLeave: React.MouseEventHandler<HTMLDivElement> = () => {
+            setTilt({ rx: 0, ry: 0 });
+          };
+
           return (
                     <div className="min-h-screen bg-background text-foreground">
                               <Navbar />
                               <main>
                                         {/* Hero */}
                                         <section className="relative pt-28 pb-16 hero-bg noise-overlay">
-                                                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                                                            <div className="max-w-3xl">
-                                                                      <Badge className="mb-4 bg-white/10 dark:bg-white/10 text-white border-white/20">About Us</Badge>
-                                                                      <h1 className="text-4xl md:text-5xl font-extrabold text-white leading-tight mb-4">
-                                                                                We build delightful, resilient cloud products
-                                                                      </h1>
-                                                                      <p className="text-white/80 text-lg max-w-2xl">
-                                                                                CloudNova is a product-first studio focused on crafting elegant, performant, and scalable experiences across web and cloud platforms.
-                                                                      </p>
-                                                            </div>
-                                                  </div>
+                                          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                                            <div className="animate-fade-in">
+                                              <Badge className="mb-4 bg-white/10 dark:bg-white/10 text-white border-white/20">About Us</Badge>
+                                              <h1 className="text-4xl md:text-5xl font-extrabold text-white leading-tight mb-4 animate-slide-up">
+                                                We build delightful,
+                                                <span className="block gradient-text-primary">resilient cloud products</span>
+                                              </h1>
+                                              <p className="text-white/80 text-lg max-w-2xl mx-auto" style={{ animationDelay: '0.3s' }}>
+                                                TriNextGen is a product-first studio focused on crafting elegant, performant, and scalable experiences across web and cloud platforms.
+                                              </p>
+                                            </div>
+                                          </div>
                                         </section>
 
                                         {/* About content */}
