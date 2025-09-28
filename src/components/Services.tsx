@@ -147,9 +147,9 @@ const Services = () => {
                   Start Your Project
                 </Button>
                 <Button
-                  variant="outline"
+                  variant="secondary"
                   size="lg"
-                  className="border-white/30 text-white hover:bg-white/10 backdrop-blur-sm px-8 py-4"
+                  className="bg-white text-primary hover:bg-gray-50 transition-smooth px-8 py-4"
                 >
                   Schedule Consultation
                 </Button>
