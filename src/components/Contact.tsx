@@ -129,7 +129,7 @@ const Contact = () => {
   ];
 
   return (
-    <section id="contact" className="py-20 section-bg">
+    <section id="contact" className="py-20 bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('/web_background.jpg')" }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16 animate-fade-in">

@@ -58,10 +58,10 @@ const Hero = () => {
   ];
 
   const achievements = [
-    { icon: Users, number: '500+', label: 'Happy Clients' },
-    { icon: Award, number: '50+', label: 'Awards Won' },
-    { icon: TrendingUp, number: '99%', label: 'Success Rate' },
-    { icon: Globe, number: '25+', label: 'Countries Served' }
+    { emoji: '👥', number: '500+', label: 'Happy Clients' },
+    { emoji: '🏆', number: '50+', label: 'Awards Won' },
+    { emoji: '📈', number: '99%', label: 'Success Rate' },
+    { emoji: '🌍', number: '25+', label: 'Countries Served' }
   ];
 
   const testimonials = [
@@ -71,7 +71,7 @@ const Hero = () => {
   ];
 
   return (
-    <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden section-bg pt-20">
+    <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20 bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('/web_background.jpg')" }}>
 
       {/* Main Content */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-foreground">
@@ -121,34 +121,41 @@ const Hero = () => {
                 </Button>
               </div>
 
-              {/* Enhanced Stats */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mt-12 animate-slide-up" style={{ animationDelay: '1s' }}>
-                {achievements.map((achievement, index) => {
-                  const IconComponent = achievement.icon;
-                  return (
-                    <div key={index} className="text-center hover-scale transition-all duration-300">
-                      <div className="w-12 h-12 bg-white/10 rounded-full mx-auto mb-2 flex items-center justify-center">
-                        <IconComponent className="w-6 h-6 text-primary" />
-                      </div>
-                      <div className="text-2xl md:text-3xl font-extrabold text-foreground mb-1 animate-bounce-in drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]" style={{ animationDelay: `${1.2 + index * 0.1}s` }}>
-                        {achievement.number}
-                      </div>
-                      <div className="text-muted-foreground text-xs font-semibold">{achievement.label}</div>
-                    </div>
-                  );
-                })}
-              </div>
             </div>
           </div>
 
           {/* Right Column - Animated Showcase */}
-          <div className="animate-slide-in-right mt-8 lg:mt-0" style={{ animationDelay: '0.5s' }}>
+          <div className="relative min-h-[300px] lg:min-h-full animate-slide-in-right mt-8 lg:mt-0" style={{ animationDelay: '0.5s' }}>
+            {/* Enhanced Stats - Now relative on mobile */}
+            <div className="grid grid-cols-2 gap-4 mb-12 lg:absolute lg:top-0 lg:right-0 lg:w-full lg:max-w-md lg:mb-8">
+              {achievements.map((item, index) => {
+                return(
+                <div 
+                  key={index}
+                  className="bg-card/60 dark:bg-card/30 backdrop-blur-sm rounded-2xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 animate-scale-in"
+                  style={{ animationDelay: `${1 + index * 0.1}s` }}
+                >
+                  <div className="text-3xl mb-2">
+                    {item.emoji}
+                  </div>
+                  <div className="text-xl font-bold text-foreground mb-1">
+                    <span>{item.number}</span>
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {item.label}
+                  </div>
+                </div>
+                );
+              })}
+            </div>
+
+            {/* Animation - Now relative on mobile */}
             <div
               ref={tiltRef}
               onMouseMove={handleMouseMove}
               onMouseLeave={handleMouseLeave}
-              className="relative w-full max-w-sm mx-auto aspect-square will-change-transform"
-              style={{ transform: `perspective(1000px) rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg)` }}
+              className="relative mx-auto lg:absolute lg:bottom-0 lg:-right-8 w-72 h-72 lg:w-80 lg:h-80 will-change-transform"
+              style={{ transform: `perspective(1000px) rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg) scale(0.8)` }}
             >
               {/* Rotating ring - darker */}
               <div className="absolute inset-0 rounded-full border-2 border-black/10 dark:border-white/30" />

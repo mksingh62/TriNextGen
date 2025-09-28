@@ -107,15 +107,15 @@ const Careers = () => {
                               <Navbar />
                               <main>
                                         {/* Hero */}
-                                        <section className="relative pt-28 pb-16 section-bg">
+                                        <section className="py-16 bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('/web_background.jpg')" }}>
                                           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                                             <div className="animate-fade-in">
-                                              <Badge variant="secondary" className="mb-4">We are hiring</Badge>
+                                              {/* <Badge variant="secondary" className="mb-4">We are hiring</Badge> */}
                                               <h1 className="text-4xl md:text-5xl font-extrabold text-foreground leading-tight mb-4 animate-slide-up">
                                                 Build the future
                                                 <span className="block gradient-text-primary">with TriNextGen</span>
                                               </h1>
-                                              <p className="text-muted-foreground text-lg max-w-2xl mx-auto" style={{ animationDelay: '0.3s' }}>
+                                              <p className="text-foreground text-lg max-w-2xl mx-auto" style={{ animationDelay: '0.3s' }}>
                                                 Join a world-class team creating delightful products and impactful platforms.
                                               </p>
                                             </div>
@@ -123,7 +123,7 @@ const Careers = () => {
                                         </section>
 
                                         {/* Job listings */}
-                                        <section className="py-16 section-bg">
+                                        <section className="py-16 bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('/web_background.jpg')" }}>
                                                   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                                                             <div className="flex items-center justify-between mb-8">
                                                                       <h2 className="text-2xl md:text-3xl font-bold">Open Roles</h2>

@@ -1,8 +1,52 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, ChevronDown, Building, Users, Briefcase, Mail, Phone, MapPin } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { services } from '@/components/Services';
+
+const HoverDropdown = ({
+  label,
+  children,
+  href,
+}: {
+  label: string;
+  children: React.ReactNode;
+  href: string;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleOpen = () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    setIsOpen(true);
+  };
+
+  const handleClose = () => {
+    timeoutRef.current = setTimeout(() => setIsOpen(false), 100);
+  };
+
+  return (
+    <DropdownMenu open={isOpen} onOpenChange={setIsOpen} modal={false}>
+      <div onMouseEnter={handleOpen} onMouseLeave={handleClose}>
+        <DropdownMenuTrigger asChild>
+          <Link to={href} className="text-foreground hover:text-primary transition-smooth px-3 py-2 text-sm font-medium relative group flex items-center">
+            {label}
+            <ChevronDown className="w-4 h-4 ml-1 group-hover:rotate-180 transition-transform" />
+          </Link>
+        </DropdownMenuTrigger>
+        {children}
+      </div>
+    </DropdownMenu>
+  );
+};
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -27,9 +71,6 @@ const Navbar = () => {
 
   const navItems = [
     { label: 'Home', id: 'hero', href: '/' },
-    { label: 'About', id: 'about', href: '/' },
-    { label: 'Services', id: 'services', href: '/' },
-    { label: 'Contact', id: 'contact', href: '/' },
   ];
 
   const resolveHref = (label: string, href: string, id: string) => {
@@ -49,12 +90,13 @@ const Navbar = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <button
-              onClick={() => (isHome ? scrollToSection('hero') : null)}
-              className="text-2xl font-bold text-primary hover:scale-105 transition-smooth"
+            <Link
+              to="/"
+              className="flex items-center space-x-2 text-2xl font-bold text-primary hover:scale-105 transition-smooth"
             >
-              <Link to="/">TriNextGen</Link>
-            </button>
+              <img src="/logo1.png" alt="TriNextGen Logo" className="h-14 w-auto" />
+              <span>TriNextGen</span>
+            </Link>
           </div>
 
           {/* Right side of Navbar */}
@@ -86,23 +128,97 @@ const Navbar = () => {
                   </Link>
                 );
               })}
-              <Link
-                to="/careers"
-                className="text-foreground hover:text-primary transition-smooth px-3 py-2 text-sm font-medium relative group"
-              >
-                Careers
-                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></span>
-              </Link>
+              {/* About Dropdown */}
+              <HoverDropdown label="About" href="/about">
+                <DropdownMenuContent align="start" className="bg-background/80 backdrop-blur-md border-border w-48 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
+                  <DropdownMenuItem asChild>
+                    <Link to="/about" className="flex items-center cursor-pointer">
+                      <Building className="w-4 h-4 mr-2" />
+                      Our Company
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <button
+                      onClick={() => isHome ? scrollToSection('about') : window.location.href = '/#about'}
+                      className="w-full flex items-center cursor-pointer"
+                    >
+                      <Users className="w-4 h-4 mr-2" />
+                      Meet The Team
+                    </button>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/about" className="font-semibold cursor-pointer">
+                      Learn More
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </HoverDropdown>
+
+              {/* Services Dropdown */}
+              <HoverDropdown label="Services" href="/services">
+                <DropdownMenuContent align="start" className="bg-background/80 backdrop-blur-md border-border w-56 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
+                  {services.map((service) => (
+                    <DropdownMenuItem key={service.title} asChild>
+                      <Link to={service.path} className="flex items-center cursor-pointer">
+                        <service.icon className="w-4 h-4 mr-2" />
+                        {service.title}
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/services" className="font-semibold cursor-pointer">
+                      View All Services
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </HoverDropdown>
+
+              {/* Careers Dropdown */}
+              <HoverDropdown label="Careers" href="/careers">
+                <DropdownMenuContent align="start" className="bg-background/80 backdrop-blur-md border-border w-48 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
+                  <DropdownMenuItem asChild>
+                    <Link to="/careers" className="flex items-center cursor-pointer">
+                      <Briefcase className="w-4 h-4 mr-2" />
+                      Open Positions
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </HoverDropdown>
+
+              {/* Contact Dropdown */}
+              <div onMouseEnter={() => {}} onMouseLeave={() => {}}>
+                <button
+                  onClick={() => isHome ? scrollToSection('contact') : window.location.href = '/#contact'}
+                  className="text-foreground hover:text-primary transition-smooth px-3 py-2 text-sm font-medium relative group flex items-center"
+                >
+                  Contact
+                </button>
+                {/* This is a simple link now, but if you want a dropdown for it, you can use HoverDropdown like others */}
+                {/* Example:
+                <HoverDropdown label="Contact" href="/#contact">
+                  <DropdownMenuContent align="start" className="bg-background/80 backdrop-blur-md border-border w-48 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
+                  <DropdownMenuItem asChild>
+                    <a href="mailto:hello@trinextgen.com" className="flex items-center cursor-pointer">
+                      <Mail className="w-4 h-4 mr-2" />
+                      Email Us
+                    </a>
+                  </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </HoverDropdown> */}
+              </div>
             </div>
 
             {/* Theme Toggle and CTA Button */}
-            <ThemeToggle />
+            {/* <ThemeToggle />
             <Button
               onClick={() => (isHome ? scrollToSection('contact') : undefined)}
               className="bg-primary hover:bg-primary-dark hover:shadow-medium transition-smooth"
             >
               Get Started
-            </Button>
+            </Button> */}
+            <Button>Get Started</Button>
           </div>
 
           {/* Mobile menu button */}
@@ -145,6 +261,18 @@ const Navbar = () => {
                   </Link>
                 );
               })}
+              {/* Mobile Menu Links for other items */}
+              <Link to="/about" className="block px-3 py-2 text-base font-medium text-foreground hover:text-primary hover:bg-secondary transition-smooth w-full text-left" onClick={() => setIsMobileMenuOpen(false)}>About</Link>
+
+              {/* Mobile Services Links */}
+              <div className="px-3 py-2 text-base font-medium text-foreground">Services</div>
+              <div className="pl-6">
+                {services.map((service) => (
+                  <Link key={service.path} to={service.path} className="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-primary hover:bg-secondary transition-smooth w-full text-left" onClick={() => setIsMobileMenuOpen(false)}>
+                    {service.title}
+                  </Link>
+                ))}
+              </div>
               <Link
                 to="/careers"
                 className="block px-3 py-2 text-base font-medium text-foreground hover:text-primary hover:bg-secondary transition-smooth w-full text-left"
@@ -152,6 +280,7 @@ const Navbar = () => {
               >
                 Careers
               </Link>
+              <button onClick={() => { scrollToSection('contact'); setIsMobileMenuOpen(false); }} className="block px-3 py-2 text-base font-medium text-foreground hover:text-primary hover:bg-secondary transition-smooth w-full text-left">Contact</button>
               <div className="mt-4 space-y-2">
                 <ThemeToggle />
                 <Button

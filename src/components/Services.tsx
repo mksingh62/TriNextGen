@@ -3,69 +3,91 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
+  ArrowRight,
+  CheckCircle,
   Code,
   Cloud,
   Smartphone,
   Database,
   Shield,
   Zap,
-  ArrowRight,
-  CheckCircle
+  LucideIcon,
 } from 'lucide-react';
 
-const Services = () => {
-  const services = [
-    {
-      icon: Code,
-      title: 'Web Development',
-      description: 'Custom web applications built with modern frameworks and technologies for optimal performance and scalability.',
-      features: ['React/Next.js', 'Node.js Backend', 'Responsive Design', 'API Integration'],
-      color: 'from-blue-500 to-purple-600'
-    },
-    {
-      icon: Smartphone,
-      title: 'Mobile Development',
-      description: 'Native and cross-platform mobile apps that deliver exceptional user experiences across all devices.',
-      features: ['React Native', 'iOS/Android', 'App Store Deploy', 'Push Notifications'],
-      color: 'from-purple-500 to-pink-600'
-    },
-    {
-      icon: Cloud,
-      title: 'Cloud Solutions',
-      description: 'Scalable cloud infrastructure and migration services to optimize your business operations and reduce costs.',
-      features: ['AWS/Azure/GCP', 'DevOps Setup', 'Auto Scaling', 'Security First'],
-      color: 'from-green-500 to-blue-600'
-    },
-    {
-      icon: Database,
-      title: 'Data Analytics',
-      description: 'Transform your data into actionable insights with advanced analytics and business intelligence solutions.',
-      features: ['Data Visualization', 'ML Models', 'Real-time Analytics', 'Custom Dashboards'],
-      color: 'from-orange-500 to-red-600'
-    },
-    {
-      icon: Shield,
-      title: 'Cybersecurity',
-      description: 'Comprehensive security solutions to protect your digital assets and ensure compliance with industry standards.',
-      features: ['Security Audits', 'Penetration Testing', 'Compliance', '24/7 Monitoring'],
-      color: 'from-red-500 to-purple-600'
-    },
-    {
-      icon: Zap,
-      title: 'Digital Transformation',
-      description: 'End-to-end digital transformation services to modernize your business processes and technology stack.',
-      features: ['Process Automation', 'Legacy Migration', 'Training & Support', 'Change Management'],
-      color: 'from-yellow-500 to-orange-600'
-    }
-  ];
+export interface Service {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  features: string[];
+  color: string;
+  path: string;
+}
 
+export const services: Service[] = [
+  {
+    icon: Code,
+    title: 'Web Development',
+    description:
+      'Custom web applications built with modern frameworks and technologies for optimal performance and scalability.',
+    features: ['React/Next.js', 'Node.js Backend', 'Responsive Design', 'API Integration'],
+    color: 'from-blue-500 to-purple-600',
+    path: '/services/web-development',
+  },
+  {
+    icon: Smartphone,
+    title: 'Mobile Development',
+    description:
+      'Native and cross-platform mobile apps that deliver exceptional user experiences across all devices.',
+    features: ['React Native', 'iOS/Android', 'App Store Deploy', 'Push Notifications'],
+    color: 'from-purple-500 to-pink-600',
+    path: '/services/mobile-development',
+  },
+  {
+    icon: Cloud,
+    title: 'Cloud Solutions',
+    description:
+      'Scalable cloud infrastructure and migration services to optimize your business operations and reduce costs.',
+    features: ['AWS/Azure/GCP', 'DevOps Setup', 'Auto Scaling', 'Security First'],
+    color: 'from-green-500 to-blue-600',
+    path: '/services/cloud-solutions',
+  },
+  {
+    icon: Database,
+    title: 'Data Analytics',
+    description:
+      'Transform your data into actionable insights with advanced analytics and business intelligence solutions.',
+    features: ['Data Visualization', 'ML Models', 'Real-time Analytics', 'Custom Dashboards'],
+    color: 'from-orange-500 to-red-600',
+    path: '/services/data-analytics',
+  },
+  {
+    icon: Shield,
+    title: 'Cybersecurity',
+    description:
+      'Comprehensive security solutions to protect your digital assets and ensure compliance with industry standards.',
+    features: ['Security Audits', 'Penetration Testing', 'Compliance', '24/7 Monitoring'],
+    color: 'from-red-500 to-purple-600',
+    path: '/services/cybersecurity',
+  },
+  {
+    icon: Zap,
+    title: 'Digital Transformation',
+    description:
+      'End-to-end digital transformation services to modernize your business processes and technology stack.',
+    features: ['Process Automation', 'Legacy Migration', 'Training & Support', 'Change Management'],
+    color: 'from-yellow-500 to-orange-600',
+    path: '/services/digital-transformation',
+  },
+];
+
+const Services = () => {
   const scrollToContact = () => {
     const element = document.getElementById('contact');
     element?.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
-    <section id="services" className="py-20 bg-background">
+    <section id="services" className="py-20 bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('/web_background.jpg')" }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16 animate-fade-in">
@@ -88,7 +110,7 @@ const Services = () => {
             return (
               <Card
                 key={service.title}
-                className={`shadow-medium hover:shadow-strong transition-all duration-500 border-0 bg-card group hover:-translate-y-2 animate-scale-in hover-lift hover-glow card-professional`}
+                className={`shadow-medium hover:shadow-strong transition-all duration-500 border-0 bg-card/80 backdrop-blur-sm group hover:-translate-y-2 animate-scale-in hover-lift hover-glow card-professional`}
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
                 <CardHeader className="pb-4">
@@ -130,12 +152,12 @@ const Services = () => {
 
         {/* CTA Section */}
         <div className="animate-slide-up">
-          <Card className="shadow-medium border-0 bg-primary">
+          <Card className="rounded-lg text-card-foreground shadow-sm shadow-medium border-0 bg-card/50 backdrop-blur-sm">
             <CardContent className="p-8 text-center">
-              <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">
+              <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
                 Ready to Transform Your Business?
               </h3>
-              <p className="text-white/90 mb-8 max-w-2xl mx-auto leading-relaxed">
+              <p className="text-muted-foreground leading-relaxed text-lg">
                 Let's discuss your project requirements and create a custom solution that drives your business forward.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">

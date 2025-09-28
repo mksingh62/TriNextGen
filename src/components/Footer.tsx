@@ -8,6 +8,7 @@ import {
   Mail,
   ArrowUp
 } from 'lucide-react';
+import { services } from './Services';
 
 const Footer = () => {
   const scrollToTop = () => {
@@ -24,15 +25,6 @@ const Footer = () => {
     { label: 'About', id: 'about' },
     { label: 'Services', id: 'services' },
     { label: 'Contact', id: 'contact' },
-  ];
-
-  const services = [
-    'Web Development',
-    'Mobile Apps',
-    'Cloud Solutions',
-    'Data Analytics',
-    'Cybersecurity',
-    'Digital Transformation'
   ];
 
   const socialLinks = [
@@ -98,13 +90,13 @@ const Footer = () => {
           <div>
             <h4 className="font-semibold text-foreground mb-4">Services</h4>
             <ul className="space-y-3">
-              {services.map((service) => (
-                <li key={service}>
+              {services.map((service, index) => (
+                <li key={index}>
                   <button
                     onClick={() => scrollToSection('services')}
                     className="text-muted-foreground hover:text-primary transition-smooth hover:translate-x-1 transform inline-block"
                   >
-                    {service}
+                    {service.title}
                   </button>
                 </li>
               ))}

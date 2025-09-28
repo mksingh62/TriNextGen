@@ -107,15 +107,15 @@ const Services = () => {
                               <Navbar />
                               <main>
                                         {/* Hero */}
-                                        <section className="relative pt-28 pb-16 section-bg">
+                                        <section className="relative pt-28 pb-16 bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('/web_background.jpg')" }}>
                                           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                                             <div className="animate-fade-in">
-                                              <Badge variant="secondary" className="mb-4">Our Services</Badge>
+                                              {/* <Badge variant="secondary" className="mb-4">Our Services</Badge> */}
                                               <h1 className="text-4xl md:text-5xl font-extrabold text-foreground leading-tight mb-4 animate-slide-up">
                                                 Practical engineering.
                                                 <span className="block gradient-text-primary">Beautiful experiences.</span>
                                               </h1>
-                                              <p className="text-muted-foreground text-lg max-w-2xl mx-auto" style={{ animationDelay: '0.3s' }}>
+                                              <p className="text-foreground text-lg max-w-2xl mx-auto" style={{ animationDelay: '0.3s' }}>
                                                 We partner with teams to ship reliable products, accelerate roadmaps, and raise the quality bar.
                                               </p>
                                             </div>
@@ -123,7 +123,7 @@ const Services = () => {
                                         </section>
 
                                         {/* Services Grid */}
-                                        <section className="py-16 section-bg">
+                                        <section className="py-16 bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('/web_background.jpg')" }}>
                                                   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                                                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                                                       {services.map((svc) => (

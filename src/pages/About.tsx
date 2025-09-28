@@ -42,15 +42,16 @@ const About = () => {
                               <Navbar />
                               <main>
                                         {/* Hero */}
-                                        <section className="relative pt-28 pb-16 hero-bg noise-overlay">
+                                        
+                                       <section className="py-16 bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('/web_background.jpg')" }}>
                                           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                                             <div className="animate-fade-in">
-                                              <Badge className="mb-4 bg-white/10 dark:bg-white/10 text-white border-white/20">About Us</Badge>
-                                              <h1 className="text-4xl md:text-5xl font-extrabold text-white leading-tight mb-4 animate-slide-up">
+                                              {/* <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 mb-4">About Us</div> */}
+                                              <h1 className="text-4xl md:text-5xl font-extrabold text-foreground leading-tight mb-4 animate-slide-up">
                                                 We build delightful,
                                                 <span className="block gradient-text-primary">resilient cloud products</span>
                                               </h1>
-                                              <p className="text-white/80 text-lg max-w-2xl mx-auto" style={{ animationDelay: '0.3s' }}>
+                                              <p className="text-foreground text-lg max-w-2xl mx-auto" style={{ animationDelay: '0.3s' }}>
                                                 TriNextGen is a product-first studio focused on crafting elegant, performant, and scalable experiences across web and cloud platforms.
                                               </p>
                                             </div>
@@ -58,7 +59,7 @@ const About = () => {
                                         </section>
 
                                         {/* About content */}
-                                        <section className="py-16 section-bg">
+                                        <section className="py-16 bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('/web_background.jpg')" }}>
                                                   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
                                                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                                                       <Card className="card-professional gradient-border">
