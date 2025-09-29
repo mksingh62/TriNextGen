@@ -20,6 +20,9 @@ import {
   Rocket,
   Target,
   Lightbulb
+  ,BrainCircuit,
+  HeartHandshake,
+  Flame
 } from 'lucide-react';
 
 const Hero = () => {
@@ -71,7 +74,8 @@ const Hero = () => {
   ];
 
   return (
-    <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20 bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('/web_background.jpg')" }}>
+    <>
+      <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20 bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('/web_background.jpg')" }}>
 
       {/* Main Content */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-foreground">
@@ -219,7 +223,260 @@ const Hero = () => {
           <div className="w-1 h-3 bg-white/70 rounded-full mt-2"></div>
         </div>
       </div>
-    </section>
+      </section>
+
+      <section className="py-20 bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('/web_background.jpg')" }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <div className="max-w-5xl mx-auto">
+              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-12">
+                🚀 From Vision to Velocity — Together
+              </h2>
+              <div className="text-left space-y-12">
+                <div className="space-y-6">
+                  <p className="text-lg text-muted-foreground leading-relaxed">
+                    You've done the hard part. You've got the idea, the clarity, the drive. You've researched the market, stayed up late planning, and you're ready to build.
+                  </p>
+                  <p className="text-lg text-muted-foreground leading-relaxed">
+                    But here's the truth most founders quietly face:
+                  </p>
+                  <div className="bg-gradient-to-r from-yellow-400/10 via-red-400/10 to-primary/10 p-6 rounded-xl border border-foreground/10 shadow-lg backdrop-blur-sm">
+                    <div className="flex items-start gap-4">
+                      <div className="flex-shrink-0 mt-1">
+                        <Lightbulb className="w-6 h-6 text-yellow-400" />
+                      </div>
+                      <p className="text-lg font-medium text-foreground/90">
+                        <span className="font-bold text-yellow-300">87% of startups struggle</span> — not because their ideas are weak, but because <span className="font-bold text-foreground">execution takes too long.</span>
+                      </p>
+                    </div>
+                  </div>
+                  <h3 className="text-2xl font-bold mt-8 mb-4" style={{ color: 'rgb(94, 250, 84)' }}>
+                    💚 That's Where We Come In.
+                  </h3>
+                  <p className="text-lg text-muted-foreground leading-relaxed">
+                    We're not just developers. We're your <span className="font-bold text-[#1125A1]">AI-powered product partners</span> — building alongside you like co-founders do.
+                  </p>
+                  <p className="text-lg text-muted-foreground leading-relaxed">
+                    In just <span className="font-bold text-[#1125A1]">6 weeks</span>, we bring your idea to life with a <span className="font-bold text-[#1125A1]">user-ready MVP</span> — that's fast, functional, and founder-approved.
+                  </p>
+                  <h3 className="text-2xl font-bold text-foreground mt-8 mb-4">
+                    🤝 What Makes Us Different?
+                  </h3>
+                  <p className="text-lg text-muted-foreground leading-relaxed">
+                    We don't wait months to "kick things off." We believe in building fast, iterating smart, and delivering real value early.
+                  </p>
+                  <div className="my-12">
+                    <div className="relative">
+                      {/* Connecting line */}
+                      <div className="absolute left-8 top-8 bottom-8 w-0.5 bg-border -translate-x-1/2 hidden md:block" />
+
+                      <div className="space-y-10">
+                        {/* Step 1 */}
+                        <div className="bg-gradient-to-r from-blue-500/10 to-primary/10 p-6 rounded-xl border border-foreground/10 shadow-lg backdrop-blur-sm">
+                          <div className="flex items-start gap-6">
+                            <div className="flex-shrink-0 w-16 h-16 rounded-full bg-card/60 backdrop-blur-sm border border-border flex items-center justify-center text-blue-400 shadow-md">
+                              <BrainCircuit className="w-8 h-8" />
+                            </div>
+                            <div>
+                              <h4 className="text-xl font-bold text-foreground mb-1">Backed by AI</h4>
+                              <p className="text-muted-foreground">We leverage artificial intelligence to accelerate development and deliver smarter, more efficient solutions from day one.</p>
+                            </div>
+                          </div>
+                        </div>
+                        {/* Step 2 */}
+                        <div className="bg-gradient-to-r from-green-500/10 to-primary/10 p-6 rounded-xl border border-foreground/10 shadow-lg backdrop-blur-sm">
+                          <div className="flex items-start gap-6">
+                            <div className="flex-shrink-0 w-16 h-16 rounded-full bg-card/60 backdrop-blur-sm border border-border flex items-center justify-center text-green-400 shadow-md">
+                              <HeartHandshake className="w-8 h-8" />
+                            </div>
+                            <div>
+                              <h4 className="text-xl font-bold text-foreground mb-1">Run by Humans Who Care</h4>
+                              <p className="text-muted-foreground">Our experienced team acts as your dedicated partner, ensuring your vision is understood and executed with passion.</p>
+                            </div>
+                          </div>
+                        </div>
+                        {/* Step 3 */}
+                        <div className="bg-gradient-to-r from-orange-500/10 to-primary/10 p-6 rounded-xl border border-foreground/10 shadow-lg backdrop-blur-sm">
+                          <div className="flex items-start gap-6">
+                            <div className="flex-shrink-0 w-16 h-16 rounded-full bg-card/60 backdrop-blur-sm border border-border flex items-center justify-center text-orange-400 shadow-md">
+                              <Flame className="w-8 h-8" />
+                            </div>
+                            <div>
+                              <h4 className="text-xl font-bold text-foreground mb-1">Designed for Momentum</h4>
+                              <p className="text-muted-foreground">We focus on rapid iteration and early delivery, turning your ideas into a functional product in weeks, not months.</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <h3 className="text-2xl font-bold text-foreground mt-8 mb-4">
+                    📦 Reality for Most Founders
+                  </h3>
+                  <div className="mt-12">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-12 relative">
+                      {/* Vertical line for desktop */}
+                      <div className="hidden md:block absolute top-0 bottom-0 left-1/2 w-0.5 bg-border -translate-x-1/2"></div>
+
+                      {/* The Usual Path */}
+                      <div className="space-y-12 md:pr-8 md:text-right">
+                        <h4 className="text-xl font-bold text-red-500 mb-6 text-center md:text-right">❌ The Usual Path</h4>
+                        <div className="relative">
+                          <div className="hidden md:block absolute top-1/2 -right-12 w-4 h-4 bg-red-500 rounded-full border-4 border-background -translate-y-1/2"></div>
+                          <p className="text-muted-foreground">Hiring takes 3–6 months and costs $200K+.</p>
+                        </div>
+                        <div className="relative">
+                          <div className="hidden md:block absolute top-1/2 -right-12 w-4 h-4 bg-red-500 rounded-full border-4 border-background -translate-y-1/2"></div>
+                          <p className="text-muted-foreground">Building an MVP takes 6–12 months.</p>
+                        </div>
+                        <div className="relative">
+                          <div className="hidden md:block absolute top-1/2 -right-12 w-4 h-4 bg-red-500 rounded-full border-4 border-background -translate-y-1/2"></div>
+                          <p className="text-muted-foreground">90% of tech hires don't work out.</p>
+                        </div>
+                      </div>
+
+                      {/* With TriNextGen */}
+                      <div className="space-y-12 md:pl-8">
+                        <h4 className="text-xl font-bold text-green-500 mb-6 text-center md:text-left">✅ With TriNextGen</h4>
+                        <div className="relative"><div className="hidden md:block absolute top-1/2 -left-12 w-4 h-4 bg-green-500 rounded-full border-4 border-background -translate-y-1/2"></div><p className="text-muted-foreground">No hiring delays — your team is ready from Day 1.</p></div>
+                        <div className="relative"><div className="hidden md:block absolute top-1/2 -left-12 w-4 h-4 bg-green-500 rounded-full border-4 border-background -translate-y-1/2"></div><p className="text-muted-foreground">MVP in just <span className="font-bold text-primary">6 weeks</span>.</p></div>
+                        <div className="relative"><div className="hidden md:block absolute top-1/2 -left-12 w-4 h-4 bg-green-500 rounded-full border-4 border-background -translate-y-1/2"></div><p className="text-muted-foreground">Get a battle-tested, AI-augmented team.</p></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-center mt-8">
+                    <h3 className="text-2xl font-bold text-foreground mb-4">
+                      🌱 Let's Build Something Real
+                    </h3>
+                    <p className="text-lg text-muted-foreground leading-relaxed">
+                      No jargon. No fluff. Just a team that cares as much as you do — and knows how to build what users love.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-20 bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('/web_background.jpg')" }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Section Header */}
+          <div className="text-center mb-16 animate-fade-in">
+            {/* <Badge variant="secondary" className="mb-4 px-4 py-2 text-sm font-medium">
+              Why Choose Us?
+            </Badge> */}
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">
+              Why Founders Choose TriNextGen
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+              We're more than just a development shop. We're your strategic partner in building successful digital products.
+            </p>
+          </div>
+
+          {/* Grid of advantages */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {/* Card 1: Rapid MVP Delivery */}
+            <Card className="shadow-medium hover:shadow-strong transition-all duration-300 border-0 bg-card/80 backdrop-blur-sm group hover:-translate-y-2 animate-scale-in hover-lift hover-glow card-professional">
+              <CardContent className="p-8 text-center">
+                <div className="inline-flex items-center justify-center w-16 h-16 mb-6 rounded-full bg-primary/10 text-primary group-hover:scale-110 transition-transform">
+                  <Rocket className="w-8 h-8" />
+                </div>
+                <h3 className="text-xl font-bold text-foreground mb-3">Rapid MVP Delivery</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Launch your user-ready MVP in just 6 weeks. We turn your vision into a functional product at startup speed, giving you a crucial head start.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Card 2: AI-Augmented Team */}
+            <Card className="shadow-medium hover:shadow-strong transition-all duration-300 border-0 bg-card/80 backdrop-blur-sm group hover:-translate-y-2 animate-scale-in hover-lift hover-glow card-professional" style={{ animationDelay: '0.1s' }}>
+              <CardContent className="p-8 text-center">
+                <div className="inline-flex items-center justify-center w-16 h-16 mb-6 rounded-full bg-primary/10 text-primary group-hover:scale-110 transition-transform">
+                  <BrainCircuit className="w-8 h-8" />
+                </div>
+                <h3 className="text-xl font-bold text-foreground mb-3">AI-Augmented Team</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Our team is enhanced by AI, not replaced by it. This blend of human expertise and machine intelligence ensures faster, smarter, and more reliable development.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Card 3: True Partnership */}
+            <Card className="shadow-medium hover:shadow-strong transition-all duration-300 border-0 bg-card/80 backdrop-blur-sm group hover:-translate-y-2 animate-scale-in hover-lift hover-glow card-professional" style={{ animationDelay: '0.2s' }}>
+              <CardContent className="p-8 text-center">
+                <div className="inline-flex items-center justify-center w-16 h-16 mb-6 rounded-full bg-primary/10 text-primary group-hover:scale-110 transition-transform">
+                  <HeartHandshake className="w-8 h-8" />
+                </div>
+                <h3 className="text-xl font-bold text-foreground mb-3">True Partnership</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  We integrate with your team like co-founders. Your goals are our goals. We're invested in your success with transparent communication and dedicated support.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-20 bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('/web_background.jpg')" }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Section Header */}
+          <div className="text-center mb-16 animate-fade-in">
+            {/* <Badge variant="secondary" className="mb-4 px-4 py-2 text-sm font-medium">
+              Why Choose Us?
+            </Badge> */}
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">
+              The TriNextGen Advantage
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+              We're more than just a development shop. We're your strategic partner in building successful digital products.
+            </p>
+          </div>
+
+          {/* Grid of advantages */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {/* Card 1: Rapid MVP Delivery */}
+            <Card className="shadow-medium hover:shadow-strong transition-all duration-300 border-0 bg-card/80 backdrop-blur-sm group hover:-translate-y-2 animate-scale-in hover-lift hover-glow card-professional">
+              <CardContent className="p-8 text-center">
+                <div className="inline-flex items-center justify-center w-16 h-16 mb-6 rounded-full bg-primary/10 text-primary group-hover:scale-110 transition-transform">
+                  <Rocket className="w-8 h-8" />
+                </div>
+                <h3 className="text-xl font-bold text-foreground mb-3">Rapid MVP Delivery</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Launch your user-ready MVP in just 6 weeks. We turn your vision into a functional product at startup speed, giving you a crucial head start.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Card 2: AI-Augmented Team */}
+            <Card className="shadow-medium hover:shadow-strong transition-all duration-300 border-0 bg-card/80 backdrop-blur-sm group hover:-translate-y-2 animate-scale-in hover-lift hover-glow card-professional" style={{ animationDelay: '0.1s' }}>
+              <CardContent className="p-8 text-center">
+                <div className="inline-flex items-center justify-center w-16 h-16 mb-6 rounded-full bg-primary/10 text-primary group-hover:scale-110 transition-transform">
+                  <BrainCircuit className="w-8 h-8" />
+                </div>
+                <h3 className="text-xl font-bold text-foreground mb-3">AI-Augmented Team</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Our team is enhanced by AI, not replaced by it. This blend of human expertise and machine intelligence ensures faster, smarter, and more reliable development.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Card 3: True Partnership */}
+            <Card className="shadow-medium hover:shadow-strong transition-all duration-300 border-0 bg-card/80 backdrop-blur-sm group hover:-translate-y-2 animate-scale-in hover-lift hover-glow card-professional" style={{ animationDelay: '0.2s' }}>
+              <CardContent className="p-8 text-center">
+                <div className="inline-flex items-center justify-center w-16 h-16 mb-6 rounded-full bg-primary/10 text-primary group-hover:scale-110 transition-transform">
+                  <HeartHandshake className="w-8 h-8" />
+                </div>
+                <h3 className="text-xl font-bold text-foreground mb-3">True Partnership</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  We integrate with your team like co-founders. Your goals are our goals. We're invested in your success with transparent communication and dedicated support.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+    </>
   );
 };
 
