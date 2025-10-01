@@ -2,7 +2,7 @@ import React from 'react';
 import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
 import About from '@/components/About';
-import Services from '@/components/Services';
+// import Services from '@/components/Services';
 import Contact from '@/components/Contact';
 import Footer from '@/components/Footer';
 import Chatbot from '@/components/Chatbot';
@@ -14,7 +14,7 @@ const Index = () => {
       <main>
         <Hero />
         <About />
-        <Services />
+        {/* <Services /> */}
         <Contact />
       </main>
       <Footer />

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import WhatsAppIcon from '@/components/WhatsAppIcon';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -15,7 +16,8 @@ import {
           Zap,
           Lightbulb,
           Code,
-          Cloud
+          Cloud,
+          PhoneCall,
 } from 'lucide-react';
 
 interface Message {
@@ -187,15 +189,45 @@ const Chatbot = () => {
 
           return (
                     <>
-                              {/* Chatbot Toggle Button */}
+                              {/* FAB Group */}
                               {!isOpen && (
-                                        <Button
-                                                  onClick={() => setIsOpen(true)}
-                                                  className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-primary hover:bg-primary-dark shadow-strong hover:shadow-strong transition-all duration-300 hover:scale-110 animate-bounce-in z-50"
-                                                  size="lg"
-                                        >
-                                                  <MessageCircle className="w-6 h-6" />
-                                        </Button>
+                                        <div
+                                                  className="fixed bottom-6 right-6 z-50 flex flex-col-reverse items-center gap-3"
+                                        >                                                  {/* Main Chatbot Toggle */}
+                                                  <Button
+                                                            onClick={() => setIsOpen(true)}
+                                                            className="w-14 h-14 rounded-full bg-primary hover:bg-primary-dark shadow-strong hover:shadow-strong transition-all duration-300 hover:scale-110"
+                                                            size="lg"
+                                                  >
+                                                            <MessageCircle className="w-6 h-6" />
+                                                  </Button>
+                                                  {/* Action Buttons */}
+                                                  <div
+                                                            className="flex flex-col items-center gap-3"
+                                                  >
+                                                            <Button
+                                                                      onClick={() => {
+                                                                                window.location.href = 'tel:+15551234567';
+                                                                      }}
+                                                                      className="w-12 h-12 rounded-full bg-blue-500 hover:bg-blue-600 shadow-lg"
+                                                                      size="icon"
+                                                                      aria-label="Call us"
+                                                            >
+                                                                      <PhoneCall className="w-6 h-6" />
+                                                            </Button>
+                                                            <Button
+                                                                      onClick={() => {
+                                                                                const text = encodeURIComponent("Hi TriNextGen, I'm interested in your services.");
+                                                                                window.open(`https://wa.me/15551234567?text=${text}`, '_blank');
+                                                                      }}
+                                                                      className="w-12 h-12 rounded-full bg-green-500 hover:bg-green-600 shadow-lg"
+                                                                      size="icon"
+                                                                      aria-label="Message on WhatsApp"
+                                                            >
+                                                                      <WhatsAppIcon className="w-6 h-6" />
+                                                            </Button>
+                                                  </div>
+                                        </div>
                               )}
 
                               {/* Chatbot Window */}

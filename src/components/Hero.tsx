@@ -227,10 +227,10 @@ const Hero = () => {
 
       <section className="py-20 bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('/web_background.jpg')" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <div className="max-w-5xl mx-auto">
+          <div className="rounded-lg py-12 text-card-foreground shadow-sm shadow-medium border-0 bg-card/50 backdrop-blur-sm">
+            <div className="text-center max-w-5xl mx-auto">
               <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-12">
-                🚀 From Vision to Velocity — Together
+                From Vision to Velocity — Together
               </h2>
               <div className="text-left space-y-12">
                 <div className="space-y-6">

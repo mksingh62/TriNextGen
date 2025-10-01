@@ -81,10 +81,11 @@ const Navbar = () => {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-smooth ${isScrolled
-        ? 'bg-background/95 backdrop-blur-md shadow-medium'
+      className={`fixed top-0 left-0 right-0 z-50 transition-smooth border-b border-gray-400 ${isScrolled
+        ? 'bg-background/50 backdrop-blur-md shadow-medium'
         : 'bg-transparent'
         }`}
+        
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
@@ -218,7 +219,7 @@ const Navbar = () => {
             >
               Get Started
             </Button> */}
-            <Button>Get Started</Button>
+            <Button>Talk to us</Button>
           </div>
 
           {/* Mobile menu button */}
