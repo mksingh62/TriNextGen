@@ -95,8 +95,8 @@ const Navbar = () => {
               to="/"
               className="flex items-center space-x-2 text-2xl font-bold text-primary hover:scale-105 transition-smooth"
             >
-              <img src="/logo1.png" alt="TriNextGen Logo" className="h-14 w-auto" />
-              <span>TriNextGen</span>
+              <img src="/logo9.png" alt="TriNextGen Logo" className="h-14 w-auto" />
+              {/* <span>TriNextGen</span> */}
             </Link>
           </div>
 
