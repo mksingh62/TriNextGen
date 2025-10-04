@@ -15,6 +15,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { z } from 'zod';
+import { contactApi } from '@/lib/api'; // Import the API utility
 
 const contactSchema = z.object({
   name: z.string().trim().min(2, 'Name must be at least 2 characters').max(100, 'Name must be less than 100 characters'),
@@ -80,8 +81,8 @@ const Contact = () => {
     setIsSubmitting(true);
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Call the backend API instead of simulating
+      await contactApi.submitContact(formData);
 
       toast({
         title: "Message Sent Successfully!",
@@ -111,19 +112,19 @@ const Contact = () => {
     {
       icon: Mail,
       label: 'Email',
-      value: 'hello@trinextgen.com',
+      value: 'trinextgen@gmail.com',
       description: 'Send us an email anytime'
     },
     {
       icon: Phone,
       label: 'Phone',
-      value: '+1 (555) 123-4567',
+      value: '+91 62637 16688',
       description: 'Mon-Fri from 8am to 6pm'
     },
     {
       icon: MapPin,
       label: 'Office',
-      value: 'San Francisco, CA',
+      value: 'Raipur, CG',
       description: 'Come say hello at our HQ'
     }
   ];
@@ -163,7 +164,18 @@ const Contact = () => {
                       </div>
                       <div>
                         <h3 className="font-semibold text-foreground mb-1">{info.label}</h3>
-                        <p className="text-primary font-medium mb-1">{info.value}</p>
+                        {info.label === 'Email' ? (
+                          <a 
+                            href={`mailto:${info.value}`} 
+                            className="text-primary font-medium mb-1 hover:underline"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            {info.value}
+                          </a>
+                        ) : (
+                          <p className="text-primary font-medium mb-1">{info.value}</p>
+                        )}
                         <p className="text-sm text-muted-foreground">{info.description}</p>
                       </div>
                     </div>

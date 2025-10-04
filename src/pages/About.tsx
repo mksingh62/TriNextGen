@@ -1,8 +1,8 @@
 import React, { useRef, useState } from 'react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+// Remove Navbar and Footer imports since they're now in App.tsx
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import Chatbot from '@/components/Chatbot';
 import {
   Code,
   Cloud,
@@ -90,7 +90,7 @@ const About = () => {
 
           return (
                     <div className="min-h-screen bg-background text-foreground">
-                              <Navbar />
+                              {/* Remove Navbar since it's now in App.tsx */}
                               <main>
                                         {/* Hero */}
                                         
@@ -239,7 +239,8 @@ const About = () => {
                                                   </div>
                                         </section>
                               </main>
-                              <Footer />
+                              {/* Remove Footer since it's now in App.tsx */}
+                              <Chatbot />
                     </div>
           );
 };

@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { services } from '@/components/Services';
+import { services } from '@/data/servicesData';
 
 const HoverDropdown = ({
   label,
@@ -68,6 +68,17 @@ const Navbar = () => {
 
   const location = useLocation();
   const isHome = location.pathname === '/';
+
+  // Function to handle "Talk to us" button click
+  const handleTalkToUs = () => {
+    // If we're on the home page, scroll to contact section
+    if (isHome) {
+      scrollToSection('contact');
+    } else {
+      // If we're on another page, navigate to home and then scroll to contact
+      window.location.href = '/#contact';
+    }
+  };
 
   const navItems = [
     { label: 'Home', id: 'hero', href: '/' },
@@ -189,37 +200,28 @@ const Navbar = () => {
               </HoverDropdown>
 
               {/* Contact Dropdown */}
-              <div onMouseEnter={() => {}} onMouseLeave={() => {}}>
-                <button
-                  onClick={() => isHome ? scrollToSection('contact') : window.location.href = '/#contact'}
-                  className="text-foreground hover:text-primary transition-smooth px-3 py-2 text-sm font-medium relative group flex items-center"
-                >
-                  Contact
-                </button>
-                {/* This is a simple link now, but if you want a dropdown for it, you can use HoverDropdown like others */}
-                {/* Example:
-                <HoverDropdown label="Contact" href="/#contact">
-                  <DropdownMenuContent align="start" className="bg-background/80 backdrop-blur-md border-border w-48 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
+              <HoverDropdown label="Contact" href="/#contact">
+                <DropdownMenuContent align="start" className="bg-background/80 backdrop-blur-md border-border w-48 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
                   <DropdownMenuItem asChild>
-                    <a href="mailto:hello@trinextgen.com" className="flex items-center cursor-pointer">
+                    <a href="mailto:trinextgen@gmail.com" className="flex items-center cursor-pointer" target="_blank" rel="noopener noreferrer">
                       <Mail className="w-4 h-4 mr-2" />
                       Email Us
                     </a>
                   </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </HoverDropdown> */}
-              </div>
+                  <DropdownMenuItem asChild>
+                    <a href="tel:+916263716688" className="flex items-center cursor-pointer">
+                      <Phone className="w-4 h-4 mr-2" />
+                      Call Us
+                    </a>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </HoverDropdown>
             </div>
 
             {/* Theme Toggle and CTA Button */}
-            {/* <ThemeToggle />
-            <Button
-              onClick={() => (isHome ? scrollToSection('contact') : undefined)}
-              className="bg-primary hover:bg-primary-dark hover:shadow-medium transition-smooth"
-            >
-              Get Started
-            </Button> */}
-            <Button>Talk to us</Button>
+            <Button onClick={handleTalkToUs}>
+              Talk to us
+            </Button>
           </div>
 
           {/* Mobile menu button */}

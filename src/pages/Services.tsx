@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import Chatbot from '@/components/Chatbot';
 import {
   Dialog,
   DialogContent,
@@ -25,9 +26,13 @@ import {
   PenTool,
   Rocket,
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { serviceApi } from '@/lib/api';
 
+// Define the Service interface
 export interface Service {
-  icon: LucideIcon;
+  _id: string;
+  icon: string;
   title: string;
   description: string;
   features: string[];
@@ -35,63 +40,20 @@ export interface Service {
   path: string;
 }
 
-export const services: Service[] = [
-  {
-    icon: Code,
-    title: 'Web Development',
-    description:
-      'Custom web applications built with modern frameworks and technologies for optimal performance and scalability.',
-    features: ['React/Next.js', 'Node.js Backend', 'Responsive Design', 'API Integration'],
-    color: 'from-blue-500 to-purple-600',
-    path: '/services/web-development',
-  },
-  {
-    icon: Smartphone,
-    title: 'Mobile Development',
-    description:
-      'Native and cross-platform mobile apps that deliver exceptional user experiences across all devices.',
-    features: ['React Native', 'iOS/Android', 'App Store Deploy', 'Push Notifications'],
-    color: 'from-purple-500 to-pink-600',
-    path: '/services/mobile-development',
-  },
-  {
-    icon: Cloud,
-    title: 'Cloud Solutions',
-    description:
-      'Scalable cloud infrastructure and migration services to optimize your business operations and reduce costs.',
-    features: ['AWS/Azure/GCP', 'DevOps Setup', 'Auto Scaling', 'Security First'],
-    color: 'from-green-500 to-blue-600',
-    path: '/services/cloud-solutions',
-  },
-  {
-    icon: Database,
-    title: 'Data Analytics',
-    description:
-      'Transform your data into actionable insights with advanced analytics and business intelligence solutions.',
-    features: ['Data Visualization', 'ML Models', 'Real-time Analytics', 'Custom Dashboards'],
-    color: 'from-orange-500 to-red-600',
-    path: '/services/data-analytics',
-  },
-  {
-    icon: Shield,
-    title: 'Cybersecurity',
-    description:
-      'Comprehensive security solutions to protect your digital assets and ensure compliance with industry standards.',
-    features: ['Security Audits', 'Penetration Testing', 'Compliance', '24/7 Monitoring'],
-    color: 'from-red-500 to-purple-600',
-    path: '/services/cybersecurity',
-  },
-  {
-    icon: Zap,
-    title: 'Digital Transformation',
-    description:
-      'End-to-end digital transformation services to modernize your business processes and technology stack.',
-    features: ['Process Automation', 'Legacy Migration', 'Training & Support', 'Change Management'],
-    color: 'from-yellow-500 to-orange-600',
-    path: '/services/digital-transformation',
-  },
-];
+// Map icon names to actual Lucide icons
+const iconMap: Record<string, LucideIcon> = {
+  Code,
+  Smartphone,
+  Cloud,
+  Database,
+  Shield,
+  Zap,
+  Lightbulb,
+  PenTool,
+  Rocket,
+};
 
+// Process steps data
 const processSteps = [
   {
     icon: Lightbulb,
@@ -121,14 +83,38 @@ const processSteps = [
 const Services = () => {
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [services, setServices] = useState<Service[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const contactPhone = useMemo(() => '+919876543210', []);
-  const contactEmail = useMemo(() => 'hello@cloudnova.com', []);
+  const contactPhone = useMemo(() => '+916263716688', []);
+  const contactEmail = useMemo(() => 'trinextgen@gmail.com', []);
 
-  const scrollToContact = () => {
-    const element = document.getElementById('contact');
-    element?.scrollIntoView({ behavior: 'smooth' });
-  };
+  // Fetch services from backend
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        setLoading(true);
+        const servicesData = await serviceApi.getAllServices();
+        
+        // Transform the data to match our Service interface
+        const transformedServices = servicesData.map((service: any) => ({
+          ...service,
+          path: `/services/${service._id}`,
+          icon: service.icon // Keep the icon name as string for mapping
+        }));
+        
+        setServices(transformedServices);
+      } catch (err) {
+        setError('Failed to load services. Please try again later.');
+        console.error('Error fetching services:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchServices();
+  }, []);
 
   const openContactFor = (service: Service) => {
     setSelectedService(service);
@@ -140,16 +126,51 @@ const Services = () => {
   };
 
   const onWhatsApp = () => {
-    const text = encodeURIComponent(`Hi CloudNova, I'm interested in ${selectedService?.title}.`);
+    const text = encodeURIComponent(`Hi TriNextGen, I'm interested in ${selectedService?.title}.`);
     const phoneDigits = contactPhone.replace(/[^\d]/g, '');
     window.open(`https://wa.me/${phoneDigits}?text=${text}`, '_blank');
   };
 
   const onEmail = () => {
     const subject = encodeURIComponent(`Interested in ${selectedService?.title}`);
-    const body = encodeURIComponent('Hi CloudNova,%0D%0A%0D%0AI am interested in your services.');
-    window.location.href = `mailto:${contactEmail}?subject=${subject}&body=${body}`;
+    const body = encodeURIComponent('Hi TriNextGen,%0D%0A%0D%0AI am interested in your services.');
+    window.open(`mailto:${contactEmail}?subject=${subject}&body=${body}`, '_blank');
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background text-foreground">
+        <Navbar />
+        <main className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-lg text-muted-foreground">Loading services...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background text-foreground">
+        <Navbar />
+        <main className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center max-w-md">
+            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6">
+              <h2 className="text-2xl font-bold text-destructive mb-2">Error Loading Services</h2>
+              <p className="text-muted-foreground mb-4">{error}</p>
+              <Button onClick={() => window.location.reload()} variant="outline">
+                Try Again
+              </Button>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -181,10 +202,11 @@ const Services = () => {
             {/* Services Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
               {services.map((service, index) => {
-                const IconComponent = service.icon;
+                // Get the icon component from the icon name
+                const IconComponent = iconMap[service.icon] || Code;
                 return (
                   <Card
-                    key={service.title}
+                    key={service._id}
                     className={`shadow-medium hover:shadow-strong transition-all duration-500 border-0 bg-card/80 backdrop-blur-sm group hover:-translate-y-2 animate-scale-in hover-lift hover-glow card-professional`}
                     style={{ animationDelay: `${index * 0.1}s` }}
                   >
@@ -267,20 +289,16 @@ const Services = () => {
                   <p className="text-muted-foreground leading-relaxed text-lg">
                     Let's discuss your project requirements and create a custom solution that drives your business forward.
                   </p>
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <Button
-                      onClick={scrollToContact}
-                      size="lg"
-                      className="bg-white text-primary hover:bg-gray-50 transition-smooth px-8 py-4"
-                    >
-                      Start Your Project
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
+                    <Button asChild size="lg" className="bg-primary hover:bg-primary-dark px-8 py-4">
+                      <Link to="/contact">
+                        Contact Us
+                      </Link>
                     </Button>
-                    <Button
-                      variant="secondary"
-                      size="lg"
-                      className="bg-white text-primary hover:bg-gray-50 transition-smooth px-8 py-4"
-                    >
-                      Schedule Consultation
+                    <Button asChild variant="outline" size="lg" className="px-8 py-4">
+                      <Link to="/contact">
+                        Schedule Consultation
+                      </Link>
                     </Button>
                   </div>
                 </CardContent>
@@ -317,6 +335,7 @@ const Services = () => {
         </section>
       </main>
       <Footer />
+      <Chatbot />
     </div>
   );
 };

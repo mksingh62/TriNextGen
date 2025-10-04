@@ -8,7 +8,7 @@ import {
   Mail,
   ArrowUp
 } from 'lucide-react';
-import { services } from './Services';
+import { services } from '@/data/servicesData';
 
 const Footer = () => {
   const scrollToTop = () => {
@@ -31,7 +31,7 @@ const Footer = () => {
     { icon: Linkedin, href: '#', label: 'LinkedIn' },
     { icon: Twitter, href: '#', label: 'Twitter' },
     { icon: Github, href: '#', label: 'GitHub' },
-    { icon: Mail, href: 'mailto:hello@trinextgen.com', label: 'Email' },
+    { icon: Mail, href: 'mailto:trinextgen@gmail.com', label: 'Email' },
   ];
 
   return (
@@ -110,24 +110,26 @@ const Footer = () => {
               <div>
                 <p className="text-muted-foreground text-sm">Email</p>
                 <a 
-                  href="mailto:hello@trinextgen.com" 
+                  href="mailto:trinextgen@gmail.com" 
                   className="text-primary hover:underline font-medium"
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
-                  hello@trinextgen.com
+                  trinextgen@gmail.com
                 </a>
               </div>
               <div>
                 <p className="text-muted-foreground text-sm">Phone</p>
                 <a 
-                  href="tel:+15551234567" 
+                  href="tel:+916263716688" 
                   className="text-primary hover:underline font-medium"
                 >
-                  +1 (555) 123-4567
+                  +91 62637 16688
                 </a>
               </div>
               <div>
                 <p className="text-muted-foreground text-sm">Office</p>
-                <p className="text-foreground font-medium">San Francisco, CA</p>
+                <p className="text-foreground font-medium">Raipur, CG</p>
               </div>
             </div>
           </div>

@@ -7,12 +7,21 @@ export default defineConfig({
   server: {
     host: "::",
     port: 8000,
-    allowedHosts: ["e37290769694.ngrok-free.app"],
+    // allowedHosts: ["e37290769694.ngrok-free.app"],
   },
   plugins: [react()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+    },
+  },
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    rollupOptions: {
+      output: {
+        manualChunks: undefined,
+      },
     },
   },
 });
