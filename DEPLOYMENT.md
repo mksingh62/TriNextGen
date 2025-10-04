@@ -14,7 +14,13 @@ FRONTEND_URL=https://tri-next-gen.vercel.app
 VITE_API_BASE=https://tri-next-gen.vercel.app
 ADMIN_EMAIL=trinextgen@gmail.com
 ADMIN_PASSWORD=password123
+JWT_SECRET=your_jwt_secret_key_here
 ```
+
+## Recent Fixes
+1. Removed deprecated MongoDB connection options (`useNewUrlParser`, `useUnifiedTopology`)
+2. Added missing `bcryptjs` and `jsonwebtoken` dependencies to backend
+3. Updated all MongoDB connection configurations to use modern syntax
 
 ## Deployment Steps
 
@@ -61,3 +67,4 @@ If you encounter issues:
 2. Verify all environment variables are set correctly
 3. Ensure MongoDB Atlas IP whitelist includes Vercel's IP ranges
 4. Check that the database user has proper permissions
+5. Run the dependency test script: `node backend/test-deps.js`
