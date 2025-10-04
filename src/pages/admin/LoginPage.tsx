@@ -21,30 +21,20 @@ const LoginPage = () => {
     setLoading(true);
 
     try {
-      // For now, we'll use mock authentication since we don't have the backend endpoint implemented
-      // When the backend is ready, we can uncomment the next lines and remove the mock authentication
-      // const response = await adminApi.login({ email, password });
-      // localStorage.setItem('adminToken', response.token);
+      // Use the actual backend API for authentication
+      const response = await adminApi.login({ email, password });
+      localStorage.setItem('adminToken', response.token);
       
-      // Mock authentication for demonstration
-      if (email === 'trinextgen@gmail.com' && password === 'password123') {
-        // Simulate token
-        const mockToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9';
-        localStorage.setItem('adminToken', mockToken);
-        
-        toast({
-          title: "Login Successful",
-          description: "Welcome back, Admin!",
-        });
-        
-        navigate('/admin/dashboard');
-      } else {
-        throw new Error('Invalid credentials');
-      }
-    } catch (error) {
+      toast({
+        title: "Login Successful",
+        description: "Welcome back, Admin!",
+      });
+      
+      navigate('/admin/dashboard');
+    } catch (error: any) {
       toast({
         title: "Login Failed",
-        description: "Invalid email or password. Please try again.",
+        description: error.message || "Invalid email or password. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -131,7 +121,7 @@ const LoginPage = () => {
         
         <div className="mt-6 text-center text-sm text-muted-foreground">
           <p>For demo purposes, use:</p>
-          <p className="font-mono">trinextgen@gmail.com / password123</p>
+          <p className="font-mono">trinextgen@gmail.com / triadminmk@2025</p>
         </div>
       </div>
     </div>

@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useNavigate } from 'react-router-dom';
-import { adminApi } from '@/lib/api';
+import { adminApi, serviceApi, careerApi } from '@/lib/api';
 import { 
   Users, 
   Mail, 
@@ -112,45 +112,23 @@ const AdminDashboard = () => {
     try {
       setLoading(true);
       
-      // Fetch services from backend
-      const servicesResponse = await fetch('http://localhost:5000/api/services');
-      const servicesData = await servicesResponse.json();
+      // Fetch services from backend using API utility
+      const servicesData = await serviceApi.getAllServices();
       setServices(servicesData);
       
-      // Fetch careers from backend
-      const careersResponse = await fetch('http://localhost:5000/api/careers');
-      const careersData = await careersResponse.json();
+      // Fetch careers from backend using API utility
+      const careersData = await careerApi.getAllCareers();
       setCareers(careersData);
       
-      // Fetch contacts from backend (you'll need to implement this endpoint)
-      // For now, we'll use mock data
-      const mockContacts: Contact[] = [
-        {
-          _id: '1',
-          name: 'John Doe',
-          email: 'john@example.com',
-          company: 'Tech Corp',
-          subject: 'Project Inquiry',
-          message: 'I would like to discuss a potential project with your team.',
-          date: '2023-06-15T10:30:00Z'
-        },
-        {
-          _id: '2',
-          name: 'Jane Smith',
-          email: 'jane@example.com',
-          subject: 'Partnership Opportunity',
-          message: 'Interested in exploring partnership opportunities for our upcoming product launch.',
-          date: '2023-06-14T14:45:00Z'
-        }
-      ];
-      setContacts(mockContacts);
+      // Fetch contacts from backend using API utility
+      const contactsData = await adminApi.getAllContacts(authToken);
+      setContacts(contactsData);
       
-      // Fetch applications from backend
-      const applicationsResponse = await fetch('http://localhost:5000/api/careers/applications');
-      const applicationsData = await applicationsResponse.json();
+      // Fetch applications from backend using API utility
+      const applicationsData = await careerApi.getAllApplications(authToken);
       setApplications(applicationsData);
-    } catch (err) {
-      setError('Failed to load dashboard data. Please try again later.');
+    } catch (err: any) {
+      setError(err.message || 'Failed to load dashboard data. Please try again later.');
       console.error('Error fetching dashboard data:', err);
     } finally {
       setLoading(false);
@@ -168,16 +146,17 @@ const AdminDashboard = () => {
     
     try {
       const method = editingServiceId ? 'PUT' : 'POST';
-      const url = editingServiceId 
-        ? `http://localhost:5000/api/services/${editingServiceId}` 
-        : 'http://localhost:5000/api/services';
+      const endpoint = editingServiceId 
+        ? `/api/services/${editingServiceId}` 
+        : '/api/services';
       
       const body = { 
         ...serviceForm, 
         features: serviceForm.features.split(',').map(f => f.trim()) 
       };
       
-      const response = await fetch(url, {
+      // Use the apiCall utility function from lib/api.ts
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}${endpoint}`, {
         method,
         headers: { 
           'Content-Type': 'application/json',
@@ -199,8 +178,8 @@ const AdminDashboard = () => {
       } else {
         throw new Error('Failed to save service');
       }
-    } catch (err) {
-      setError('Failed to save service. Please try again.');
+    } catch (err: any) {
+      setError(err.message || 'Failed to save service. Please try again.');
       console.error('Error saving service:', err);
     }
   };
@@ -218,7 +197,7 @@ const AdminDashboard = () => {
 
   const handleServiceDelete = async (id: string) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/services/${id}`, { 
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/services/${id}`, { 
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -230,8 +209,8 @@ const AdminDashboard = () => {
       } else {
         throw new Error('Failed to delete service');
       }
-    } catch (err) {
-      setError('Failed to delete service. Please try again.');
+    } catch (err: any) {
+      setError(err.message || 'Failed to delete service. Please try again.');
       console.error('Error deleting service:', err);
     }
   };
@@ -242,16 +221,17 @@ const AdminDashboard = () => {
     
     try {
       const method = editingCareerId ? 'PUT' : 'POST';
-      const url = editingCareerId 
-        ? `http://localhost:5000/api/careers/${editingCareerId}` 
-        : 'http://localhost:5000/api/careers';
+      const endpoint = editingCareerId 
+        ? `/api/careers/${editingCareerId}` 
+        : '/api/careers';
       
       const body = { 
         ...careerForm, 
         tags: careerForm.tags.split(',').map(t => t.trim()) 
       };
       
-      const response = await fetch(url, {
+      // Use the apiCall utility function from lib/api.ts
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}${endpoint}`, {
         method,
         headers: { 
           'Content-Type': 'application/json',
@@ -275,8 +255,8 @@ const AdminDashboard = () => {
       } else {
         throw new Error('Failed to save career');
       }
-    } catch (err) {
-      setError('Failed to save career. Please try again.');
+    } catch (err: any) {
+      setError(err.message || 'Failed to save career. Please try again.');
       console.error('Error saving career:', err);
     }
   };
@@ -296,7 +276,7 @@ const AdminDashboard = () => {
 
   const handleCareerDelete = async (id: string) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/careers/${id}`, { 
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/careers/${id}`, { 
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -308,8 +288,8 @@ const AdminDashboard = () => {
       } else {
         throw new Error('Failed to delete career');
       }
-    } catch (err) {
-      setError('Failed to delete career. Please try again.');
+    } catch (err: any) {
+      setError(err.message || 'Failed to delete career. Please try again.');
       console.error('Error deleting career:', err);
     }
   };
@@ -317,27 +297,16 @@ const AdminDashboard = () => {
   // Application status update
   const updateApplicationStatus = async (applicationId: string, status: Application['status']) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/careers/applications/${applicationId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ status })
-      });
+      await careerApi.updateApplicationStatus(token!, applicationId, status);
       
-      if (response.ok) {
-        // Update local state
-        setApplications(prev => 
-          prev.map(app => 
-            app._id === applicationId ? { ...app, status } : app
-          )
-        );
-      } else {
-        throw new Error('Failed to update application status');
-      }
-    } catch (err) {
-      setError('Failed to update application status. Please try again.');
+      // Update local state
+      setApplications(prev => 
+        prev.map(app => 
+          app._id === applicationId ? { ...app, status } : app
+        )
+      );
+    } catch (err: any) {
+      setError(err.message || 'Failed to update application status. Please try again.');
       console.error('Error updating application status:', err);
     }
   };
