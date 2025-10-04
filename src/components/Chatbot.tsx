@@ -138,22 +138,84 @@ const Chatbot = () => {
                               type: 'text'
                     };
 
+                    const currentInput = inputValue;
                     setMessages(prev => [...prev, userMessage]);
                     setInputValue('');
                     setIsTyping(true);
 
-                    // Simulate bot response
-                    setTimeout(() => {
-                              const botResponse: Message = {
-                                        id: (Date.now() + 1).toString(),
-                                        text: botResponses[Math.floor(Math.random() * botResponses.length)],
-                                        sender: 'bot',
-                                        timestamp: new Date(),
-                                        type: 'text'
-                              };
-                              setMessages(prev => [...prev, botResponse]);
-                              setIsTyping(false);
-                    }, 1500);
+                    // try {
+                    //           const response = await fetch('http://localhost:5000/chat-trinextgen', {
+                    //                     method: 'POST',
+                    //                     headers: {
+                    //                               'Content-Type': 'application/json',
+                    //                     },
+                    //                     body: JSON.stringify({ message: currentInput }),
+                    //           });
+
+                    //           if (!response.ok) {
+                    //                     throw new Error('Network response was not ok');
+                    //           }
+
+                    //           const data = await response.json();
+
+                    //           const botResponse: Message = {
+                    //                     id: (Date.now() + 1).toString(),
+                    //                     text: data.response, // Assuming the API returns { response: "..." }
+                    //                     sender: 'bot',
+                    //                     timestamp: new Date(),
+                    //                     type: 'text'
+                    //           };
+                    //           setMessages(prev => [...prev, botResponse]);
+                    // } catch (error) {
+                    //           console.error("Chatbot API error:", error);
+                    //           const errorResponse: Message = {
+                    //                     id: (Date.now() + 1).toString(),
+                    //                     text: "I'm sorry, but I'm having trouble connecting. Please try again later.",
+                    //                     sender: 'bot',
+                    //                     timestamp: new Date(),
+                    //                     type: 'text'
+                    //           };
+                    //           setMessages(prev => [...prev, errorResponse]);
+                    // } finally {
+                    //           setIsTyping(false);
+                    // }
+
+                    // try {
+                    //     setIsTyping(true);
+
+                    //     const response = await fetch('http://localhost:8080/predict', {
+                    //         method: 'POST',
+                    //         headers: { 'Content-Type': 'application/json' },
+                    //         body: JSON.stringify({ text: currentInput }), // <--- corrected
+                    //     });
+
+                    //     if (!response.ok) throw new Error('Network response was not ok');
+
+                    //     const data = await response.json();
+
+                    //     const botResponse: Message = {
+                    //         id: (Date.now() + 1).toString(),
+                    //         text: data.response,
+                    //         sender: 'bot',
+                    //         timestamp: new Date(),
+                    //         type: 'text'
+                    //     };
+
+                    //     setMessages(prev => [...prev, botResponse]);
+                    //     } catch (error) {
+                    //     console.error("Chatbot API error:", error);
+                    //     const errorResponse: Message = {
+                    //         id: (Date.now() + 1).toString(),
+                    //         text: "I'm sorry, but I'm having trouble connecting. Please try again later.",
+                    //         sender: 'bot',
+                    //         timestamp: new Date(),
+                    //         type: 'text'
+                    //     };
+                    //     setMessages(prev => [...prev, errorResponse]);
+                    //     } finally {
+                    //     setIsTyping(false);
+                    //     }
+
           };
 
           const handleQuickAction = (action: string) => {
