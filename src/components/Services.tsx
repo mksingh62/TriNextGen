@@ -184,7 +184,7 @@ const Services = () => {
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">
             Comprehensive Digital Solutions
           </h2>
-          <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+          <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed break-words hyphens-auto">
             We offer a full range of digital services to help your business thrive in the modern landscape.
             From concept to deployment, we've got you covered.
           </p>
@@ -196,26 +196,26 @@ const Services = () => {
             return (
               <Card 
                 key={service._id}
-                className="shadow-medium border-0 bg-card/80 backdrop-blur-sm hover:shadow-strong transition-all duration-300 hover-lift hover-glow card-professional"
+                className="shadow-medium border-0 bg-card/80 backdrop-blur-sm hover:shadow-strong transition-all duration-300 hover-lift hover-glow card-professional overflow-hidden"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
-                <CardHeader>
-                  <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center mb-4">
+                <CardHeader className="p-5 md:p-6">
+                  <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center mb-3 md:mb-4">
                     <IconComponent className="w-6 h-6 text-white" />
                   </div>
-                  <CardTitle className="text-xl font-bold text-foreground">
+                  <CardTitle className="text-lg md:text-xl font-bold text-foreground break-words">
                     {service.title}
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground mb-4">
+                <CardContent className="p-5 pt-0 md:p-6 md:pt-0">
+                  <p className="text-base md:text-muted-foreground md:text-base leading-snug md:leading-relaxed mb-4 break-words hyphens-auto">
                     {service.description}
                   </p>
                   <ul className="space-y-2">
                     {service.features.map((feature, idx) => (
                       <li key={idx} className="flex items-center">
                         <div className="w-1.5 h-1.5 bg-primary rounded-full mr-2"></div>
-                        <span className="text-sm text-foreground">{feature}</span>
+                        <span className="text-sm text-foreground break-words hyphens-auto">{feature}</span>
                       </li>
                     ))}
                   </ul>

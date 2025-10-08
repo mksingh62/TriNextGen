@@ -238,8 +238,8 @@ const Navbar = () => {
 
         {/* Mobile Navigation */}
         {isMobileMenuOpen && (
-          <div className="md:hidden absolute top-16 left-0 right-0 bg-background/95 backdrop-blur-md border-b border-border shadow-medium">
-            <div className="px-2 pt-2 pb-3 space-y-1">
+          <div className="md:hidden absolute top-16 left-20 right-4 bg-background/95 backdrop-blur-md border border-border rounded-lg shadow-medium max-h-[calc(100vh-6rem)] overflow-y-auto">
+            <div className="px-3 pt-3 pb-3 space-y-1">
               {navItems.map((item) => {
                 const isSectionOnly = item.label === 'Home' || item.label === 'Contact';
                 if (isHome && isSectionOnly) {
@@ -265,33 +265,37 @@ const Navbar = () => {
                 );
               })}
               {/* Mobile Menu Links for other items */}
-              <Link to="/about" className="block px-3 py-2 text-base font-medium text-foreground hover:text-primary hover:bg-secondary transition-smooth w-full text-left" onClick={() => setIsMobileMenuOpen(false)}>About</Link>
-
+              <Link to="/about" className="block px-3 py-1.5 text-sm font-medium text-foreground hover:text-primary hover:bg-secondary transition-smooth w-full text-left rounded" onClick={() => setIsMobileMenuOpen(false)}>About</Link>
+              <Link to="/services" className="block px-3 py-1.5 text-sm font-medium text-foreground hover:text-primary hover:bg-secondary transition-smooth w-full text-left rounded" onClick={() => setIsMobileMenuOpen(false)}>Services</Link>
               {/* Mobile Services Links */}
-              <div className="px-3 py-2 text-base font-medium text-foreground">Services</div>
-              <div className="pl-6">
+              {/* <div className="px-3 py-1.5 text-sm font-medium text-foreground">Services</div>
+              <div className="pl-4 space-y-0.5">
                 {services.map((service) => (
-                  <Link key={service.path} to={service.path} className="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-primary hover:bg-secondary transition-smooth w-full text-left" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Link key={service.path} to={service.path} className="block px-3 py-1 text-xs font-medium text-muted-foreground hover:text-primary hover:bg-secondary transition-smooth w-full text-left rounded" onClick={() => setIsMobileMenuOpen(false)}>
                     {service.title}
                   </Link>
                 ))}
-              </div>
+              </div> */}
               <Link
                 to="/careers"
-                className="block px-3 py-2 text-base font-medium text-foreground hover:text-primary hover:bg-secondary transition-smooth w-full text-left"
+                className="block px-3 py-1.5 text-sm font-medium text-foreground hover:text-primary hover:bg-secondary transition-smooth w-full text-left rounded"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Careers
               </Link>
-              <button onClick={() => { scrollToSection('contact'); setIsMobileMenuOpen(false); }} className="block px-3 py-2 text-base font-medium text-foreground hover:text-primary hover:bg-secondary transition-smooth w-full text-left">Contact</button>
-              <div className="mt-4 space-y-2">
-                <ThemeToggle />
-                <Button
-                  onClick={() => (isHome ? scrollToSection('contact') : setIsMobileMenuOpen(false))}
-                  className="w-full bg-primary hover:bg-primary-dark"
-                >
-                  Get Started
-                </Button>
+              <button onClick={() => { scrollToSection('contact'); setIsMobileMenuOpen(false); }} className="block px-3 py-1.5 text-sm font-medium text-foreground hover:text-primary hover:bg-secondary transition-smooth w-full text-left rounded">Contact</button>
+              <div className="mt-2 pt-2 border-t border-border space-y-1.5">
+                {/* <div className="px-3">
+                  <ThemeToggle />
+                </div> */}
+                <div className="px-3">
+                  <Button
+                    onClick={() => (isHome ? scrollToSection('contact') : setIsMobileMenuOpen(false))}
+                    className="w-full bg-primary hover:bg-primary-dark text-sm py-2"
+                  >
+                    Get Started
+                  </Button>
+                </div>
               </div>
             </div>
           </div>

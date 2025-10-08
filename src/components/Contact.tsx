@@ -130,7 +130,7 @@ const Contact = () => {
   ];
 
   return (
-    <section id="contact" className="py-20 bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('/web_background.jpg')" }}>
+    <section id="contact" className="py-20 bg-cover bg-center md:bg-fixed" style={{ backgroundImage: "url('/web_background.jpg')" }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16 animate-fade-in">
@@ -140,7 +140,7 @@ const Contact = () => {
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">
             Let's Start Building Together
           </h2>
-          <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+          <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed break-words hyphens-auto">
             Ready to transform your ideas into reality? Get in touch with our team to discuss your project
             and discover how TriNextGen can help accelerate your digital transformation.
           </p>
@@ -154,10 +154,10 @@ const Contact = () => {
               return (
                 <Card
                   key={info.label}
-                  className={`shadow-medium border-0 bg-card/80 backdrop-blur-sm hover:shadow-strong transition-all duration-300 animate-slide-up hover-lift hover-glow card-professional`}
+                  className={`shadow-medium border-0 bg-card/80 backdrop-blur-sm hover:shadow-strong transition-all duration-300 animate-slide-up hover-lift hover-glow card-professional overflow-hidden`}
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  <CardContent className="p-6">
+                  <CardContent className="p-5 md:p-6">
                     <div className="flex items-start space-x-4">
                       <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
                         <IconComponent className="w-6 h-6 text-white" />
@@ -167,16 +167,16 @@ const Contact = () => {
                         {info.label === 'Email' ? (
                           <a 
                             href={`mailto:${info.value}`} 
-                            className="text-primary font-medium mb-1 hover:underline"
+                            className="text-primary font-medium mb-1 hover:underline break-words"
                             target="_blank"
                             rel="noopener noreferrer"
                           >
                             {info.value}
                           </a>
                         ) : (
-                          <p className="text-primary font-medium mb-1">{info.value}</p>
+                          <p className="text-primary font-medium mb-1 break-words hyphens-auto">{info.value}</p>
                         )}
-                        <p className="text-sm text-muted-foreground">{info.description}</p>
+                        <p className="text-sm text-muted-foreground break-words hyphens-auto">{info.description}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -211,15 +211,15 @@ const Contact = () => {
 
           {/* Contact Form */}
           <div className="lg:col-span-2">
-            <Card className="shadow-medium border-0 bg-card/80 backdrop-blur-sm animate-scale-in hover-lift hover-glow card-professional">
-              <CardHeader>
-                <CardTitle className="text-2xl font-bold text-foreground">
+            <Card className="shadow-medium border-0 bg-card/80 backdrop-blur-sm animate-scale-in hover-lift hover-glow card-professional overflow-hidden">
+              <CardHeader className="p-5 md:p-6">
+                <CardTitle className="text-xl md:text-2xl font-bold text-foreground">
                   Send us a Message
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <CardContent className="p-5 md:p-6 pt-0">
+                <form onSubmit={handleSubmit} className="space-y-5 md:space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
                     <div className="space-y-2">
                       <Label htmlFor="name" className="text-foreground font-medium">
                         Full Name *
@@ -291,7 +291,7 @@ const Contact = () => {
                       value={formData.message}
                       onChange={(e) => handleInputChange('message', e.target.value)}
                       placeholder="Tell us about your project requirements, timeline, and goals..."
-                      rows={6}
+                      rows={5}
                       className={`transition-smooth resize-none ${errors.message ? 'border-red-500 focus:ring-red-500' : ''}`}
                     />
                     {errors.message && (
