@@ -61,7 +61,7 @@ const Hero = () => {
   ];
 
   const achievements = [
-    { emoji: '👥', number: '500+', label: 'Happy Clients' },
+    { emoji: '👥', number: '50+', label: 'Happy Clients' },
     { emoji: '🏆', number: '50+', label: 'Awards Won' },
     { emoji: '📈', number: '99%', label: 'Success Rate' },
     { emoji: '🌍', number: '25+', label: 'Countries Served' }
@@ -230,15 +230,15 @@ const Hero = () => {
           <div className="rounded-lg py-12 text-card-foreground shadow-sm shadow-medium border-0 bg-card/50 backdrop-blur-sm">
             <div className="text-center max-w-5xl mx-auto">
               <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-12">
-                From Vision to Velocity — Together
+                Where Business Meets Technology — TriNextGen
               </h2>
               <div className="text-left space-y-12">
                 <div className="space-y-6">
-                  <p className="text-lg text-muted-foreground leading-relaxed">
-                    You've done the hard part. You've got the idea, the clarity, the drive. You've researched the market, stayed up late planning, and you're ready to build.
-                  </p>
-                  <p className="text-lg text-muted-foreground leading-relaxed">
-                    But here's the truth most founders quietly face:
+                  <p className="text-lg text-foreground leading-relaxed">
+                    We craft innovative web, mobile, and IT solutions that empower businesses to grow faster, smarter, and stronger.   
+                    With future-ready technology and client-focused strategies, we transform your vision into digital success.                  </p>
+                  <p className="text-lg tex-foreground leading-relaxed">
+                    the truth most founders quietly face:
                   </p>
                   <div className="bg-gradient-to-r from-yellow-400/10 via-red-400/10 to-primary/10 p-6 rounded-xl border border-foreground/10 shadow-lg backdrop-blur-sm">
                     <div className="flex items-start gap-4">
@@ -246,23 +246,23 @@ const Hero = () => {
                         <Lightbulb className="w-6 h-6 text-yellow-400" />
                       </div>
                       <p className="text-lg font-medium text-foreground/90">
-                        <span className="font-bold text-yellow-300">87% of startups struggle</span> — not because their ideas are weak, but because <span className="font-bold text-foreground">execution takes too long.</span>
+                        <span className="font-bold text-green-500">87% of startups struggle</span> — not because their ideas are weak, but because <span className="font-bold text-foreground">execution takes too long.</span>
                       </p>
                     </div>
                   </div>
-                  <h3 className="text-2xl font-bold mt-8 mb-4" style={{ color: 'rgb(94, 250, 84)' }}>
-                    💚 That's Where We Come In.
+                  <h3 className="text-2xl font-bold mt-8 mb-4" style={{ color: 'rgba(0, 167, 173, 1)' }}>
+                     That's Where We Come In.
                   </h3>
-                  <p className="text-lg text-muted-foreground leading-relaxed">
-                    We're not just developers. We're your <span className="font-bold text-[#1125A1]">AI-powered product partners</span> — building alongside you like co-founders do.
+                  <p className="text-lg text-foreground leading-relaxed">
+                    We’re more than developers — <span className="font-bold text-[#1125A1]">we’re your startup’s growth partners.</span>
                   </p>
-                  <p className="text-lg text-muted-foreground leading-relaxed">
-                    In just <span className="font-bold text-[#1125A1]">6 weeks</span>, we bring your idea to life with a <span className="font-bold text-[#1125A1]">user-ready MVP</span> — that's fast, functional, and founder-approved.
+                  <p className="text-lg text-foreground leading-relaxed">
+                    In weeks <span className="font-bold text-[#1125A1]">not months</span>, we turn bold ideas into MVPs that are fast, functional, and <span className="font-bold text-[#1125A1]">ready to wow investors & users.</span> — that's fast, functional, and founder-approved.
                   </p>
                   <h3 className="text-2xl font-bold text-foreground mt-8 mb-4">
                     🤝 What Makes Us Different?
                   </h3>
-                  <p className="text-lg text-muted-foreground leading-relaxed">
+                  <p className="text-lg text-foreground leading-relaxed">
                     We don't wait months to "kick things off." We believe in building fast, iterating smart, and delivering real value early.
                   </p>
                   <div className="my-12">
