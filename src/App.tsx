@@ -12,10 +12,11 @@ import NotFound from "./pages/NotFound";
 import CookieConsent from "./components/CookieConsent";
 import About from "./pages/About";
 import Services from "./pages/Services";
+import OurProjects from "./pages/OurProjects";
 import LoginPage from "./pages/admin/LoginPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import BackendTest from "./components/BackendTest";
-import OurProjects from "./pages/OurProjects";
+
 
 const queryClient = new QueryClient();
 
