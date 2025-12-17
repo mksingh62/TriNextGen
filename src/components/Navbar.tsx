@@ -202,7 +202,7 @@ const Navbar = () => {
               </HoverDropdown>
 
               {/* Contact Dropdown */}
-              <HoverDropdown label="Contact" href="/#contact">
+              <HoverDropdown label="Contact" href="/contact">
                 <DropdownMenuContent align="start" className="bg-background/80 backdrop-blur-md border-border w-48 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
                   <DropdownMenuItem asChild>
                     <a href="mailto:trinextgen@gmail.com" className="flex items-center cursor-pointer" target="_blank" rel="noopener noreferrer">
