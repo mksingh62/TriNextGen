@@ -16,7 +16,7 @@ import OurProjects from "./pages/OurProjects";
 import LoginPage from "./pages/admin/LoginPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import BackendTest from "./components/BackendTest";
-
+import ContactPage from "@/pages/ContactPage";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +40,7 @@ const App = () => (
             } />
             {/* Careers route without Navbar and Footer since they are included in the component */}
             <Route path="/projects" element={<OurProjects />} />
+            <Route path="/contact" element={<ContactPage />} />
             <Route path="/careers" element={<Careers />} />
             <Route path="/about" element={
               <div className="min-h-screen flex flex-col">
