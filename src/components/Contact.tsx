@@ -119,7 +119,7 @@ const Contact = () => {
       icon: Phone,
       label: 'Phone',
       value: '+91 62637 16688',
-      description: 'Mon-Fri from 8am to 6pm'
+      description: 'Mon-Sun 24/7'
     },
     {
       icon: MapPin,
