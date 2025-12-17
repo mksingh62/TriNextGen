@@ -988,6 +988,75 @@ const handleProjectDelete = async (id: string) => {
           </CardContent>
         </Card>
 
+          {/* Contacts / Messages Section */}
+<div className="mb-8">
+  <Card>
+    <CardHeader>
+      <CardTitle className="flex items-center">
+        <MessageSquare className="w-5 h-5 mr-2" />
+        Contact Messages
+      </CardTitle>
+    </CardHeader>
+
+    <CardContent>
+      {contacts.length === 0 ? (
+        <p className="text-muted-foreground text-center py-4">
+          No contact messages found
+        </p>
+      ) : (
+        <div className="space-y-4 max-h-[400px] overflow-y-auto">
+          {contacts.map((contact) => (
+            <div
+              key={contact._id}
+              className="border rounded-lg p-4 bg-background"
+            >
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="font-semibold">{contact.name}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {contact.email}
+                  </p>
+                  {contact.company && (
+                    <p className="text-sm text-muted-foreground">
+                      Company: {contact.company}
+                    </p>
+                  )}
+                </div>
+
+                <span className="text-xs text-muted-foreground">
+                  {new Date(contact.date || "").toLocaleDateString()}
+                </span>
+              </div>
+
+              <div className="mt-3">
+                <p className="text-sm font-medium">
+                  Subject: {contact.subject}
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {contact.message}
+                </p>
+              </div>
+
+              <div className="mt-4 flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() =>
+                    window.open(`mailto:${contact.email}`, "_blank")
+                  }
+                >
+                  Reply
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </CardContent>
+  </Card>
+</div>
+
+
         </div>
       </div>
     </div>
