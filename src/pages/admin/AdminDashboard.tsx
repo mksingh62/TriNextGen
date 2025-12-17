@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { FolderKanban } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useNavigate } from 'react-router-dom';
@@ -61,6 +62,18 @@ interface Application {
   status: 'pending' | 'reviewed' | 'interview' | 'rejected' | 'hired';
   appliedAt: string;
 }
+interface Project {
+  _id: string;
+  title: string;
+  description: string;
+  features: string[];
+  techStack: string[];
+  category: string;
+  icon: string;
+  liveUrl?: string;
+  status: string;
+}
+
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -96,6 +109,21 @@ const AdminDashboard = () => {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);
 
+    // Projects
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
+  const [projectForm, setProjectForm] = useState({
+    title: '',
+    description: '',
+    features: '',
+    techStack: '',
+    category: '',
+    icon: '',
+    liveUrl: '',
+    status: 'Active'
+  });
+
+
   useEffect(() => {
     // Check if user is authenticated
     const storedToken = localStorage.getItem('adminToken');
@@ -127,6 +155,12 @@ const AdminDashboard = () => {
       // Fetch applications from backend using API utility
       const applicationsData = await careerApi.getAllApplications(authToken);
       setApplications(applicationsData);
+      // Fetch projects
+      const projectRes = await fetch(`${import.meta.env.VITE_API_BASE}/api/projects`);
+      const projectData = await projectRes.json();
+      setProjects(projectData);
+
+      
     } catch (err: any) {
       setError(err.message || 'Failed to load dashboard data. Please try again later.');
       console.error('Error fetching dashboard data:', err);
@@ -310,6 +344,67 @@ const AdminDashboard = () => {
       console.error('Error updating application status:', err);
     }
   };
+// Project CRUD
+const handleProjectSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  const method = editingProjectId ? 'PUT' : 'POST';
+  const endpoint = editingProjectId
+    ? `/api/projects/${editingProjectId}`
+    : '/api/projects';
+
+  const body = {
+    ...projectForm,
+    features: projectForm.features.split(',').map(f => f.trim()),
+    techStack: projectForm.techStack.split(',').map(t => t.trim())
+  };
+
+  await fetch(`${import.meta.env.VITE_API_BASE}${endpoint}`, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(body)
+  });
+
+  setProjectForm({
+    title: '',
+    description: '',
+    features: '',
+    techStack: '',
+    category: '',
+    icon: '',
+    liveUrl: '',
+    status: 'Active'
+  });
+  setEditingProjectId(null);
+  fetchDashboardData(token!);
+};
+
+const handleProjectEdit = (project: Project) => {
+  setProjectForm({
+    title: project.title,
+    description: project.description,
+    features: project.features.join(', '),
+    techStack: project.techStack.join(', '),
+    category: project.category,
+    icon: project.icon,
+    liveUrl: project.liveUrl || '',
+    status: project.status
+  });
+  setEditingProjectId(project._id);
+};
+
+const handleProjectDelete = async (id: string) => {
+  await fetch(`${import.meta.env.VITE_API_BASE}/api/projects/${id}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+  fetchDashboardData(token!);
+};
 
   // Get status icon
   const getStatusIcon = (status: Application['status']) => {
@@ -455,6 +550,19 @@ const AdminDashboard = () => {
               </div>
             </CardContent>
           </Card>
+          <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                <FolderKanban className="w-6 h-6 text-primary" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm text-muted-foreground">Projects</p>
+                <p className="text-2xl font-bold">{projects.length}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>        
         </div>
 
         {/* Applications Section */}
@@ -790,6 +898,63 @@ const AdminDashboard = () => {
               </div>
             </CardContent>
           </Card>
+          <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <FolderKanban className="w-5 h-5 mr-2" />
+              Manage Projects
+            </CardTitle>
+          </CardHeader>
+        
+          <CardContent>
+            <form onSubmit={handleProjectSubmit} className="space-y-4 mb-6">
+              <Input placeholder="Title" value={projectForm.title}
+                onChange={e => setProjectForm(f => ({ ...f, title: e.target.value }))} required />
+        
+              <Input placeholder="Description" value={projectForm.description}
+                onChange={e => setProjectForm(f => ({ ...f, description: e.target.value }))} required />
+        
+              <Input placeholder="Features (comma separated)" value={projectForm.features}
+                onChange={e => setProjectForm(f => ({ ...f, features: e.target.value }))} />
+        
+              <Input placeholder="Tech Stack (comma separated)" value={projectForm.techStack}
+                onChange={e => setProjectForm(f => ({ ...f, techStack: e.target.value }))} />
+        
+              <Input placeholder="Category" value={projectForm.category}
+                onChange={e => setProjectForm(f => ({ ...f, category: e.target.value }))} />
+        
+              <Input placeholder="Icon" value={projectForm.icon}
+                onChange={e => setProjectForm(f => ({ ...f, icon: e.target.value }))} />
+        
+              <Input placeholder="Live URL" value={projectForm.liveUrl}
+                onChange={e => setProjectForm(f => ({ ...f, liveUrl: e.target.value }))} />
+        
+              <Button type="submit">
+                {editingProjectId ? 'Update Project' : 'Create Project'}
+              </Button>
+            </form>
+        
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {projects.map(project => (
+                <div key={project._id} className="border rounded-lg p-4 flex justify-between">
+                  <div>
+                    <h3 className="font-semibold">{project.title}</h3>
+                    <p className="text-sm text-muted-foreground">{project.category}</p>
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button size="sm" variant="outline" onClick={() => handleProjectEdit(project)}>
+                      Edit
+                    </Button>
+                    <Button size="sm" variant="destructive" onClick={() => handleProjectDelete(project._id)}>
+                      Delete
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
         </div>
       </div>
     </div>
