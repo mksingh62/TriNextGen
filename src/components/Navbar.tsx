@@ -82,11 +82,13 @@ const Navbar = () => {
 
   const navItems = [
     { label: 'Home', id: 'hero', href: '/' },
+    { label: 'Projects', id: 'projects', href: '/projects' },
   ];
 
   const resolveHref = (label: string, href: string, id: string) => {
     if (label === 'About') return '/about';
     if (label === 'Services') return '/services';
+    if (label === 'Projects') return '/projects';
     return `${href}#${id}`;
   };
 
