@@ -146,6 +146,11 @@ const OurProjects = () => {
                 return (
                   <Card
                     key={project._id}
+                      onClick={() => {
+                        if (project.liveUrl) {
+                          window.open(project.liveUrl, "_blank", "noopener,noreferrer");
+                        }
+                      }}
                     className="group shadow-medium hover:shadow-strong transition-all duration-500 border-0 bg-card/80 backdrop-blur-sm hover:-translate-y-2 animate-scale-in"
                     style={{ animationDelay: `${index * 0.1}s` }}
                   >
