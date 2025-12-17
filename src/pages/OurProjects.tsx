@@ -149,15 +149,21 @@ const OurProjects = () => {
                     className="group shadow-medium hover:shadow-strong transition-all duration-500 border-0 bg-card/80 backdrop-blur-sm hover:-translate-y-2 animate-scale-in"
                     style={{ animationDelay: `${index * 0.1}s` }}
                   >
-                    <CardHeader>
-                      <div className="w-14 h-14 rounded-xl bg-primary p-3 mb-4 group-hover:scale-110 transition-transform">
-                        <Icon className="w-full h-full text-white" />
-                      </div>
+                  <CardHeader>
+                    {/* Project Image */}
+                    <div className="w-full h-40 rounded-xl overflow-hidden mb-4 bg-muted">
+                      <img
+                        src={project.icon}
+                        alt={project.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    </div>
+                  
+                    <CardTitle className="text-xl font-bold mb-2">
+                      {project.title}
+                    </CardTitle>
+                  </CardHeader>
 
-                      <CardTitle className="text-xl font-bold mb-2">
-                        {project.title}
-                      </CardTitle>
-                    </CardHeader>
 
                     <CardContent>
                       <p className="text-muted-foreground mb-4">
