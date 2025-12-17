@@ -137,3 +137,10 @@ export const adminApi = {
     });
   },
 };
+export const projectApi = {
+  getAllProjects: async () => {
+    const res = await fetch(`${API_BASE_URL}/api/projects`);
+    if (!res.ok) throw new Error("Failed to fetch projects");
+    return res.json();
+  },
+};
