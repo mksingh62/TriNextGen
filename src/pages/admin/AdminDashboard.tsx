@@ -118,7 +118,7 @@ const AdminDashboard = () => {
     features: '',
     techStack: '',
     category: '',
-    icon: '',
+    icon: null as File | null, 
     liveUrl: '',
     status: 'Active'
   });
@@ -344,7 +344,6 @@ const AdminDashboard = () => {
       console.error('Error updating application status:', err);
     }
   };
-// Project CRUD
 const handleProjectSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
 
@@ -353,19 +352,31 @@ const handleProjectSubmit = async (e: React.FormEvent) => {
     ? `/api/projects/${editingProjectId}`
     : '/api/projects';
 
-  const body = {
-    ...projectForm,
-    features: projectForm.features.split(',').map(f => f.trim()),
-    techStack: projectForm.techStack.split(',').map(t => t.trim())
-  };
+  const formData = new FormData();
+  formData.append("title", projectForm.title);
+  formData.append("description", projectForm.description);
+  formData.append(
+    "features",
+    JSON.stringify(projectForm.features.split(",").map(f => f.trim()))
+  );
+  formData.append(
+    "techStack",
+    JSON.stringify(projectForm.techStack.split(",").map(t => t.trim()))
+  );
+  formData.append("category", projectForm.category);
+  formData.append("liveUrl", projectForm.liveUrl);
+  formData.append("status", projectForm.status);
+
+  if (projectForm.icon) {
+    formData.append("icon", projectForm.icon); // 🔥 FILE
+  }
 
   await fetch(`${import.meta.env.VITE_API_BASE}${endpoint}`, {
     method,
     headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`
+      Authorization: `Bearer ${token}` // ❌ Content-Type MAT lagao
     },
-    body: JSON.stringify(body)
+    body: formData
   });
 
   setProjectForm({
@@ -374,10 +385,11 @@ const handleProjectSubmit = async (e: React.FormEvent) => {
     features: '',
     techStack: '',
     category: '',
-    icon: '',
+    icon: null,
     liveUrl: '',
     status: 'Active'
   });
+
   setEditingProjectId(null);
   fetchDashboardData(token!);
 };
@@ -389,7 +401,7 @@ const handleProjectEdit = (project: Project) => {
     features: project.features.join(', '),
     techStack: project.techStack.join(', '),
     category: project.category,
-    icon: project.icon,
+    icon: null,
     liveUrl: project.liveUrl || '',
     status: project.status
   });
@@ -923,8 +935,18 @@ const handleProjectDelete = async (id: string) => {
               <Input placeholder="Category" value={projectForm.category}
                 onChange={e => setProjectForm(f => ({ ...f, category: e.target.value }))} />
         
-              <Input placeholder="Icon" value={projectForm.icon}
-                onChange={e => setProjectForm(f => ({ ...f, icon: e.target.value }))} />
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) =>
+                  setProjectForm(f => ({
+                    ...f,
+                    icon: e.target.files ? e.target.files[0] : null
+                  }))
+                }
+                className="block w-full text-sm"
+              />
+              />
         
               <Input placeholder="Live URL" value={projectForm.liveUrl}
                 onChange={e => setProjectForm(f => ({ ...f, liveUrl: e.target.value }))} />
