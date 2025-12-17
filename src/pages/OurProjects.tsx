@@ -146,4 +146,94 @@ const OurProjects = () => {
                 return (
                   <Card
                     key={project._id}
-                    className="group shadow-medium hover:shadow-strong transition-all duration-500 border-0 bg-card/80 backdrop-blur
+                    className="group shadow-medium hover:shadow-strong transition-all duration-500 border-0 bg-card/80 backdrop-blur-sm hover:-translate-y-2 animate-scale-in"
+                    style={{ animationDelay: `${index * 0.1}s` }}
+                  >
+                    <CardHeader>
+                      <div className="w-14 h-14 rounded-xl bg-primary p-3 mb-4 group-hover:scale-110 transition-transform">
+                        <Icon className="w-full h-full text-white" />
+                      </div>
+
+                      <CardTitle className="text-xl font-bold mb-2">
+                        {project.title}
+                      </CardTitle>
+                    </CardHeader>
+
+                    <CardContent>
+                      <p className="text-muted-foreground mb-4">
+                        {project.description}
+                      </p>
+
+                      {/* Tech Stack */}
+                      <div className="flex flex-wrap gap-2 mb-6">
+                        {project.techStack.map((tech, i) => (
+                          <Badge key={i} variant="outline">
+                            {tech}
+                          </Badge>
+                        ))}
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex gap-3">
+                        <Button
+                          asChild
+                          variant="ghost"
+                          className="flex-1 hover:bg-primary hover:text-primary-foreground"
+                        >
+                          <Link to={`/projects/${project._id}`}>
+                            View Details
+                            <ArrowRight className="ml-2 w-4 h-4" />
+                          </Link>
+                        </Button>
+
+                        {project.liveUrl && (
+                          <Button
+                            asChild
+                            variant="outline"
+                            className="px-3"
+                          >
+                            <a
+                              href={project.liveUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                            </a>
+                          </Button>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+
+            {/* CTA */}
+            <div className="mt-20 text-center animate-slide-up">
+              <Card className="bg-card/50 backdrop-blur-sm border-0">
+                <CardContent className="p-8">
+                  <h3 className="text-2xl md:text-3xl font-bold mb-4">
+                    Have a Project in Mind?
+                  </h3>
+                  <p className="text-muted-foreground mb-6">
+                    Let’s collaborate and turn your idea into a
+                    high-impact digital product.
+                  </p>
+                  <Button asChild size="lg">
+                    <Link to="/contact">Start a Project</Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+
+          </div>
+        </section>
+      </main>
+
+      <Footer />
+      <Chatbot />
+    </div>
+  );
+};
+
+export default OurProjects;
