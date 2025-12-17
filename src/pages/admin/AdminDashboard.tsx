@@ -932,8 +932,20 @@ const handleProjectDelete = async (id: string) => {
               <Input placeholder="Tech Stack (comma separated)" value={projectForm.techStack}
                 onChange={e => setProjectForm(f => ({ ...f, techStack: e.target.value }))} />
         
-              <Input placeholder="Category" value={projectForm.category}
-                onChange={e => setProjectForm(f => ({ ...f, category: e.target.value }))} />
+              <select
+                value={projectForm.category}
+                onChange={(e) =>
+                  setProjectForm(f => ({ ...f, category: e.target.value }))
+                }
+                className="w-full border rounded px-3 py-2"
+                required
+              >
+                <option value="">Select Category</option>
+                <option value="Web">Web</option>
+                <option value="Mobile">Mobile</option>
+                <option value="Cloud">Cloud</option>
+              </select>
+
         
               <input
                 type="file"
