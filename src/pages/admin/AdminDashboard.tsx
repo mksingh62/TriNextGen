@@ -946,7 +946,6 @@ const handleProjectDelete = async (id: string) => {
                 }
                 className="block w-full text-sm"
               />
-              />
         
               <Input placeholder="Live URL" value={projectForm.liveUrl}
                 onChange={e => setProjectForm(f => ({ ...f, liveUrl: e.target.value }))} />
