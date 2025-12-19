@@ -43,7 +43,8 @@ const ClientDetail = () => {
     deadline: "",
     description: "",
   });
-
+  /* ---------- EDIT PROJECT ---------- */
+  const [editingProject, setEditingProject] = useState<any>(null);
   /* ---------- ADD PAYMENT FORM ---------- */
   const [paymentForm, setPaymentForm] = useState({
     projectId: "",
@@ -104,6 +105,34 @@ const ClientDetail = () => {
   };
 
   const totals = calculateTotals();
+
+    /* ---------- UPDATE PROJECT ---------- */
+  const handleUpdateProject = async (e: any) => {
+    e.preventDefault();
+
+    const totalAmount = Number(editingProject.totalAmount);
+    const advancePaid = Number(editingProject.advancePaid);
+
+    await fetch(
+      `${import.meta.env.VITE_API_BASE}/api/projects/${editingProject._id}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          ...editingProject,
+          totalAmount,
+          advancePaid,
+          remainingAmount: totalAmount - advancePaid,
+        }),
+      }
+    );
+
+    setEditingProject(null);
+    fetchData();
+  };
 
   /* ---------- ADD PROJECT ---------- */
   const handleAddProject = async (e: any) => {
@@ -466,9 +495,9 @@ const ClientDetail = () => {
                     </div>
 
                     <div className="flex gap-2">
-                      <Button variant="ghost" size="sm">
-                        <Edit2 className="w-4 h-4" />
-                      </Button>
+                  <Button size="sm" variant="ghost" onClick={() => setEditingProject(p)}>
+                    <Edit2 className="w-4 h-4" />
+                  </Button>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -667,6 +696,51 @@ const ClientDetail = () => {
             </Card>
           )}
         </div>
+      )}
+
+      {/* ---------- EDIT PROJECT ---------- */}
+      {editingProject && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Edit Project</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleUpdateProject} className="space-y-4">
+              <Input
+                value={editingProject.title}
+                onChange={(e) =>
+                  setEditingProject({ ...editingProject, title: e.target.value })
+                }
+              />
+              <Input
+                type="number"
+                value={editingProject.totalAmount}
+                onChange={(e) =>
+                  setEditingProject({ ...editingProject, totalAmount: e.target.value })
+                }
+              />
+              <Input
+                type="number"
+                value={editingProject.advancePaid}
+                onChange={(e) =>
+                  setEditingProject({ ...editingProject, advancePaid: e.target.value })
+                }
+              />
+              <Textarea
+                value={editingProject.description}
+                onChange={(e) =>
+                  setEditingProject({ ...editingProject, description: e.target.value })
+                }
+              />
+              <div className="flex gap-2">
+                <Button type="submit">Update</Button>
+                <Button variant="outline" onClick={() => setEditingProject(null)}>
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
