@@ -11,13 +11,13 @@ const ClientDetail = () => {
 useEffect(() => {
   const token = localStorage.getItem("adminToken");
 
-  fetch(`${API_BASE}/api/clients/${id}`, {
+  fetch(`${import.meta.env.VITE_API_BASE}/api/clients/${id}`, {
     headers: { Authorization: `Bearer ${token}` },
   })
     .then(res => res.json())
     .then(setClient);
 
-  fetch(`${API_BASE}/api/clients/${id}/projects`, {
+  fetch(`${import.meta.env.VITE_API_BASE}/api/clients/${id}/projects`, {
     headers: { Authorization: `Bearer ${token}` },
   })
     .then(res => res.json())
