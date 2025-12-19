@@ -208,27 +208,32 @@ const ClientDetail = () => {
   };
 
 const handleDeleteProject = async (projectId: string) => {
-  if (!confirm("Are you sure?")) return;
+  if (!window.confirm("Are you sure you want to delete this project? This will also delete all associated payments.")) return;
 
-  // 1. Update UI immediately (Optimistic)
-  const previousProjects = [...projects];
-  setProjects(projects.filter(p => p._id !== projectId));
-
+  setIsActionLoading(true);
   try {
     const res = await fetch(`${import.meta.env.VITE_API_BASE}/api/projects/${projectId}`, {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { 
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json" 
+      },
     });
 
-    if (!res.ok) {
-      // 2. If backend fails, roll back the UI
-      setProjects(previousProjects);
-      alert("Failed to delete on server");
+    if (res.ok) {
+      // Update local state immediately after successful server response
+      setProjects((prev) => prev.filter((p) => p._id !== projectId));
+      // Refresh totals and other data
+      fetchData();
+    } else {
+      const errorData = await res.json();
+      alert(`Error: ${errorData.message || "Failed to delete"}`);
     }
-    // 3. Refresh totals/client data
-    fetchData(); 
   } catch (error) {
-    setProjects(previousProjects);
+    console.error("Delete error:", error);
+    alert("Network error. Please try again.");
+  } finally {
+    setIsActionLoading(false);
   }
 };
   /* ---------- PAYMENT OPERATIONS ---------- */
