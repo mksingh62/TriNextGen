@@ -208,22 +208,29 @@ const ClientDetail = () => {
   };
 
 const handleDeleteProject = async (projectId: string) => {
-  if (!confirm("Delete this project?")) return;
+  if (!confirm("Are you sure?")) return;
 
-  const res = await fetch(`${import.meta.env.VITE_API_BASE}/api/projects/${projectId}`, {
-    method: "DELETE",
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  // 1. Update UI immediately (Optimistic)
+  const previousProjects = [...projects];
+  setProjects(projects.filter(p => p._id !== projectId));
 
-  if (res.ok) {
-    // Re-fetch or filter state
-    setProjects(projects.filter(p => p._id !== projectId));
-  } else {
-    const errorData = await res.json();
-    alert(errorData.message || "Delete failed");
+  try {
+    const res = await fetch(`${import.meta.env.VITE_API_BASE}/api/projects/${projectId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!res.ok) {
+      // 2. If backend fails, roll back the UI
+      setProjects(previousProjects);
+      alert("Failed to delete on server");
+    }
+    // 3. Refresh totals/client data
+    fetchData(); 
+  } catch (error) {
+    setProjects(previousProjects);
   }
 };
-
   /* ---------- PAYMENT OPERATIONS ---------- */
 
   const handleAddPayment = async (e: React.FormEvent) => {
