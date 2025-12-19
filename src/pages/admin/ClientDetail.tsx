@@ -8,15 +8,21 @@ const ClientDetail = () => {
   const [client, setClient] = useState<any>(null);
   const [projects, setProjects] = useState<any[]>([]);
 
-  useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_BASE}/api/clients/${id}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    }).then(r => r.json()).then(setClient);
+useEffect(() => {
+  const token = localStorage.getItem("adminToken");
 
-    fetch(`${import.meta.env.VITE_API_BASE}/api/client-projects/${id}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    }).then(r => r.json()).then(setProjects);
-  }, [id, token]);
+  fetch(`${API_BASE}/api/clients/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+    .then(res => res.json())
+    .then(setClient);
+
+  fetch(`${API_BASE}/api/clients/${id}/projects`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+    .then(res => res.json())
+    .then(setProjects);
+}, [id]);
 
   if (!client) return null;
 
