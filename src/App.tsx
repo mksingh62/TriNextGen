@@ -20,6 +20,7 @@ import ContactPage from "@/pages/ContactPage";
 import ClientsList from "@/pages/admin/ClientsList";
 import ClientDetail from "@/pages/admin/ClientDetail";
 import AdminRoute from "./components/AdminRoute";
+import ClientForm from "@/pages/admin/ClientForm";
 
 const queryClient = new QueryClient();
 
