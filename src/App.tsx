@@ -19,6 +19,7 @@ import BackendTest from "./components/BackendTest";
 import ContactPage from "@/pages/ContactPage";
 import ClientsList from "@/pages/admin/ClientsList";
 import ClientDetail from "@/pages/admin/ClientDetail";
+import AdminRoute from "./components/AdminRoute";
 
 const queryClient = new QueryClient();
 
