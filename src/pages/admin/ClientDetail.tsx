@@ -177,12 +177,23 @@ const ClientDetail = () => {
       ? `${import.meta.env.VITE_API_BASE}/api/projects/${editingProject?._id}`
       : `${import.meta.env.VITE_API_BASE}/api/clients/${id}/projects`;
 
-    const payload = isEdit ? editingProject : {
+const payload = isEdit
+  ? {
+      title: editingProject!.title,
+      totalAmount: Number(editingProject!.totalAmount),
+      advancePaid: Number(editingProject!.advancePaid),
+      status: editingProject!.status,
+      liveUrl: editingProject!.liveUrl,
+      description: editingProject!.description,
+      startDate: editingProject!.startDate,
+      deadline: editingProject!.deadline,
+    }
+  : {
       ...projectForm,
       totalAmount: Number(projectForm.totalAmount),
       advancePaid: Number(projectForm.advancePaid),
-      remainingAmount: Number(projectForm.totalAmount) - Number(projectForm.advancePaid)
     };
+
 
     try {
       const res = await fetch(url, {
