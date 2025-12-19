@@ -1,106 +1,69 @@
+import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 const ClientForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const token = localStorage.getItem("adminToken");
 
   const [form, setForm] = useState({
     name: "",
     email: "",
     phone: "",
     address: "",
-    status: "Active",
+    status: "Active"
   });
 
-  const token = localStorage.getItem("adminToken");
-
-  // 🚨 HARD GUARD
   useEffect(() => {
-    if (!token) {
-      navigate("/admin/login");
-      return;
-    }
+    if (!token) return navigate("/admin/login");
 
-    // EDIT MODE → load client
     if (id) {
       fetch(`${import.meta.env.VITE_API_BASE}/api/clients/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` }
       })
         .then(res => res.json())
-        .then(data => setForm(data));
+        .then(setForm);
     }
   }, [id, token, navigate]);
 
-  const handleSubmit = async (e: any) => {
+  const submit = async (e: any) => {
     e.preventDefault();
 
-    if (!token) {
-      navigate("/admin/login");
-      return;
-    }
-
-    const url = id
-      ? `/api/clients/${id}`
-      : `/api/clients`;
-
-    const method = id ? "PUT" : "POST";
-
-    const res = await fetch(
-      `${import.meta.env.VITE_API_BASE}${url}`,
+    await fetch(
+      `${import.meta.env.VITE_API_BASE}/api/clients${id ? `/${id}` : ""}`,
       {
-        method,
+        method: id ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // ✅ THIS WAS MISSING / FAILING
+          Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify(form)
       }
     );
-
-    if (!res.ok) {
-      alert("Unauthorized or failed to save client");
-      return;
-    }
 
     navigate("/admin/clients");
   };
 
   return (
     <div className="max-w-xl mx-auto py-8">
-      <h1 className="text-2xl font-bold mb-6">
+      <h1 className="text-xl font-bold mb-4">
         {id ? "Edit Client" : "Add Client"}
       </h1>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <Input
-          placeholder="Client Name"
-          value={form.name}
-          onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-          required
-        />
-        <Input
-          placeholder="Email"
-          value={form.email}
-          onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-        />
-        <Input
-          placeholder="Phone"
-          value={form.phone}
-          onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
-        />
-        <Input
-          placeholder="Address"
-          value={form.address}
-          onChange={e => setForm(f => ({ ...f, address: e.target.value }))}
-        />
+      <form onSubmit={submit} className="space-y-4">
+        <Input placeholder="Name" value={form.name}
+          onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+        <Input placeholder="Email" value={form.email}
+          onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
+        <Input placeholder="Phone" value={form.phone}
+          onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
+        <Input placeholder="Address" value={form.address}
+          onChange={e => setForm(f => ({ ...f, address: e.target.value }))} />
 
         <Button type="submit">
-          {id ? "Update Client" : "Create Client"}
+          {id ? "Update" : "Create"}
         </Button>
       </form>
     </div>
