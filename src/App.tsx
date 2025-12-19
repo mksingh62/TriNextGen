@@ -69,6 +69,23 @@ const App = () => (
             {/* Admin routes without Navbar and Footer */}
             <Route path="/admin/login" element={<LoginPage />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route
+              path="/admin/clients"
+              element={
+                <AdminRoute>
+                  <ClientsList />
+                </AdminRoute>
+              }
+            />
+            
+            <Route
+              path="/admin/clients/:id"
+              element={
+                <AdminRoute>
+                  <ClientDetail />
+                </AdminRoute>
+              }
+            />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <CookieConsent />
