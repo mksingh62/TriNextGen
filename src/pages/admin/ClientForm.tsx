@@ -4,9 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 const ClientForm = () => {
-  const { id } = useParams(); // edit mode if id exists
+  const { id } = useParams();
   const navigate = useNavigate();
-  const token = localStorage.getItem("adminToken");
 
   const [form, setForm] = useState({
     name: "",
@@ -16,33 +15,57 @@ const ClientForm = () => {
     status: "Active",
   });
 
-  // 🔁 Edit mode – fetch client
-  useEffect(() => {
-    if (!id) return;
+  const token = localStorage.getItem("adminToken");
 
-    fetch(`${import.meta.env.VITE_API_BASE}/api/clients/${id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then(res => res.json())
-      .then(data => setForm(data));
-  }, [id, token]);
+  // 🚨 HARD GUARD
+  useEffect(() => {
+    if (!token) {
+      navigate("/admin/login");
+      return;
+    }
+
+    // EDIT MODE → load client
+    if (id) {
+      fetch(`${import.meta.env.VITE_API_BASE}/api/clients/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then(res => res.json())
+        .then(data => setForm(data));
+    }
+  }, [id, token, navigate]);
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
 
-    const method = id ? "PUT" : "POST";
+    if (!token) {
+      navigate("/admin/login");
+      return;
+    }
+
     const url = id
       ? `/api/clients/${id}`
       : `/api/clients`;
 
-    await fetch(`${import.meta.env.VITE_API_BASE}${url}`, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(form),
-    });
+    const method = id ? "PUT" : "POST";
+
+    const res = await fetch(
+      `${import.meta.env.VITE_API_BASE}${url}`,
+      {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // ✅ THIS WAS MISSING / FAILING
+        },
+        body: JSON.stringify(form),
+      }
+    );
+
+    if (!res.ok) {
+      alert("Unauthorized or failed to save client");
+      return;
+    }
 
     navigate("/admin/clients");
   };
