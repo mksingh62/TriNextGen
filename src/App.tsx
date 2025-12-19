@@ -87,6 +87,10 @@ const App = () => (
                 </AdminRoute>
               }
             />
+
+<Route path="/admin/clients/new" element={<ClientForm />} />
+<Route path="/admin/clients/:id/edit" element={<ClientForm />} />
+
             <Route path="*" element={<NotFound />} />
           </Routes>
           <CookieConsent />
