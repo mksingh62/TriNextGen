@@ -1,10 +1,22 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { IndianRupee, FolderKanban, Plus } from "lucide-react";
+import {
+  IndianRupee,
+  FolderKanban,
+  Plus,
+  Wallet,
+  CreditCard,
+  TrendingUp,
+} from "lucide-react";
 
 const ClientDetail = () => {
   const { id } = useParams();
@@ -14,32 +26,32 @@ const ClientDetail = () => {
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  /* ---------- ADD PROJECT FORM ---------- */
+  /* ---------------- ADD PROJECT FORM ---------------- */
   const [projectForm, setProjectForm] = useState({
     title: "",
+    dealAmount: "",
+    advance: "",
     earnings: "",
-    status: "Active",
     liveUrl: "",
+    status: "Active",
   });
 
-  /* ---------- FETCH DATA ---------- */
+  /* ---------------- FETCH DATA ---------------- */
   const fetchData = async () => {
     const headers = { Authorization: `Bearer ${token}` };
 
-    const clientRes = await fetch(
+    const c = await fetch(
       `${import.meta.env.VITE_API_BASE}/api/clients/${id}`,
       { headers }
-    );
-    const clientData = await clientRes.json();
-    setClient(clientData);
+    ).then((r) => r.json());
 
-    const projectRes = await fetch(
+    const p = await fetch(
       `${import.meta.env.VITE_API_BASE}/api/clients/${id}/projects`,
       { headers }
-    );
-    const projectData = await projectRes.json();
-    setProjects(Array.isArray(projectData) ? projectData : []);
+    ).then((r) => r.json());
 
+    setClient(c);
+    setProjects(Array.isArray(p) ? p : []);
     setLoading(false);
   };
 
@@ -47,8 +59,8 @@ const ClientDetail = () => {
     fetchData();
   }, [id]);
 
-  /* ---------- ADD PROJECT ---------- */
-  const handleAddProject = async (e: any) => {
+  /* ---------------- ADD PROJECT ---------------- */
+  const addProject = async (e: any) => {
     e.preventDefault();
 
     await fetch(
@@ -61,6 +73,8 @@ const ClientDetail = () => {
         },
         body: JSON.stringify({
           ...projectForm,
+          dealAmount: Number(projectForm.dealAmount),
+          advance: Number(projectForm.advance),
           earnings: Number(projectForm.earnings),
         }),
       }
@@ -68,143 +82,145 @@ const ClientDetail = () => {
 
     setProjectForm({
       title: "",
+      dealAmount: "",
+      advance: "",
       earnings: "",
-      status: "Active",
       liveUrl: "",
+      status: "Active",
     });
 
-    fetchData(); // refresh client + projects
+    fetchData();
   };
 
   if (loading) {
     return (
-      <div className="container mx-auto py-8 text-muted-foreground">
-        Loading client details...
+      <div className="container py-8 text-muted-foreground">
+        Loading client dashboard...
       </div>
     );
   }
 
   if (!client) return null;
 
+  const totalDeal = projects.reduce(
+    (s, p) => s + (p.dealAmount || 0),
+    0
+  );
+  const totalAdvance = projects.reduce(
+    (s, p) => s + (p.advance || 0),
+    0
+  );
+  const totalPaid = projects.reduce(
+    (s, p) => s + (p.earnings || 0),
+    0
+  );
+
+  const balance = totalDeal - totalPaid;
+
   return (
     <div className="container mx-auto py-8 space-y-8">
-      {/* ---------- CLIENT SUMMARY ---------- */}
+      {/* ================= CLIENT SUMMARY ================= */}
       <Card>
-        <CardContent className="p-6 flex flex-col md:flex-row justify-between gap-6">
+        <CardContent className="p-6 grid md:grid-cols-4 gap-6">
           <div>
             <h1 className="text-2xl font-bold">{client.name}</h1>
             <p className="text-muted-foreground">{client.email}</p>
-            <Badge className="mt-2">{client.status || "Active"}</Badge>
+            <Badge className="mt-2">{client.status}</Badge>
           </div>
 
-          <div className="flex gap-6 text-sm">
-            <div className="flex items-center gap-1">
-              <FolderKanban className="w-4 h-4" />
-              {projects.length} Projects
-            </div>
-            <div className="flex items-center gap-1 font-medium">
-              <IndianRupee className="w-4 h-4" />
-              {client.totalEarnings || 0}
-            </div>
-          </div>
+          <Summary label="Total Deal" value={totalDeal} icon={TrendingUp} />
+          <Summary label="Advance" value={totalAdvance} icon={Wallet} />
+          <Summary label="Paid" value={totalPaid} icon={CreditCard} />
         </CardContent>
       </Card>
 
-      {/* ---------- ADD PROJECT ---------- */}
+      {/* ================= ADD PROJECT ================= */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Plus className="w-5 h-5" />
-            Add Project
+            <Plus className="w-5 h-5" /> Add Project
           </CardTitle>
         </CardHeader>
-
         <CardContent>
           <form
-            onSubmit={handleAddProject}
-            className="grid md:grid-cols-4 gap-4"
+            onSubmit={addProject}
+            className="grid md:grid-cols-3 gap-4"
           >
-            <Input
-              placeholder="Project Title"
+            <Input placeholder="Project Title" required
               value={projectForm.title}
-              onChange={(e) =>
-                setProjectForm((f) => ({
-                  ...f,
-                  title: e.target.value,
-                }))
-              }
-              required
-            />
+              onChange={e => setProjectForm(f => ({ ...f, title: e.target.value }))} />
 
-            <Input
-              placeholder="Earnings"
-              type="number"
+            <Input placeholder="Deal Amount" type="number" required
+              value={projectForm.dealAmount}
+              onChange={e => setProjectForm(f => ({ ...f, dealAmount: e.target.value }))} />
+
+            <Input placeholder="Advance" type="number"
+              value={projectForm.advance}
+              onChange={e => setProjectForm(f => ({ ...f, advance: e.target.value }))} />
+
+            <Input placeholder="Paid Amount" type="number"
               value={projectForm.earnings}
-              onChange={(e) =>
-                setProjectForm((f) => ({
-                  ...f,
-                  earnings: e.target.value,
-                }))
-              }
-              required
-            />
+              onChange={e => setProjectForm(f => ({ ...f, earnings: e.target.value }))} />
 
-            <Input
-              placeholder="Live URL (optional)"
+            <Input placeholder="Live URL"
               value={projectForm.liveUrl}
-              onChange={(e) =>
-                setProjectForm((f) => ({
-                  ...f,
-                  liveUrl: e.target.value,
-                }))
-              }
-            />
+              onChange={e => setProjectForm(f => ({ ...f, liveUrl: e.target.value }))} />
 
-            <Button type="submit">Add</Button>
+            <Button type="submit">Add Project</Button>
           </form>
         </CardContent>
       </Card>
 
-      {/* ---------- PROJECT LIST ---------- */}
+      {/* ================= PROJECT LIST ================= */}
       <div>
-        <h2 className="text-xl font-semibold mb-4">
+        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+          <FolderKanban className="w-5 h-5" />
           Projects ({projects.length})
         </h2>
 
-        {projects.length === 0 ? (
-          <p className="text-muted-foreground">
-            No projects added yet.
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {projects.map((p) => (
+        <div className="space-y-3">
+          {projects.map((p) => {
+            const pending = (p.dealAmount || 0) - (p.earnings || 0);
+
+            return (
               <Card key={p._id}>
-                <CardContent className="p-4 flex justify-between items-center">
+                <CardContent className="p-4 grid md:grid-cols-5 gap-4">
                   <div>
-                    <h3 className="font-medium">{p.title}</h3>
-                    {p.liveUrl && (
-                      <a
-                        href={p.liveUrl}
-                        target="_blank"
-                        className="text-sm text-blue-600"
-                      >
-                        Live Link
-                      </a>
-                    )}
+                    <h3 className="font-semibold">{p.title}</h3>
+                    <Badge variant="outline">{p.status}</Badge>
                   </div>
 
-                  <div className="font-semibold flex items-center gap-1">
-                    <IndianRupee className="w-4 h-4" />
-                    {p.earnings}
-                  </div>
+                  <Money label="Deal" value={p.dealAmount} />
+                  <Money label="Advance" value={p.advance} />
+                  <Money label="Paid" value={p.earnings} />
+                  <Money label="Balance" value={pending} />
                 </CardContent>
               </Card>
-            ))}
-          </div>
-        )}
+            );
+          })}
+        </div>
       </div>
     </div>
   );
 };
+
+/* ================= REUSABLE ================= */
+
+const Summary = ({ label, value, icon: Icon }: any) => (
+  <div className="flex items-center gap-3">
+    <Icon className="w-6 h-6 text-primary" />
+    <div>
+      <p className="text-sm text-muted-foreground">{label}</p>
+      <p className="font-bold">₹ {value || 0}</p>
+    </div>
+  </div>
+);
+
+const Money = ({ label, value }: any) => (
+  <div>
+    <p className="text-xs text-muted-foreground">{label}</p>
+    <p className="font-semibold">₹ {value || 0}</p>
+  </div>
+);
 
 export default ClientDetail;
