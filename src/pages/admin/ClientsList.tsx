@@ -1,16 +1,18 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 const ClientsList = () => {
   const [clients, setClients] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  /* ---------------- FETCH CLIENTS ---------------- */
   useEffect(() => {
     const token = localStorage.getItem("adminToken");
 
-    // 🚨 Hard guard – no token
+    // 🚨 No token → login
     if (!token) {
       navigate("/admin/login");
       return;
@@ -24,9 +26,8 @@ const ClientsList = () => {
       },
     })
       .then(async (res) => {
-        // ❌ Ignore unauthorized duplicate calls
         if (res.status === 401 || res.status === 403) {
-          console.warn("Clients API unauthorized (duplicate call ignored)");
+          console.warn("Unauthorized (ignored – strict mode)");
           return [];
         }
 
@@ -34,9 +35,7 @@ const ClientsList = () => {
         return Array.isArray(data) ? data : [];
       })
       .then((data) => {
-        if (isMounted) {
-          setClients(data);
-        }
+        if (isMounted) setClients(data);
       })
       .catch((err) => {
         console.error("Clients API error:", err);
@@ -50,6 +49,23 @@ const ClientsList = () => {
     };
   }, [navigate]);
 
+  /* ---------------- DELETE CLIENT ---------------- */
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this client?")) return;
+
+    const token = localStorage.getItem("adminToken");
+
+    await fetch(`${import.meta.env.VITE_API_BASE}/api/clients/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    // remove from UI
+    setClients((prev) => prev.filter((c) => c._id !== id));
+  };
+
   /* ---------------- UI ---------------- */
 
   if (loading) {
@@ -62,8 +78,15 @@ const ClientsList = () => {
 
   return (
     <div className="container mx-auto py-8">
-      <h1 className="text-2xl font-bold mb-6">Client Management</h1>
+      {/* HEADER */}
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Client Management</h1>
+        <Button onClick={() => navigate("/admin/clients/new")}>
+          + Add Client
+        </Button>
+      </div>
 
+      {/* EMPTY STATE */}
       {clients.length === 0 ? (
         <p className="text-muted-foreground">No clients found</p>
       ) : (
@@ -71,23 +94,59 @@ const ClientsList = () => {
           {clients.map((client) => (
             <Card
               key={client._id}
-              className="cursor-pointer hover:shadow-lg transition"
-              onClick={() => navigate(`/admin/clients/${client._id}`)}
+              className="hover:shadow-lg transition"
             >
               <CardContent className="p-4">
-                <h3 className="font-semibold text-lg">{client.name}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {client.email}
-                </p>
-                <p className="text-sm">{client.phone}</p>
+                {/* CLIENT INFO */}
+                <div
+                  className="cursor-pointer"
+                  onClick={() =>
+                    navigate(`/admin/clients/${client._id}`)
+                  }
+                >
+                  <h3 className="font-semibold text-lg">
+                    {client.name}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {client.email}
+                  </p>
+                  <p className="text-sm">{client.phone}</p>
 
-                <div className="flex justify-between mt-3 text-sm">
-                  <span>Status: {client.status || "Active"}</span>
-                  <span>Projects: {client.projectsCount || 0}</span>
+                  <div className="flex justify-between mt-3 text-sm">
+                    <span>Status: {client.status || "Active"}</span>
+                    <span>Projects: {client.projectsCount || 0}</span>
+                  </div>
+
+                  <div className="mt-2 font-medium">
+                    ₹ {client.totalEarnings || 0}
+                  </div>
                 </div>
 
-                <div className="mt-2 font-medium">
-                  ₹ {client.totalEarnings || 0}
+                {/* ACTIONS */}
+                <div className="flex gap-2 mt-4">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(
+                        `/admin/clients/${client._id}/edit`
+                      );
+                    }}
+                  >
+                    Edit
+                  </Button>
+
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(client._id);
+                    }}
+                  >
+                    Delete
+                  </Button>
                 </div>
               </CardContent>
             </Card>
