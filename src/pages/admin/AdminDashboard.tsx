@@ -574,7 +574,24 @@ const handleProjectDelete = async (id: string) => {
               </div>
             </div>
           </CardContent>
-        </Card>        
+        </Card>  
+          <Card
+  onClick={() => navigate("/admin/clients")}
+  className="cursor-pointer hover:shadow-md transition"
+>
+  <CardContent className="p-6">
+    <div className="flex items-center">
+      <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+        <Users className="w-6 h-6 text-primary" />
+      </div>
+      <div className="ml-4">
+        <p className="text-sm text-muted-foreground">Clients</p>
+        <p className="text-2xl font-bold">Manage</p>
+      </div>
+    </div>
+  </CardContent>
+</Card>
+
         </div>
 
         {/* Applications Section */}
