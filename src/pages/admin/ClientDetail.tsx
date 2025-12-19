@@ -207,25 +207,22 @@ const ClientDetail = () => {
     }
   };
 
-  const handleDeleteProject = async (projectId: string) => {
-    if (!window.confirm("This will permanently delete the project and associated data. Continue?")) return;
+const handleDeleteProject = async (projectId: string) => {
+  if (!confirm("Delete this project?")) return;
 
-    // Optimistic UI update
-    const previousProjects = [...projects];
+  const res = await fetch(`${import.meta.env.VITE_API_BASE}/api/projects/${projectId}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (res.ok) {
+    // Re-fetch or filter state
     setProjects(projects.filter(p => p._id !== projectId));
-
-    try {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE}/api/projects/${projectId}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!res.ok) throw new Error("Delete failed");
-    } catch (error) {
-      setProjects(previousProjects);
-      alert("Could not delete project. Server error.");
-    }
-  };
+  } else {
+    const errorData = await res.json();
+    alert(errorData.message || "Delete failed");
+  }
+};
 
   /* ---------- PAYMENT OPERATIONS ---------- */
 
