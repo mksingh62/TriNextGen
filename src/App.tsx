@@ -17,6 +17,8 @@ import LoginPage from "./pages/admin/LoginPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import BackendTest from "./components/BackendTest";
 import ContactPage from "@/pages/ContactPage";
+import ClientsList from "@/pages/admin/ClientsList";
+import ClientDetail from "@/pages/admin/ClientDetail";
 
 const queryClient = new QueryClient();
 
