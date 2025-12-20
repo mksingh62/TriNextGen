@@ -1,42 +1,40 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState, useCallback, useMemo } from "react";
-
 // Shadcn UI Components
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
   DialogFooter,
-  DialogDescription 
+  DialogDescription
 } from "@/components/ui/dialog";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from "@/components/ui/table";
-import { 
-  Tabs, 
-  TabsContent, 
-  TabsList, 
-  TabsTrigger 
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger
 } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-
 // Icons
-import { 
-  IndianRupee, 
-  FolderKanban, 
-  Plus, 
-  TrendingUp, 
+import {
+  IndianRupee,
+  FolderKanban,
+  Plus,
+  TrendingUp,
   Wallet,
   Calendar,
   Edit2,
@@ -54,13 +52,26 @@ import {
   Loader2
 } from "lucide-react";
 
+// Recharts for visualization
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer
+} from 'recharts';
+
 /* -------------------------------------------------------------------------- */
-/* TYPES                                    */
+/* TYPES */
 /* -------------------------------------------------------------------------- */
+type ProjectCategory = "Web App" | "Mobile App" | "UI/UX Design" | "SEO/Marketing" | "Maintenance";
 
 interface Project {
   _id: string;
   title: string;
+  category?: ProjectCategory; // New optional field (for backward compatibility)
   totalAmount: number;
   advancePaid: number;
   remainingAmount: number;
@@ -109,6 +120,7 @@ const ClientDetail = () => {
   /* ---------- FORMS ---------- */
   const [projectForm, setProjectForm] = useState({
     title: "",
+    category: "Web App" as ProjectCategory,
     totalAmount: "",
     advancePaid: "",
     status: "Active",
@@ -130,20 +142,16 @@ const ClientDetail = () => {
   const fetchData = useCallback(async () => {
     if (!token) return;
     const headers = { Authorization: `Bearer ${token}` };
-
     try {
       const [clientRes, projectRes, paymentRes] = await Promise.all([
         fetch(`${import.meta.env.VITE_API_BASE}/api/clients/${id}`, { headers }),
         fetch(`${import.meta.env.VITE_API_BASE}/api/clients/${id}/projects`, { headers }),
         fetch(`${import.meta.env.VITE_API_BASE}/api/clients/${id}/payments`, { headers })
       ]);
-
       if (!clientRes.ok) throw new Error("Failed to load client");
-
       const clientData = await clientRes.json();
       const projectData = await projectRes.json();
       const paymentData = await paymentRes.json();
-
       setClient(clientData);
       setProjects(Array.isArray(projectData) ? projectData : []);
       setPayments(Array.isArray(paymentData) ? paymentData : []);
@@ -166,34 +174,41 @@ const ClientDetail = () => {
     return { totalDealValue, totalPaid, totalRemaining };
   }, [projects, payments]);
 
-  /* ---------- PROJECT OPERATIONS ---------- */
+  const chartData = useMemo(() => {
+    return projects.map(p => ({
+      name: p.title.substring(0, 12) + (p.title.length > 12 ? '...' : ''),
+      total: p.totalAmount,
+      paid: p.advancePaid,
+    }));
+  }, [projects]);
 
+  /* ---------- PROJECT OPERATIONS ---------- */
   const handleProjectSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsActionLoading(true);
-
     const isEdit = !!editingProject;
-    const url = isEdit 
+    const url = isEdit
       ? `${import.meta.env.VITE_API_BASE}/api/clientProject/${editingProject?._id}`
       : `${import.meta.env.VITE_API_BASE}/api/clients/${id}/projects`;
 
-const payload = isEdit
-  ? {
-      title: editingProject!.title,
-      totalAmount: Number(editingProject!.totalAmount),
-      advancePaid: Number(editingProject!.advancePaid),
-      status: editingProject!.status,
-      liveUrl: editingProject!.liveUrl,
-      description: editingProject!.description,
-      startDate: editingProject!.startDate,
-      deadline: editingProject!.deadline,
-    }
-  : {
-      ...projectForm,
-      totalAmount: Number(projectForm.totalAmount),
-      advancePaid: Number(projectForm.advancePaid),
-    };
-
+    const payload = isEdit
+      ? {
+          title: editingProject!.title,
+          category: editingProject!.category,
+          totalAmount: Number(editingProject!.totalAmount),
+          advancePaid: Number(editingProject!.advancePaid),
+          status: editingProject!.status,
+          liveUrl: editingProject!.liveUrl,
+          description: editingProject!.description,
+          startDate: editingProject!.startDate,
+          deadline: editingProject!.deadline,
+        }
+      : {
+          ...projectForm,
+          totalAmount: Number(projectForm.totalAmount),
+          advancePaid: Number(projectForm.advancePaid),
+          category: projectForm.category,
+        };
 
     try {
       const res = await fetch(url, {
@@ -204,7 +219,6 @@ const payload = isEdit
         },
         body: JSON.stringify(payload),
       });
-
       if (res.ok) {
         setIsProjectModalOpen(false);
         setEditingProject(null);
@@ -218,41 +232,36 @@ const payload = isEdit
     }
   };
 
-const handleDeleteProject = async (projectId: string) => {
-  if (!window.confirm("Are you sure you want to delete this project? This will also delete all associated payments.")) return;
-
-  setIsActionLoading(true);
-  try {
-    const res = await fetch(`${import.meta.env.VITE_API_BASE}/api/clientProject/${projectId}`, {
-      method: "DELETE",
-      headers: { 
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json" 
-      },
-    });
-
-    if (res.ok) {
-      // Update local state immediately after successful server response
-      setProjects((prev) => prev.filter((p) => p._id !== projectId));
-      // Refresh totals and other data
-      fetchData();
-    } else {
-      const errorData = await res.json();
-      alert(`Error: ${errorData.message || "Failed to delete"}`);
+  const handleDeleteProject = async (projectId: string) => {
+    if (!window.confirm("Are you sure you want to delete this project? This will also delete all associated payments.")) return;
+    setIsActionLoading(true);
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE}/api/clientProject/${projectId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+      });
+      if (res.ok) {
+        setProjects((prev) => prev.filter((p) => p._id !== projectId));
+        fetchData();
+      } else {
+        const errorData = await res.json();
+        alert(`Error: ${errorData.message || "Failed to delete"}`);
+      }
+    } catch (error) {
+      console.error("Delete error:", error);
+      alert("Network error. Please try again.");
+    } finally {
+      setIsActionLoading(false);
     }
-  } catch (error) {
-    console.error("Delete error:", error);
-    alert("Network error. Please try again.");
-  } finally {
-    setIsActionLoading(false);
-  }
-};
-  /* ---------- PAYMENT OPERATIONS ---------- */
+  };
 
+  /* ---------- PAYMENT OPERATIONS ---------- */
   const handleAddPayment = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsActionLoading(true);
-
     try {
       const res = await fetch(`${import.meta.env.VITE_API_BASE}/api/clients/${id}/payments`, {
         method: "POST",
@@ -265,7 +274,6 @@ const handleDeleteProject = async (projectId: string) => {
           amount: Number(paymentForm.amount),
         }),
       });
-
       if (res.ok) {
         setIsPaymentModalOpen(false);
         resetPaymentForm();
@@ -279,10 +287,9 @@ const handleDeleteProject = async (projectId: string) => {
   };
 
   /* ---------- HELPERS ---------- */
-
   const resetProjectForm = () => {
     setProjectForm({
-      title: "", totalAmount: "", advancePaid: "", status: "Active",
+      title: "", category: "Web App", totalAmount: "", advancePaid: "", status: "Active",
       liveUrl: "", startDate: "", deadline: "", description: ""
     });
   };
@@ -315,7 +322,6 @@ const handleDeleteProject = async (projectId: string) => {
 
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-8 animate-in fade-in duration-500">
-      
       {/* ---------- BREADCRUMB / TOP NAV ---------- */}
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
@@ -337,7 +343,6 @@ const handleDeleteProject = async (projectId: string) => {
             <CardTitle className="text-3xl">{projects.length}</CardTitle>
           </CardHeader>
         </Card>
-
         <Card className="border-l-4 border-l-emerald-500 shadow-sm">
           <CardHeader className="pb-2">
             <CardDescription className="flex items-center gap-2">
@@ -346,7 +351,6 @@ const handleDeleteProject = async (projectId: string) => {
             <CardTitle className="text-3xl text-emerald-600">₹{stats.totalPaid.toLocaleString()}</CardTitle>
           </CardHeader>
         </Card>
-
         <Card className="border-l-4 border-l-orange-500 shadow-sm">
           <CardHeader className="pb-2">
             <CardDescription className="flex items-center gap-2">
@@ -357,8 +361,33 @@ const handleDeleteProject = async (projectId: string) => {
         </Card>
       </div>
 
+      {/* ---------- NEW: CHART VISUALIZATION ---------- */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-primary" />
+            Financial Overview per Project
+          </CardTitle>
+          <CardDescription>Comparison between total contract value and amount collected</CardDescription>
+        </CardHeader>
+        <CardContent className="h-[300px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
+              <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
+              <YAxis fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `₹${value}`} />
+              <Tooltip
+                cursor={{ fill: 'transparent' }}
+                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+              />
+              <Bar dataKey="total" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Total Value" barSize={40} />
+              <Bar dataKey="paid" fill="#10b981" radius={[4, 4, 0, 0]} name="Paid Amount" barSize={40} />
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        
         {/* ---------- LEFT COLUMN: CLIENT PROFILE ---------- */}
         <div className="lg:col-span-1 space-y-6">
           <Card>
@@ -385,7 +414,6 @@ const handleDeleteProject = async (projectId: string) => {
               </div>
             </CardContent>
           </Card>
-
           <Card className="bg-primary/5 border-primary/20">
             <CardHeader>
               <CardTitle className="text-base">Quick Actions</CardTitle>
@@ -426,6 +454,11 @@ const handleDeleteProject = async (projectId: string) => {
                           <div>
                             <div className="flex items-center gap-3 mb-1">
                               <h3 className="text-xl font-bold">{project.title}</h3>
+                              {project.category && (
+                                <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">
+                                  {project.category}
+                                </Badge>
+                              )}
                               <Badge variant="secondary" className={getStatusColor(project.status)}>
                                 {project.status}
                               </Badge>
@@ -435,16 +468,16 @@ const handleDeleteProject = async (projectId: string) => {
                             </p>
                           </div>
                           <div className="flex gap-1">
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
+                            <Button
+                              variant="ghost"
+                              size="icon"
                               onClick={() => { setEditingProject(project); setIsProjectModalOpen(true); }}
                             >
                               <Edit2 className="w-4 h-4" />
                             </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
+                            <Button
+                              variant="ghost"
+                              size="icon"
                               className="text-destructive hover:bg-destructive/10"
                               onClick={() => handleDeleteProject(project._id)}
                             >
@@ -452,7 +485,6 @@ const handleDeleteProject = async (projectId: string) => {
                             </Button>
                           </div>
                         </div>
-
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
                           <div>
                             <p className="text-xs font-semibold text-muted-foreground uppercase">Value</p>
@@ -473,20 +505,18 @@ const handleDeleteProject = async (projectId: string) => {
                             </p>
                           </div>
                         </div>
-
                         <div className="space-y-2">
-                           <div className="flex justify-between text-xs font-medium uppercase text-muted-foreground">
-                              <span>Project Health</span>
-                              <span>{Math.round((project.advancePaid / project.totalAmount) * 100)}% Paid</span>
-                           </div>
-                           <Progress value={(project.advancePaid / project.totalAmount) * 100} className="h-2" />
+                          <div className="flex justify-between text-xs font-medium uppercase text-muted-foreground">
+                            <span>Project Health</span>
+                            <span>{Math.round((project.advancePaid / project.totalAmount) * 100)}% Paid</span>
+                          </div>
+                          <Progress value={(project.advancePaid / project.totalAmount) * 100} className="h-2" />
                         </div>
                       </div>
-                      
                       {project.liveUrl && (
-                        <a 
-                          href={project.liveUrl} 
-                          target="_blank" 
+                        <a
+                          href={project.liveUrl}
+                          target="_blank"
                           rel="noreferrer"
                           className="flex items-center justify-center gap-2 py-2 bg-muted/50 text-xs font-medium hover:bg-muted transition-colors border-t"
                         >
@@ -558,52 +588,73 @@ const handleDeleteProject = async (projectId: string) => {
               Define the scope, financials, and timeline for this undertaking.
             </DialogDescription>
           </DialogHeader>
-          
           <form onSubmit={handleProjectSubmit} className="space-y-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2 space-y-2">
                 <label className="text-sm font-semibold">Project Title</label>
-                <Input 
+                <Input
                   placeholder="e.g. E-commerce Overhaul"
                   value={editingProject ? editingProject.title : projectForm.title}
-                  onChange={(e) => editingProject 
-                    ? setEditingProject({...editingProject, title: e.target.value})
-                    : setProjectForm({...projectForm, title: e.target.value})
+                  onChange={(e) => editingProject
+                    ? setEditingProject({ ...editingProject, title: e.target.value })
+                    : setProjectForm({ ...projectForm, title: e.target.value })
                   }
-                  required 
+                  required
                 />
               </div>
+
+              {/* NEW: Category Select */}
+              <div className="space-y-2">
+                <label className="text-sm font-semibold">Project Category</label>
+                <select
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  value={editingProject ? editingProject.category || "Web App" : projectForm.category}
+                  onChange={(e) => {
+                    const val = e.target.value as ProjectCategory;
+                    editingProject
+                      ? setEditingProject({ ...editingProject, category: val })
+                      : setProjectForm({ ...projectForm, category: val });
+                  }}
+                >
+                  <option value="Web App">Web App</option>
+                  <option value="Mobile App">Mobile App</option>
+                  <option value="UI/UX Design">UI/UX Design</option>
+                  <option value="SEO/Marketing">SEO/Marketing</option>
+                  <option value="Maintenance">Maintenance</option>
+                </select>
+              </div>
+
               <div className="space-y-2">
                 <label className="text-sm font-semibold">Contract Value (₹)</label>
-                <Input 
+                <Input
                   type="number"
                   value={editingProject ? editingProject.totalAmount : projectForm.totalAmount}
-                  onChange={(e) => editingProject 
-                    ? setEditingProject({...editingProject, totalAmount: Number(e.target.value)})
-                    : setProjectForm({...projectForm, totalAmount: e.target.value})
+                  onChange={(e) => editingProject
+                    ? setEditingProject({ ...editingProject, totalAmount: Number(e.target.value) })
+                    : setProjectForm({ ...projectForm, totalAmount: e.target.value })
                   }
-                  required 
+                  required
                 />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-semibold">Advance Received (₹)</label>
-                <Input 
+                <Input
                   type="number"
                   value={editingProject ? editingProject.advancePaid : projectForm.advancePaid}
-                  onChange={(e) => editingProject 
-                    ? setEditingProject({...editingProject, advancePaid: Number(e.target.value)})
-                    : setProjectForm({...projectForm, advancePaid: e.target.value})
+                  onChange={(e) => editingProject
+                    ? setEditingProject({ ...editingProject, advancePaid: Number(e.target.value) })
+                    : setProjectForm({ ...projectForm, advancePaid: e.target.value })
                   }
                 />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-semibold">Status</label>
-                <select 
-                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                   value={editingProject ? editingProject.status : projectForm.status}
-                   onChange={(e) => editingProject 
-                    ? setEditingProject({...editingProject, status: e.target.value})
-                    : setProjectForm({...projectForm, status: e.target.value})
+                <select
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  value={editingProject ? editingProject.status : projectForm.status}
+                  onChange={(e) => editingProject
+                    ? setEditingProject({ ...editingProject, status: e.target.value })
+                    : setProjectForm({ ...projectForm, status: e.target.value })
                   }
                 >
                   <option value="Active">Active</option>
@@ -614,24 +665,24 @@ const handleDeleteProject = async (projectId: string) => {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-semibold">Deadline</label>
-                <Input 
+                <Input
                   type="date"
-                  value={editingProject ? editingProject.deadline?.split('T')[0] : projectForm.deadline}
-                  onChange={(e) => editingProject 
-                    ? setEditingProject({...editingProject, deadline: e.target.value})
-                    : setProjectForm({...projectForm, deadline: e.target.value})
+                  value={editingProject ? editingProject.deadline?.split('T')[0] || "" : projectForm.deadline}
+                  onChange={(e) => editingProject
+                    ? setEditingProject({ ...editingProject, deadline: e.target.value })
+                    : setProjectForm({ ...projectForm, deadline: e.target.value })
                   }
                 />
               </div>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-semibold">Description</label>
-              <Textarea 
+              <Textarea
                 placeholder="Briefly describe project goals..."
-                value={editingProject ? editingProject.description : projectForm.description}
-                onChange={(e) => editingProject 
-                    ? setEditingProject({...editingProject, description: e.target.value})
-                    : setProjectForm({...projectForm, description: e.target.value})
+                value={editingProject ? editingProject.description || "" : projectForm.description}
+                onChange={(e) => editingProject
+                  ? setEditingProject({ ...editingProject, description: e.target.value })
+                  : setProjectForm({ ...projectForm, description: e.target.value })
                 }
               />
             </div>
@@ -654,10 +705,10 @@ const handleDeleteProject = async (projectId: string) => {
           <form onSubmit={handleAddPayment} className="space-y-4 py-4">
             <div className="space-y-2">
               <label className="text-sm font-semibold">Select Project</label>
-              <select 
+              <select
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 value={paymentForm.projectId}
-                onChange={(e) => setPaymentForm({...paymentForm, projectId: e.target.value})}
+                onChange={(e) => setPaymentForm({ ...paymentForm, projectId: e.target.value })}
                 required
               >
                 <option value="">Select a project...</option>
@@ -667,32 +718,32 @@ const handleDeleteProject = async (projectId: string) => {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-semibold">Amount (₹)</label>
-                <Input 
+                <Input
                   type="number"
                   value={paymentForm.amount}
-                  onChange={(e) => setPaymentForm({...paymentForm, amount: e.target.value})}
+                  onChange={(e) => setPaymentForm({ ...paymentForm, amount: e.target.value })}
                   required
                 />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-semibold">Date</label>
-                <Input 
+                <Input
                   type="date"
                   value={paymentForm.paymentDate}
-                  onChange={(e) => setPaymentForm({...paymentForm, paymentDate: e.target.value})}
+                  onChange={(e) => setPaymentForm({ ...paymentForm, paymentDate: e.target.value })}
                   required
                 />
               </div>
             </div>
             <DialogFooter>
               <Button type="submit" disabled={isActionLoading}>
-                 Log Payment
+                {isActionLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Log Payment
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
-
     </div>
   );
 };
