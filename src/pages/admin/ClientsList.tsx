@@ -333,21 +333,20 @@ const ClientsList = () => {
           </CardContent>
         </Card>
       ) : (
-        /* CLIENT GRID */
-/* CLIENT GRID */
+   /* CLIENT GRID */
 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
   {filteredClients.map((client) => (
     <Card
       key={client._id}
-      {/* FIX: added 'relative' for absolute positioning of delete button */}
-      className="relative hover:shadow-xl transition-all duration-300 cursor-pointer group border-2 hover:border-primary overflow-hidden"
+      {/* FIX: added 'relative' class below */}
+      className="relative hover:shadow-xl transition-all duration-300 cursor-pointer group border-2 hover:border-primary"
       onClick={() => navigate(`/admin/clients/${client._id}`)}
     >
-      {/* DELETE BUTTON - Visible on Hover */}
+      {/* DELETE BUTTON - Placed as a direct child of Card for best absolute positioning */}
       <Button
         variant="ghost"
         size="icon"
-        {/* FIX: added 'z-10' and absolute positioning */}
+        {/* FIX: added 'z-10' and ensured top/right positioning */}
         className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:bg-destructive/10 z-10"
         disabled={isDeleting === client._id}
         onClick={(e) => handleDeleteClient(e, client._id, client.name)}
@@ -360,10 +359,10 @@ const ClientsList = () => {
       </Button>
 
       <CardContent className="p-6 space-y-4">
-        {/* TOP SECTION - pr-8 added to prevent name overlapping with trash icon */}
+        {/* TOP SECTION - pr-8 added to prevent text overlap with delete icon */}
         <div className="flex justify-between items-start pr-8">
           <div className="flex-1">
-            <h3 className="font-bold text-xl group-hover:text-primary transition-colors truncate">
+            <h3 className="font-bold text-xl group-hover:text-primary transition-colors">
               {client.name}
             </h3>
             
@@ -371,13 +370,19 @@ const ClientsList = () => {
               {client.email && (
                 <div className="flex items-center text-xs text-muted-foreground">
                   <Mail className="w-3 h-3 mr-1.5" />
-                  <span className="truncate">{client.email}</span>
+                  {client.email}
                 </div>
               )}
               {client.phone && (
                 <div className="flex items-center text-xs text-muted-foreground">
                   <Phone className="w-3 h-3 mr-1.5" />
                   {client.phone}
+                </div>
+              )}
+              {client.address && (
+                <div className="flex items-center text-xs text-muted-foreground">
+                  <MapPin className="w-3 h-3 mr-1.5" />
+                  {client.address}
                 </div>
               )}
             </div>
@@ -395,6 +400,12 @@ const ClientsList = () => {
             <span className="text-muted-foreground">Total Value</span>
             <span className="font-bold text-green-600">
               ₹{(client.totalDealValue || 0).toLocaleString()}
+            </span>
+          </div>
+          <div className="flex justify-between items-center text-sm">
+            <span className="text-muted-foreground">Advance</span>
+            <span className="font-semibold text-blue-600">
+              ₹{(client.totalAdvance || 0).toLocaleString()}
             </span>
           </div>
           <div className="flex justify-between items-center text-sm">
@@ -471,6 +482,7 @@ const ClientsList = () => {
     </Card>
   ))}
 </div>
+
       )}
     </div>
   );
