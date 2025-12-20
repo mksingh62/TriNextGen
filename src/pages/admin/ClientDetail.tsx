@@ -223,7 +223,7 @@ const handleDeleteProject = async (projectId: string) => {
 
   setIsActionLoading(true);
   try {
-    const res = await fetch(`${import.meta.env.VITE_API_BASE}/api/projects/${projectId}`, {
+    const res = await fetch(`${import.meta.env.VITE_API_BASE}/api/clientProject/${projectId}`, {
       method: "DELETE",
       headers: { 
         Authorization: `Bearer ${token}`,
