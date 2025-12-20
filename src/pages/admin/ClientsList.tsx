@@ -339,15 +339,15 @@ const ClientsList = () => {
   {filteredClients.map((client) => (
     <Card
       key={client._id}
-      {/* FIX: added 'relative' class below */}
-      className="relative hover:shadow-xl transition-all duration-300 cursor-pointer group border-2 hover:border-primary"
+      // FIX: Added 'relative' and 'overflow-hidden' to contain the absolute button
+      className="relative overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group border-2 hover:border-primary"
       onClick={() => navigate(`/admin/clients/${client._id}`)}
     >
-      {/* DELETE BUTTON - Placed as a direct child of Card for best absolute positioning */}
+      {/* DELETE BUTTON - Placed as a direct child of Card */}
       <Button
         variant="ghost"
         size="icon"
-        {/* FIX: added 'z-10' and ensured top/right positioning */}
+        // FIX: Added 'z-10' and ensured 'top-2 right-2' are within the relative card
         className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:bg-destructive/10 z-10"
         disabled={isDeleting === client._id}
         onClick={(e) => handleDeleteClient(e, client._id, client.name)}
@@ -360,10 +360,10 @@ const ClientsList = () => {
       </Button>
 
       <CardContent className="p-6 space-y-4">
-        {/* TOP SECTION - pr-8 added to prevent text overlap with delete icon */}
+        {/* TOP SECTION - Added 'pr-8' (padding right) to avoid text overlapping with the delete icon */}
         <div className="flex justify-between items-start pr-8">
           <div className="flex-1">
-            <h3 className="font-bold text-xl group-hover:text-primary transition-colors">
+            <h3 className="font-bold text-xl group-hover:text-primary transition-colors truncate">
               {client.name}
             </h3>
             
@@ -371,19 +371,13 @@ const ClientsList = () => {
               {client.email && (
                 <div className="flex items-center text-xs text-muted-foreground">
                   <Mail className="w-3 h-3 mr-1.5" />
-                  {client.email}
+                  <span className="truncate">{client.email}</span>
                 </div>
               )}
               {client.phone && (
                 <div className="flex items-center text-xs text-muted-foreground">
                   <Phone className="w-3 h-3 mr-1.5" />
                   {client.phone}
-                </div>
-              )}
-              {client.address && (
-                <div className="flex items-center text-xs text-muted-foreground">
-                  <MapPin className="w-3 h-3 mr-1.5" />
-                  {client.address}
                 </div>
               )}
             </div>
@@ -401,12 +395,6 @@ const ClientsList = () => {
             <span className="text-muted-foreground">Total Value</span>
             <span className="font-bold text-green-600">
               ₹{(client.totalDealValue || 0).toLocaleString()}
-            </span>
-          </div>
-          <div className="flex justify-between items-center text-sm">
-            <span className="text-muted-foreground">Advance</span>
-            <span className="font-semibold text-blue-600">
-              ₹{(client.totalAdvance || 0).toLocaleString()}
             </span>
           </div>
           <div className="flex justify-between items-center text-sm">
@@ -430,30 +418,12 @@ const ClientsList = () => {
               <div
                 className="h-full bg-gradient-to-r from-green-500 to-green-600 transition-all duration-500"
                 style={{
-                  width: `${Math.min(
-                    (client.totalAdvance / client.totalDealValue) * 100,
-                    100
-                  )}%`,
+                  width: `${Math.min((client.totalAdvance / client.totalDealValue) * 100, 100)}%`,
                 }}
               ></div>
             </div>
           </div>
         )}
-
-        {/* STATS ROW */}
-        <div className="flex items-center justify-between pt-2 border-t">
-          <div className="flex items-center gap-1.5 text-sm">
-            <FolderKanban className="w-4 h-4 text-purple-600" />
-            <span className="font-medium">{client.projectsCount || 0}</span>
-            <span className="text-muted-foreground">Projects</span>
-          </div>
-
-          <Badge variant="outline" className="text-xs">
-            {client.totalRemaining === 0 && client.projectsCount > 0
-              ? "✓ Fully Paid"
-              : "Pending"}
-          </Badge>
-        </div>
 
         {/* ACTIONS */}
         <div className="flex gap-2 pt-2">
