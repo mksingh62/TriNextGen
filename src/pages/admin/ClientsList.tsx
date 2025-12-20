@@ -20,7 +20,7 @@ import {
   Phone,
   MapPin
 } from "lucide-react";
-
+import { useToast } from "@/components/ui/use-toast";
 const ClientsList = () => {
   const [clients, setClients] = useState<any[]>([]);
   const [filteredClients, setFilteredClients] = useState<any[]>([]);
@@ -28,6 +28,8 @@ const ClientsList = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
   /* ---------------- FETCH CLIENTS ---------------- */
   useEffect(() => {
@@ -54,7 +56,41 @@ const ClientsList = () => {
       })
       .finally(() => setLoading(false));
   }, [navigate]);
+/* ---------------- DELETE CLIENT FUNCTION ---------------- */
+  const handleDeleteClient = async (e: React.MouseEvent, clientId: string, clientName: string) => {
+    // Prevent the card's onClick (navigation) from firing
+    e.stopPropagation();
 
+    const confirmDelete = window.confirm(`Are you sure you want to delete ${clientName}? All associated project and payment data will be lost.`);
+    
+    if (!confirmDelete) return;
+
+    setIsDeleting(clientId);
+    const token = localStorage.getItem("adminToken");
+
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE}/api/clients/${clientId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.ok) {
+        // Remove from local state immediately
+        setClients((prev) => prev.filter((c) => c._id !== clientId));
+        toast({
+          title: "Client Deleted",
+          description: `${clientName} has been removed successfully.`,
+          variant: "destructive",
+        });
+      } else {
+        throw new Error("Failed to delete");
+      }
+    } catch (error) {
+      alert("Error deleting client. Please try again.");
+    } finally {
+      setIsDeleting(null);
+    }
+  };
   /* ---------------- FILTER & SEARCH ---------------- */
   useEffect(() => {
     let filtered = clients;
@@ -398,6 +434,20 @@ const ClientsList = () => {
                       : "Pending"}
                   </Badge>
                 </div>
+                {/* DELETE BUTTON (Floating Top Right) */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:bg-destructive/10 z-10"
+            disabled={isDeleting === client._id}
+            onClick={(e) => handleDeleteClient(e, client._id, client.name)}
+          >
+            {isDeleting === client._id ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Trash2 className="w-4 h-4" />
+            )}
+          </Button>
 
                 {/* ACTIONS */}
                 <div className="flex gap-2 pt-2">
