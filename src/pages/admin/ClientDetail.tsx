@@ -29,6 +29,13 @@ import {
   TabsTrigger
 } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
 // Icons
 import {
   IndianRupee,
@@ -49,9 +56,13 @@ import {
   Mail,
   ArrowLeft,
   MoreVertical,
-  Loader2
+  Loader2,
+  Layers,
+  Globe,
+  Smartphone,
+  Palette,
+  Settings
 } from "lucide-react";
-
 // Recharts for visualization
 import {
   BarChart,
@@ -60,7 +71,14 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  RadialBarChart,
+  RadialBar,
+  PolarAngleAxis,
+  Legend
 } from 'recharts';
 
 /* -------------------------------------------------------------------------- */
@@ -71,7 +89,7 @@ type ProjectCategory = "Web App" | "Mobile App" | "UI/UX Design" | "SEO/Marketin
 interface Project {
   _id: string;
   title: string;
-  category?: ProjectCategory; // New optional field (for backward compatibility)
+  category?: ProjectCategory;
   totalAmount: number;
   advancePaid: number;
   remainingAmount: number;
@@ -100,6 +118,16 @@ interface Client {
   company?: string;
 }
 
+const CATEGORY_MAP: Record<ProjectCategory, { icon: any; color: string }> = {
+  "Web App": { icon: Globe, color: "#3b82f6" },
+  "Mobile App": { icon: Smartphone, color: "#8b5cf6" },
+  "UI/UX Design": { icon: Palette, color: "#ec4899" },
+  "SEO/Marketing": { icon: TrendingUp, color: "#f59e0b" },
+  "Maintenance": { icon: Settings, color: "#64748b" },
+};
+
+const CHART_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+
 const ClientDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -111,6 +139,7 @@ const ClientDetail = () => {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [isActionLoading, setIsActionLoading] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
 
   /* ---------- MODAL STATES ---------- */
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
@@ -169,7 +198,9 @@ const ClientDetail = () => {
   /* ---------- COMPUTED VALUES ---------- */
   const stats = useMemo(() => {
     const totalDealValue = projects.reduce((sum, p) => sum + (p.totalAmount || 0), 0);
-    const totalPaid = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+    const advanceTotal = projects.reduce((sum, p) => sum + (p.advancePaid || 0), 0);
+    const paymentsTotal = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+    const totalPaid = advanceTotal + paymentsTotal;
     const totalRemaining = totalDealValue - totalPaid;
     return { totalDealValue, totalPaid, totalRemaining };
   }, [projects, payments]);
@@ -182,6 +213,23 @@ const ClientDetail = () => {
     }));
   }, [projects]);
 
+  const analytics = useMemo(() => {
+    const statusCounts = projects.reduce((acc: any, p) => {
+      acc[p.status] = (acc[p.status] || 0) + 1;
+      return acc;
+    }, {});
+
+    const donutData = Object.keys(statusCounts).map(status => ({
+      name: status,
+      value: statusCounts[status]
+    }));
+
+    const collectionRate = stats.totalDealValue > 0 ? Math.round((stats.totalPaid / stats.totalDealValue) * 100) : 0;
+    const radialData = [{ name: 'Paid', value: collectionRate, fill: '#10b981' }];
+
+    return { donutData, radialData, collectionRate };
+  }, [projects, stats]);
+
   /* ---------- PROJECT OPERATIONS ---------- */
   const handleProjectSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -190,7 +238,6 @@ const ClientDetail = () => {
     const url = isEdit
       ? `${import.meta.env.VITE_API_BASE}/api/clientProject/${editingProject?._id}`
       : `${import.meta.env.VITE_API_BASE}/api/clients/${id}/projects`;
-
     const payload = isEdit
       ? {
           title: editingProject!.title,
@@ -209,7 +256,6 @@ const ClientDetail = () => {
           advancePaid: Number(projectForm.advancePaid),
           category: projectForm.category,
         };
-
     try {
       const res = await fetch(url, {
         method: isEdit ? "PUT" : "POST",
@@ -309,6 +355,11 @@ const ClientDetail = () => {
     return "bg-slate-500 hover:bg-slate-600";
   };
 
+  const getCategoryIcon = (cat: ProjectCategory) => {
+    const Icon = CATEGORY_MAP[cat]?.icon || Layers;
+    return <Icon className="w-4 h-4" />;
+  };
+
   if (loading) {
     return (
       <div className="h-screen w-full flex flex-col items-center justify-center gap-4">
@@ -322,7 +373,7 @@ const ClientDetail = () => {
 
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-8 animate-in fade-in duration-500">
-      {/* ---------- BREADCRUMB / TOP NAV ---------- */}
+      {/* BREADCRUMB / TOP NAV */}
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
           <ArrowLeft className="w-5 h-5" />
@@ -333,7 +384,7 @@ const ClientDetail = () => {
         </div>
       </div>
 
-      {/* ---------- TOP CARDS: QUICK STATS ---------- */}
+      {/* TOP CARDS: QUICK STATS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="border-l-4 border-l-blue-500 shadow-sm">
           <CardHeader className="pb-2">
@@ -361,7 +412,80 @@ const ClientDetail = () => {
         </Card>
       </div>
 
-      {/* ---------- NEW: CHART VISUALIZATION ---------- */}
+      {/* ADVANCE ANALYTICS SECTION */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* DONUT CHART */}
+        <Card className="shadow-md">
+          <CardHeader>
+            <CardTitle>Project Status Distribution</CardTitle>
+          </CardHeader>
+          <CardContent className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={analytics.donutData}
+                  innerRadius={60}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {analytics.donutData.map((_, index) => (
+                    <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* RADIAL CHART */}
+        <Card className="shadow-md">
+          <CardHeader>
+            <CardTitle>Collection Rate</CardTitle>
+          </CardHeader>
+          <CardContent className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <RadialBarChart cx="50%" cy="50%" innerRadius="10%" outerRadius="80%" barSize={10} data={analytics.radialData}>
+                <RadialBar
+                  label={{ position: 'insideStart', fill: '#fff' }}
+                  background
+                  dataKey="value"
+                />
+                <Legend iconSize={10} layout="vertical" verticalAlign="middle" wrapperStyle={{ top: 0, right: 0, transform: 'translate(0, 0)' }} />
+                <Tooltip />
+              </RadialBarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* FINANCIAL SUMMARY */}
+        <Card className="shadow-md">
+          <CardHeader>
+            <CardTitle>Financial Summary</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Total Value</p>
+                <p className="text-2xl font-bold">₹{stats.totalDealValue.toLocaleString()}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Collected</p>
+                <p className="text-2xl font-bold text-emerald-600">₹{stats.totalPaid.toLocaleString()}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Remaining</p>
+                <p className="text-2xl font-bold text-orange-600">₹{stats.totalRemaining.toLocaleString()}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* BAR CHART */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
@@ -388,7 +512,7 @@ const ClientDetail = () => {
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* ---------- LEFT COLUMN: CLIENT PROFILE ---------- */}
+        {/* LEFT COLUMN: CLIENT PROFILE */}
         <div className="lg:col-span-1 space-y-6">
           <Card>
             <CardHeader>
@@ -429,14 +553,13 @@ const ClientDetail = () => {
           </Card>
         </div>
 
-        {/* ---------- RIGHT COLUMN: MAIN CONTENT ---------- */}
+        {/* RIGHT COLUMN: MAIN CONTENT */}
         <div className="lg:col-span-3">
           <Tabs defaultValue="projects" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-6">
               <TabsTrigger value="projects">Active Projects</TabsTrigger>
               <TabsTrigger value="payments">Payment History</TabsTrigger>
             </TabsList>
-
             <TabsContent value="projects" className="space-y-6">
               {projects.length === 0 ? (
                 <div className="text-center py-20 border-2 border-dashed rounded-xl">
@@ -456,7 +579,7 @@ const ClientDetail = () => {
                               <h3 className="text-xl font-bold">{project.title}</h3>
                               {project.category && (
                                 <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">
-                                  {project.category}
+                                  {getCategoryIcon(project.category)} {project.category}
                                 </Badge>
                               )}
                               <Badge variant="secondary" className={getStatusColor(project.status)}>
@@ -528,7 +651,6 @@ const ClientDetail = () => {
                 ))
               )}
             </TabsContent>
-
             <TabsContent value="payments">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
@@ -578,7 +700,6 @@ const ClientDetail = () => {
           </Tabs>
         </div>
       </div>
-
       {/* ---------- MODAL: ADD/EDIT PROJECT ---------- */}
       <Dialog open={isProjectModalOpen} onOpenChange={setIsProjectModalOpen}>
         <DialogContent className="sm:max-w-[600px]">
@@ -602,28 +723,27 @@ const ClientDetail = () => {
                   required
                 />
               </div>
-
-              {/* NEW: Category Select */}
               <div className="space-y-2">
                 <label className="text-sm font-semibold">Project Category</label>
-                <select
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                <Select
                   value={editingProject ? editingProject.category || "Web App" : projectForm.category}
-                  onChange={(e) => {
-                    const val = e.target.value as ProjectCategory;
-                    editingProject
-                      ? setEditingProject({ ...editingProject, category: val })
-                      : setProjectForm({ ...projectForm, category: val });
-                  }}
+                  onValueChange={(val) => editingProject
+                    ? setEditingProject({ ...editingProject, category: val })
+                    : setProjectForm({ ...projectForm, category: val })
+                  }
                 >
-                  <option value="Web App">Web App</option>
-                  <option value="Mobile App">Mobile App</option>
-                  <option value="UI/UX Design">UI/UX Design</option>
-                  <option value="SEO/Marketing">SEO/Marketing</option>
-                  <option value="Maintenance">Maintenance</option>
-                </select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Web App">Web App</SelectItem>
+                    <SelectItem value="Mobile App">Mobile App</SelectItem>
+                    <SelectItem value="UI/UX Design">UI/UX Design</SelectItem>
+                    <SelectItem value="SEO/Marketing">SEO/Marketing</SelectItem>
+                    <SelectItem value="Maintenance">Maintenance</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-
               <div className="space-y-2">
                 <label className="text-sm font-semibold">Contract Value (₹)</label>
                 <Input
@@ -649,19 +769,23 @@ const ClientDetail = () => {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-semibold">Status</label>
-                <select
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                <Select
                   value={editingProject ? editingProject.status : projectForm.status}
-                  onChange={(e) => editingProject
-                    ? setEditingProject({ ...editingProject, status: e.target.value })
-                    : setProjectForm({ ...projectForm, status: e.target.value })
+                  onValueChange={(val) => editingProject
+                    ? setEditingProject({ ...editingProject, status: val })
+                    : setProjectForm({ ...projectForm, status: val })
                   }
                 >
-                  <option value="Active">Active</option>
-                  <option value="In Progress">In Progress</option>
-                  <option value="Completed">Completed</option>
-                  <option value="On Hold">On Hold</option>
-                </select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Active">Active</SelectItem>
+                    <SelectItem value="In Progress">In Progress</SelectItem>
+                    <SelectItem value="Completed">Completed</SelectItem>
+                    <SelectItem value="On Hold">On Hold</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-semibold">Deadline</label>
@@ -695,8 +819,7 @@ const ClientDetail = () => {
           </form>
         </DialogContent>
       </Dialog>
-
-      {/* ---------- MODAL: LOG PAYMENT ---------- */}
+      {/* PAYMENT MODAL */}
       <Dialog open={isPaymentModalOpen} onOpenChange={setIsPaymentModalOpen}>
         <DialogContent>
           <DialogHeader>
@@ -705,15 +828,19 @@ const ClientDetail = () => {
           <form onSubmit={handleAddPayment} className="space-y-4 py-4">
             <div className="space-y-2">
               <label className="text-sm font-semibold">Select Project</label>
-              <select
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              <Select
                 value={paymentForm.projectId}
-                onChange={(e) => setPaymentForm({ ...paymentForm, projectId: e.target.value })}
-                required
+                onValueChange={(val) => setPaymentForm({ ...paymentForm, projectId: val })}
               >
-                <option value="">Select a project...</option>
-                {projects.map(p => <option key={p._id} value={p._id}>{p.title}</option>)}
-              </select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a project..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {projects.map(p => (
+                    <SelectItem key={p._id} value={p._id}>{p.title}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
