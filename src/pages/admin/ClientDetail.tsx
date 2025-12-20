@@ -1,6 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState, useCallback, useMemo } from "react";
-
 // Shadcn UI Components
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,41 +7,71 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription
 } from "@/components/ui/dialog";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from "@/components/ui/table";
 import {
-  Tabs, TabsContent, TabsList, TabsTrigger
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger
 } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-
-// Advanced Recharts
-import {
-  PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend,
-  RadialBarChart, RadialBar, PolarAngleAxis
-} from 'recharts';
-
 // Icons
 import {
-  IndianRupee, FolderKanban, Plus, TrendingUp, Wallet, Calendar, Edit2, Trash2,
-  CheckCircle2, Clock, ExternalLink, Phone, Mail, ArrowLeft, Loader2,
-  Layers, Globe, Smartphone, Palette, ShoppingCart, Cpu, Settings
+  IndianRupee,
+  FolderKanban,
+  Plus,
+  TrendingUp,
+  Wallet,
+  Calendar,
+  Edit2,
+  Trash2,
+  DollarSign,
+  FileText,
+  CheckCircle2,
+  Clock,
+  AlertCircle,
+  ExternalLink,
+  Phone,
+  Mail,
+  ArrowLeft,
+  MoreVertical,
+  Loader2
 } from "lucide-react";
 
+// Recharts for visualization
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer
+} from 'recharts';
+
 /* -------------------------------------------------------------------------- */
-/* TYPES & CONFIG */
+/* TYPES */
 /* -------------------------------------------------------------------------- */
 type ProjectCategory = "Web App" | "Mobile App" | "UI/UX Design" | "SEO/Marketing" | "Maintenance";
 
 interface Project {
   _id: string;
   title: string;
-  category?: ProjectCategory;
+  category?: ProjectCategory; // New optional field (for backward compatibility)
   totalAmount: number;
   advancePaid: number;
   remainingAmount: number;
@@ -71,16 +100,6 @@ interface Client {
   company?: string;
 }
 
-const CATEGORY_MAP: Record<ProjectCategory, { icon: any; color: string }> = {
-  "Web App": { icon: Globe, color: "#3b82f6" },
-  "Mobile App": { icon: Smartphone, color: "#8b5cf6" },
-  "UI/UX Design": { icon: Palette, color: "#ec4899" },
-  "SEO/Marketing": { icon: ShoppingCart, color: "#f59e0b" },
-  "Maintenance": { icon: Settings, color: "#64748b" },
-};
-
-const CHART_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#64748b'];
-
 const ClientDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -92,7 +111,6 @@ const ClientDetail = () => {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [isActionLoading, setIsActionLoading] = useState(false);
-  const [categoryFilter, setCategoryFilter] = useState<string>("all");
 
   /* ---------- MODAL STATES ---------- */
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
@@ -148,64 +166,23 @@ const ClientDetail = () => {
     fetchData();
   }, [fetchData]);
 
-  /* ---------- ANALYTICS LOGIC ---------- */
-  const analytics = useMemo(() => {
-    const totalValue = projects.reduce((s, p) => s + p.totalAmount, 0);
-    const totalPaid = payments.reduce((s, p) => s + p.amount, 0);
-
-    // Status Distribution for Donut Chart
-    const statusCounts = projects.reduce((acc: Record<string, number>, p) => {
-      acc[p.status] = (acc[p.status] || 0) + 1;
-      return acc;
-    }, {});
-
-    const donutData = Object.keys(statusCounts).map(status => ({
-      name: status,
-      value: statusCounts[status]
-    }));
-
-    // Collection Progress for Radial Chart
-    const collectionRate = totalValue > 0 ? Math.round((totalPaid / totalValue) * 100) : 0;
-    const radialData = [{ name: 'Paid', value: collectionRate, fill: '#10b981' }];
-
-    return { totalValue, totalPaid, donutData, radialData, collectionRate };
+  /* ---------- COMPUTED VALUES ---------- */
+  const stats = useMemo(() => {
+    const totalDealValue = projects.reduce((sum, p) => sum + (p.totalAmount || 0), 0);
+    const totalPaid = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+    const totalRemaining = totalDealValue - totalPaid;
+    return { totalDealValue, totalPaid, totalRemaining };
   }, [projects, payments]);
 
-  const filteredProjects = useMemo(() => {
-    return categoryFilter === "all"
-      ? projects
-      : projects.filter(p => p.category === categoryFilter);
-  }, [projects, categoryFilter]);
+  const chartData = useMemo(() => {
+    return projects.map(p => ({
+      name: p.title.substring(0, 12) + (p.title.length > 12 ? '...' : ''),
+      total: p.totalAmount,
+      paid: p.advancePaid,
+    }));
+  }, [projects]);
 
-  /* ---------- HELPERS ---------- */
-  const resetProjectForm = () => {
-    setProjectForm({
-      title: "", category: "Web App", totalAmount: "", advancePaid: "", status: "Active",
-      liveUrl: "", startDate: "", deadline: "", description: ""
-    });
-  };
-
-  const resetPaymentForm = () => {
-    setPaymentForm({
-      projectId: "", amount: "", paymentDate: new Date().toISOString().split('T')[0],
-      paymentMethod: "Bank Transfer", notes: ""
-    });
-  };
-
-  const getStatusColor = (status: string) => {
-    const s = status?.toLowerCase();
-    if (s === "completed") return "bg-emerald-500 hover:bg-emerald-600";
-    if (s === "active" || s === "in progress") return "bg-sky-500 hover:bg-sky-600";
-    if (s === "on hold") return "bg-amber-500 hover:bg-amber-600";
-    return "bg-slate-500 hover:bg-slate-600";
-  };
-
-  const getCategoryIcon = (cat: ProjectCategory) => {
-    const Icon = CATEGORY_MAP[cat]?.icon || Layers;
-    return <Icon className="w-4 h-4" />;
-  };
-
-  /* ---------- PROJECT & PAYMENT OPERATIONS ---------- */
+  /* ---------- PROJECT OPERATIONS ---------- */
   const handleProjectSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsActionLoading(true);
@@ -281,6 +258,7 @@ const ClientDetail = () => {
     }
   };
 
+  /* ---------- PAYMENT OPERATIONS ---------- */
   const handleAddPayment = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsActionLoading(true);
@@ -308,6 +286,29 @@ const ClientDetail = () => {
     }
   };
 
+  /* ---------- HELPERS ---------- */
+  const resetProjectForm = () => {
+    setProjectForm({
+      title: "", category: "Web App", totalAmount: "", advancePaid: "", status: "Active",
+      liveUrl: "", startDate: "", deadline: "", description: ""
+    });
+  };
+
+  const resetPaymentForm = () => {
+    setPaymentForm({
+      projectId: "", amount: "", paymentDate: new Date().toISOString().split('T')[0],
+      paymentMethod: "Bank Transfer", notes: ""
+    });
+  };
+
+  const getStatusColor = (status: string) => {
+    const s = status?.toLowerCase();
+    if (s === "completed") return "bg-emerald-500 hover:bg-emerald-600";
+    if (s === "active" || s === "in progress") return "bg-sky-500 hover:bg-sky-600";
+    if (s === "on hold") return "bg-amber-500 hover:bg-amber-600";
+    return "bg-slate-500 hover:bg-slate-600";
+  };
+
   if (loading) {
     return (
       <div className="h-screen w-full flex flex-col items-center justify-center gap-4">
@@ -320,8 +321,8 @@ const ClientDetail = () => {
   if (!client) return <div>Client not found.</div>;
 
   return (
-    <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-8">
-      {/* BREADCRUMB / TOP NAV */}
+    <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-8 animate-in fade-in duration-500">
+      {/* ---------- BREADCRUMB / TOP NAV ---------- */}
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
           <ArrowLeft className="w-5 h-5" />
@@ -332,94 +333,62 @@ const ClientDetail = () => {
         </div>
       </div>
 
-      {/* ADVANCED CHARTS SECTION */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* DONUT CHART: PROJECT STATUS */}
-        <Card className="border-none shadow-2xl shadow-slate-200 bg-white/80 backdrop-blur-md">
-          <CardHeader>
-            <CardTitle className="text-lg">Project Lifecycle</CardTitle>
-            <CardDescription>Distribution by current status</CardDescription>
+      {/* ---------- TOP CARDS: QUICK STATS ---------- */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="border-l-4 border-l-blue-500 shadow-sm">
+          <CardHeader className="pb-2">
+            <CardDescription className="flex items-center gap-2">
+              <FolderKanban className="w-4 h-4" /> Total Projects
+            </CardDescription>
+            <CardTitle className="text-3xl">{projects.length}</CardTitle>
           </CardHeader>
-          <CardContent className="h-[280px] relative">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={analytics.donutData}
-                  innerRadius={65}
-                  outerRadius={90}
-                  paddingAngle={8}
-                  dataKey="value"
-                >
-                  {analytics.donutData.map((_, index) => (
-                    <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend verticalAlign="bottom" height={36} />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="absolute top-[45%] left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
-              <p className="text-3xl font-black text-slate-800">{projects.length}</p>
-              <p className="text-[10px] uppercase font-bold text-slate-400 tracking-tighter">Total Projects</p>
-            </div>
-          </CardContent>
         </Card>
-
-        {/* RADIAL CHART: PAYMENT PROGRESS */}
-        <Card className="border-none shadow-2xl shadow-slate-200 bg-white/80 backdrop-blur-md overflow-hidden">
-          <CardHeader>
-            <CardTitle className="text-lg">Payment Health</CardTitle>
-            <CardDescription>Overall collection percentage</CardDescription>
+        <Card className="border-l-4 border-l-emerald-500 shadow-sm">
+          <CardHeader className="pb-2">
+            <CardDescription className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4" /> Revenue Collected
+            </CardDescription>
+            <CardTitle className="text-3xl text-emerald-600">₹{stats.totalPaid.toLocaleString()}</CardTitle>
           </CardHeader>
-          <CardContent className="h-[280px] flex items-center justify-center relative">
-            <ResponsiveContainer width="100%" height="100%">
-              <RadialBarChart
-                innerRadius="70%"
-                outerRadius="100%"
-                data={analytics.radialData}
-                startAngle={180}
-                endAngle={0}
-              >
-                <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
-                <RadialBar background dataKey="value" cornerRadius={30} />
-              </RadialBarChart>
-            </ResponsiveContainer>
-            <div className="absolute bottom-10 text-center">
-              <h3 className="text-4xl font-black text-emerald-600">{analytics.collectionRate}%</h3>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Collected</p>
-            </div>
-          </CardContent>
         </Card>
-
-        {/* FINANCIAL SUMMARY CARD */}
-        <Card className="border-none bg-gradient-to-br from-blue-700 to-indigo-900 text-white shadow-2xl shadow-blue-200">
-          <CardHeader>
-            <CardTitle className="text-white/80 text-sm uppercase tracking-widest">Financial Summary</CardTitle>
+        <Card className="border-l-4 border-l-orange-500 shadow-sm">
+          <CardHeader className="pb-2">
+            <CardDescription className="flex items-center gap-2">
+              <Clock className="w-4 h-4" /> Outstanding Balance
+            </CardDescription>
+            <CardTitle className="text-3xl text-orange-600">₹{stats.totalRemaining.toLocaleString()}</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-8">
-            <div>
-              <p className="text-blue-200 text-sm">Total Portfolio Value</p>
-              <h2 className="text-4xl font-black">₹{analytics.totalValue.toLocaleString()}</h2>
-            </div>
-            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/10">
-              <div>
-                <p className="text-blue-200 text-xs uppercase font-bold">Received</p>
-                <p className="text-xl font-bold text-emerald-400">₹{analytics.totalPaid.toLocaleString()}</p>
-              </div>
-              <div>
-                <p className="text-blue-200 text-xs uppercase font-bold">Pending</p>
-                <p className="text-xl font-bold text-orange-400">₹{(analytics.totalValue - analytics.totalPaid).toLocaleString()}</p>
-              </div>
-            </div>
-            <Button className="w-full bg-white text-blue-700 hover:bg-blue-50 font-bold py-6 rounded-xl">
-              <Wallet className="w-4 h-4 mr-2" /> Download Statement
-            </Button>
-          </CardContent>
         </Card>
       </div>
 
+      {/* ---------- NEW: CHART VISUALIZATION ---------- */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-primary" />
+            Financial Overview per Project
+          </CardTitle>
+          <CardDescription>Comparison between total contract value and amount collected</CardDescription>
+        </CardHeader>
+        <CardContent className="h-[300px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
+              <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
+              <YAxis fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `₹${value}`} />
+              <Tooltip
+                cursor={{ fill: 'transparent' }}
+                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+              />
+              <Bar dataKey="total" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Total Value" barSize={40} />
+              <Bar dataKey="paid" fill="#10b981" radius={[4, 4, 0, 0]} name="Paid Amount" barSize={40} />
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* LEFT COLUMN: CLIENT PROFILE */}
+        {/* ---------- LEFT COLUMN: CLIENT PROFILE ---------- */}
         <div className="lg:col-span-1 space-y-6">
           <Card>
             <CardHeader>
@@ -460,7 +429,7 @@ const ClientDetail = () => {
           </Card>
         </div>
 
-        {/* RIGHT COLUMN: MAIN CONTENT */}
+        {/* ---------- RIGHT COLUMN: MAIN CONTENT ---------- */}
         <div className="lg:col-span-3">
           <Tabs defaultValue="projects" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-6">
@@ -469,7 +438,7 @@ const ClientDetail = () => {
             </TabsList>
 
             <TabsContent value="projects" className="space-y-6">
-              {filteredProjects.length === 0 ? (
+              {projects.length === 0 ? (
                 <div className="text-center py-20 border-2 border-dashed rounded-xl">
                   <FolderKanban className="w-12 h-12 mx-auto mb-4 text-muted-foreground opacity-20" />
                   <h3 className="text-lg font-medium">No projects found</h3>
@@ -477,7 +446,7 @@ const ClientDetail = () => {
                   <Button onClick={() => setIsProjectModalOpen(true)} variant="outline">Create Project</Button>
                 </div>
               ) : (
-                filteredProjects.map((project) => (
+                projects.map((project) => (
                   <Card key={project._id} className="group overflow-hidden transition-all hover:shadow-md">
                     <CardContent className="p-0">
                       <div className="p-6">
@@ -502,19 +471,7 @@ const ClientDetail = () => {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => {
-                                setEditingProject(project);
-                                setProjectForm({
-                                  title: project.title,
-                                  category: project.category || "Web App",
-                                  totalAmount: project.totalAmount.toString(),
-                                  advancePaid: project.advancePaid.toString(),
-                                  status: project.status,
-                                  deadline: project.deadline || "",
-                                  description: project.description || "",
-                                });
-                                setIsProjectModalOpen(true);
-                              }}
+                              onClick={() => { setEditingProject(project); setIsProjectModalOpen(true); }}
                             >
                               <Edit2 className="w-4 h-4" />
                             </Button>
@@ -574,9 +531,11 @@ const ClientDetail = () => {
 
             <TabsContent value="payments">
               <Card>
-                <CardHeader>
-                  <CardTitle>Transaction Ledger</CardTitle>
-                  <CardDescription>Comprehensive record of all funds received.</CardDescription>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle>Transaction Ledger</CardTitle>
+                    <CardDescription>Comprehensive record of all funds received.</CardDescription>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <Table>
@@ -620,7 +579,7 @@ const ClientDetail = () => {
         </div>
       </div>
 
-      {/* MODALS */}
+      {/* ---------- MODAL: ADD/EDIT PROJECT ---------- */}
       <Dialog open={isProjectModalOpen} onOpenChange={setIsProjectModalOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
@@ -643,6 +602,8 @@ const ClientDetail = () => {
                   required
                 />
               </div>
+
+              {/* NEW: Category Select */}
               <div className="space-y-2">
                 <label className="text-sm font-semibold">Project Category</label>
                 <select
@@ -662,6 +623,7 @@ const ClientDetail = () => {
                   <option value="Maintenance">Maintenance</option>
                 </select>
               </div>
+
               <div className="space-y-2">
                 <label className="text-sm font-semibold">Contract Value (₹)</label>
                 <Input
@@ -734,6 +696,7 @@ const ClientDetail = () => {
         </DialogContent>
       </Dialog>
 
+      {/* ---------- MODAL: LOG PAYMENT ---------- */}
       <Dialog open={isPaymentModalOpen} onOpenChange={setIsPaymentModalOpen}>
         <DialogContent>
           <DialogHeader>
