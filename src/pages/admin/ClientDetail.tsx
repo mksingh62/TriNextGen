@@ -51,6 +51,7 @@ import {
   MoreVertical,
   Loader2
 } from "lucide-react";
+
 // Recharts for visualization
 import {
   BarChart,
@@ -70,7 +71,7 @@ type ProjectCategory = "Web App" | "Mobile App" | "UI/UX Design" | "SEO/Marketin
 interface Project {
   _id: string;
   title: string;
-  category?: ProjectCategory;
+  category?: ProjectCategory; // New optional field (for backward compatibility)
   totalAmount: number;
   advancePaid: number;
   remainingAmount: number;
@@ -173,7 +174,6 @@ const ClientDetail = () => {
     return { totalDealValue, totalPaid, totalRemaining };
   }, [projects, payments]);
 
-  // NEW: Chart data for financial overview
   const chartData = useMemo(() => {
     return projects.map(p => ({
       name: p.title.substring(0, 12) + (p.title.length > 12 ? '...' : ''),
@@ -361,7 +361,7 @@ const ClientDetail = () => {
         </Card>
       </div>
 
-      {/* ---------- ADDED: FINANCIAL OVERVIEW CHART ---------- */}
+      {/* ---------- NEW: CHART VISUALIZATION ---------- */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
@@ -513,7 +513,6 @@ const ClientDetail = () => {
                           <Progress value={(project.advancePaid / project.totalAmount) * 100} className="h-2" />
                         </div>
                       </div>
-
                       {project.liveUrl && (
                         <a
                           href={project.liveUrl}
@@ -603,6 +602,8 @@ const ClientDetail = () => {
                   required
                 />
               </div>
+
+              {/* NEW: Category Select */}
               <div className="space-y-2">
                 <label className="text-sm font-semibold">Project Category</label>
                 <select
@@ -622,6 +623,7 @@ const ClientDetail = () => {
                   <option value="Maintenance">Maintenance</option>
                 </select>
               </div>
+
               <div className="space-y-2">
                 <label className="text-sm font-semibold">Contract Value (₹)</label>
                 <Input
