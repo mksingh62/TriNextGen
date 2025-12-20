@@ -333,23 +333,46 @@ const ClientsList = () => {
           </CardContent>
         </Card>
       ) : (
-   /* CLIENT GRID */
+  /* CLIENT GRID */
 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
   {filteredClients.map((client) => (
     <Card
       key={client._id}
-      {/* FIX: added 'relative' class below */}
-      className="relative hover:shadow-xl transition-all duration-300 cursor-pointer group border-2 hover:border-primary"
       onClick={() => navigate(`/admin/clients/${client._id}`)}
+      className="
+        relative 
+        overflow-visible 
+        cursor-pointer 
+        group 
+        border-2 
+        transition-all 
+        duration-300 
+        hover:shadow-xl 
+        hover:border-primary
+      "
     >
-      {/* DELETE BUTTON - Placed as a direct child of Card for best absolute positioning */}
+      {/* DELETE BUTTON */}
       <Button
         variant="ghost"
         size="icon"
-        {/* FIX: added 'z-10' and ensured top/right positioning */}
-        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:bg-destructive/10 z-10"
         disabled={isDeleting === client._id}
-        onClick={(e) => handleDeleteClient(e, client._id, client.name)}
+        onClick={(e) => {
+          e.stopPropagation(); // prevent card click
+          handleDeleteClient(e, client._id, client.name);
+        }}
+        className="
+          absolute top-2 right-2 
+          z-20 
+          opacity-0 
+          group-hover:opacity-100 
+          transition-all 
+          duration-200 
+          text-destructive 
+          hover:bg-destructive/10 
+          bg-background/90 
+          backdrop-blur 
+          rounded-md
+        "
       >
         {isDeleting === client._id ? (
           <Loader2 className="w-4 h-4 animate-spin" />
@@ -359,13 +382,13 @@ const ClientsList = () => {
       </Button>
 
       <CardContent className="p-6 space-y-4">
-        {/* TOP SECTION - pr-8 added to prevent text overlap with delete icon */}
+        {/* HEADER */}
         <div className="flex justify-between items-start pr-8">
           <div className="flex-1">
-            <h3 className="font-bold text-xl group-hover:text-primary transition-colors">
+            <h3 className="font-bold text-xl transition-colors group-hover:text-primary">
               {client.name}
             </h3>
-            
+
             <div className="space-y-1 mt-2">
               {client.email && (
                 <div className="flex items-center text-xs text-muted-foreground">
@@ -388,27 +411,31 @@ const ClientsList = () => {
             </div>
           </div>
 
-          <Badge className={`${getStatusColor(client.status)} flex items-center gap-1 shrink-0`}>
+          <Badge
+            className={`${getStatusColor(
+              client.status
+            )} flex items-center gap-1 shrink-0`}
+          >
             {getStatusIcon(client.status)}
             {client.status || "Active"}
           </Badge>
         </div>
 
-        {/* FINANCIAL OVERVIEW */}
+        {/* FINANCIAL SUMMARY */}
         <div className="bg-muted/50 rounded-lg p-3 space-y-2">
-          <div className="flex justify-between items-center text-sm">
+          <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Total Value</span>
             <span className="font-bold text-green-600">
               ₹{(client.totalDealValue || 0).toLocaleString()}
             </span>
           </div>
-          <div className="flex justify-between items-center text-sm">
+          <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Advance</span>
             <span className="font-semibold text-blue-600">
               ₹{(client.totalAdvance || 0).toLocaleString()}
             </span>
           </div>
-          <div className="flex justify-between items-center text-sm">
+          <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Remaining</span>
             <span className="font-semibold text-orange-600">
               ₹{(client.totalRemaining || 0).toLocaleString()}
@@ -416,13 +443,17 @@ const ClientsList = () => {
           </div>
         </div>
 
-        {/* PROGRESS BAR */}
+        {/* PAYMENT PROGRESS */}
         {client.totalDealValue > 0 && (
           <div className="space-y-1">
             <div className="flex justify-between text-xs text-muted-foreground">
               <span>Payment Progress</span>
               <span>
-                {((client.totalAdvance / client.totalDealValue) * 100).toFixed(0)}%
+                {(
+                  (client.totalAdvance / client.totalDealValue) *
+                  100
+                ).toFixed(0)}
+                %
               </span>
             </div>
             <div className="h-2 bg-muted rounded-full overflow-hidden">
@@ -434,16 +465,18 @@ const ClientsList = () => {
                     100
                   )}%`,
                 }}
-              ></div>
+              />
             </div>
           </div>
         )}
 
-        {/* STATS ROW */}
+        {/* STATS */}
         <div className="flex items-center justify-between pt-2 border-t">
           <div className="flex items-center gap-1.5 text-sm">
             <FolderKanban className="w-4 h-4 text-purple-600" />
-            <span className="font-medium">{client.projectsCount || 0}</span>
+            <span className="font-medium">
+              {client.projectsCount || 0}
+            </span>
             <span className="text-muted-foreground">Projects</span>
           </div>
 
@@ -454,7 +487,7 @@ const ClientsList = () => {
           </Badge>
         </div>
 
-        {/* ACTIONS */}
+        {/* ACTION BUTTONS */}
         <div className="flex gap-2 pt-2">
           <Button
             size="sm"
@@ -482,6 +515,7 @@ const ClientsList = () => {
     </Card>
   ))}
 </div>
+
 
       )}
     </div>
