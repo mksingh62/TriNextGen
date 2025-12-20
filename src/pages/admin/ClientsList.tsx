@@ -18,7 +18,8 @@ import {
   Wallet,
   Plus,
   Phone,
-  MapPin
+  MapPin,
+  Trash2
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 const ClientsList = () => {
