@@ -1,5 +1,5 @@
-import { useParams, useNavigate } from "react-router-dom";
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { useEffect, useState, useMemo } from "react";
 // Shadcn UI Components
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -30,55 +30,39 @@ import {
   TabsList,
   TabsTrigger
 } from "@/components/ui/tabs";
-import { Progress } from "@/components/ui/progress";
 import { Toaster, toast } from "sonner";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
+import { Label } from "@/components/ui/label";
 // Icons
 import {
-  IndianRupee,
   FolderKanban,
   Plus,
-  TrendingUp,
-  Wallet,
-  Calendar,
   Edit2,
   Trash2,
-  DollarSign,
   FileText,
   CheckCircle2,
   Clock,
-  AlertCircle,
-  ExternalLink,
-  Phone,
   Mail,
   ArrowLeft,
   MoreVertical,
   Loader2,
   Users,
   Briefcase,
-  BarChart3,
   MessageSquare,
   LogOut,
   UserCheck,
   XCircle,
   Eye,
   Search,
-  Filter,
-  Upload
+  Upload,
+  Code2,
+  Phone,
+  Palette,
+  Megaphone,
+  Wrench
 } from "lucide-react";
-// Recharts for visualization
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer
-} from 'recharts';
+
 /* -------------------------------------------------------------------------- */
 /* TYPES */
 /* -------------------------------------------------------------------------- */
@@ -86,15 +70,18 @@ type ProjectCategory = "Web App" | "Mobile App" | "UI/UX Design" | "SEO/Marketin
 interface Project {
   _id: string;
   title: string;
-  category?: ProjectCategory; // New optional field (for backward compatibility)
-  totalAmount: number;
-  advancePaid: number;
-  remainingAmount: number;
+  category?: ProjectCategory;
+  totalAmount?: number;
+  advancePaid?: number;
+  remainingAmount?: number;
   status: string;
   liveUrl?: string;
   startDate?: string;
   deadline?: string;
   description?: string;
+  features?: string[];
+  techStack?: string[];
+  icon?: string;
 }
 interface Service {
   _id: string;
@@ -134,12 +121,13 @@ interface Application {
   status: 'pending' | 'reviewed' | 'interview' | 'rejected' | 'hired';
   appliedAt: string;
 }
+
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
- 
+
   // State for services
   const [services, setServices] = useState<Service[]>([]);
   const [serviceForm, setServiceForm] = useState({
@@ -150,6 +138,7 @@ const AdminDashboard = () => {
     color: ''
   });
   const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
+
   // State for careers
   const [careers, setCareers] = useState<Career[]>([]);
   const [careerForm, setCareerForm] = useState({
@@ -162,10 +151,12 @@ const AdminDashboard = () => {
     description: ''
   });
   const [editingCareerId, setEditingCareerId] = useState<string | null>(null);
+
   // State for contacts and applications
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);
-    // Projects
+
+  // Projects
   const [projects, setProjects] = useState<Project[]>([]);
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [projectForm, setProjectForm] = useState({
@@ -178,7 +169,8 @@ const AdminDashboard = () => {
     liveUrl: '',
     status: 'Active'
   });
-  // Search and filter states
+
+  // Search states
   const [serviceSearch, setServiceSearch] = useState('');
   const [careerSearch, setCareerSearch] = useState('');
   const [contactSearch, setContactSearch] = useState('');
@@ -186,13 +178,11 @@ const AdminDashboard = () => {
   const [projectSearch, setProjectSearch] = useState('');
 
   useEffect(() => {
-    // Check if user is authenticated
     const storedToken = localStorage.getItem('adminToken');
     if (!storedToken) {
       navigate('/admin/login');
       return;
     }
-   
     setToken(storedToken);
     fetchDashboardData(storedToken);
   }, [navigate]);
@@ -200,28 +190,44 @@ const AdminDashboard = () => {
   const fetchDashboardData = async (authToken: string) => {
     try {
       setLoading(true);
-     
-      // Fetch services from backend using API utility
-      const servicesData = await serviceApi.getAllServices();
+
+      // Fetch services
+      const servicesRes = await fetch(`${import.meta.env.VITE_API_BASE}/api/services`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+      const servicesData = await servicesRes.json();
       setServices(servicesData);
-     
-      // Fetch careers from backend using API utility
-      const careersData = await careerApi.getAllCareers();
+
+      // Fetch careers
+      const careersRes = await fetch(`${import.meta.env.VITE_API_BASE}/api/careers`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+      const careersData = await careersRes.json();
       setCareers(careersData);
-     
-      // Fetch contacts from backend using API utility
-      const contactsData = await adminApi.getAllContacts(authToken);
+
+      // Fetch contacts
+      const contactsRes = await fetch(`${import.meta.env.VITE_API_BASE}/api/contacts`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+      const contactsData = await contactsRes.json();
       setContacts(contactsData);
-     
-      // Fetch applications from backend using API utility
-      const applicationsData = await careerApi.getAllApplications(authToken);
+
+      // Fetch applications
+      const applicationsRes = await fetch(`${import.meta.env.VITE_API_BASE}/api/applications`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+      const applicationsData = await applicationsRes.json();
       setApplications(applicationsData);
+
       // Fetch projects
-      const projectRes = await fetch(`${import.meta.env.VITE_API_BASE}/api/projects`);
+      const projectRes = await fetch(`${import.meta.env.VITE_API_BASE}/api/projects`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
       const projectData = await projectRes.json();
       setProjects(projectData);
-     
+
     } catch (err: any) {
+      setError(err.message || 'Failed to load dashboard data.');
       toast.error(err.message || 'Failed to load dashboard data.');
     } finally {
       setLoading(false);
@@ -236,18 +242,14 @@ const AdminDashboard = () => {
   // Service CRUD
   const handleServiceSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-   
     try {
       const method = editingServiceId ? 'PUT' : 'POST';
-      const endpoint = editingServiceId
-        ? `/api/services/${editingServiceId}`
-        : '/api/services';
-     
+      const endpoint = editingServiceId ? `/api/services/${editingServiceId}` : '/api/services';
       const body = {
         ...serviceForm,
-        features: serviceForm.features.split(',').map(f => f.trim())
+        features: serviceForm.features.split(',').map(f => f.trim()).filter(Boolean)
       };
-     
+
       const response = await fetch(`${import.meta.env.VITE_API_BASE}${endpoint}`, {
         method,
         headers: {
@@ -256,15 +258,9 @@ const AdminDashboard = () => {
         },
         body: JSON.stringify(body)
       });
-     
+
       if (response.ok) {
-        setServiceForm({
-          title: '',
-          description: '',
-          features: '',
-          icon: '',
-          color: ''
-        });
+        setServiceForm({ title: '', description: '', features: '', icon: '', color: '' });
         setEditingServiceId(null);
         fetchDashboardData(token!);
         toast.success(editingServiceId ? 'Service updated successfully' : 'Service created successfully');
@@ -275,6 +271,7 @@ const AdminDashboard = () => {
       toast.error(err.message || 'Failed to save service.');
     }
   };
+
   const handleServiceEdit = (service: Service) => {
     setServiceForm({
       title: service.title,
@@ -285,6 +282,7 @@ const AdminDashboard = () => {
     });
     setEditingServiceId(service._id);
   };
+
   const handleServiceDelete = async (id: string) => {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/services/${id}`, {
@@ -293,7 +291,7 @@ const AdminDashboard = () => {
           'Authorization': `Bearer ${token}`
         }
       });
-     
+
       if (response.ok) {
         fetchDashboardData(token!);
         toast.success('Service deleted successfully');
@@ -304,21 +302,19 @@ const AdminDashboard = () => {
       toast.error(err.message || 'Failed to delete service.');
     }
   };
+
   // Career CRUD
   const handleCareerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-   
+
     try {
       const method = editingCareerId ? 'PUT' : 'POST';
-      const endpoint = editingCareerId
-        ? `/api/careers/${editingCareerId}`
-        : '/api/careers';
-     
+      const endpoint = editingCareerId ? `/api/careers/${editingCareerId}` : '/api/careers';
       const body = {
         ...careerForm,
-        tags: careerForm.tags.split(',').map(t => t.trim())
+        tags: careerForm.tags.split(',').map(t => t.trim()).filter(Boolean)
       };
-     
+
       const response = await fetch(`${import.meta.env.VITE_API_BASE}${endpoint}`, {
         method,
         headers: {
@@ -327,7 +323,7 @@ const AdminDashboard = () => {
         },
         body: JSON.stringify(body)
       });
-     
+
       if (response.ok) {
         setCareerForm({
           title: '',
@@ -348,6 +344,7 @@ const AdminDashboard = () => {
       toast.error(err.message || 'Failed to save career.');
     }
   };
+
   const handleCareerEdit = (career: Career) => {
     setCareerForm({
       title: career.title,
@@ -360,6 +357,7 @@ const AdminDashboard = () => {
     });
     setEditingCareerId(career._id);
   };
+
   const handleCareerDelete = async (id: string) => {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/careers/${id}`, {
@@ -368,7 +366,7 @@ const AdminDashboard = () => {
           'Authorization': `Bearer ${token}`
         }
       });
-     
+
       if (response.ok) {
         fetchDashboardData(token!);
         toast.success('Career deleted successfully');
@@ -379,22 +377,34 @@ const AdminDashboard = () => {
       toast.error(err.message || 'Failed to delete career.');
     }
   };
+
   // Application status update
   const updateApplicationStatus = async (applicationId: string, status: Application['status']) => {
     try {
-      await careerApi.updateApplicationStatus(token!, applicationId, status);
-     
-      // Update local state
-      setApplications(prev =>
-        prev.map(app =>
-          app._id === applicationId ? { ...app, status } : app
-        )
-      );
-      toast.success('Application status updated');
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/applications/${applicationId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ status })
+      });
+
+      if (response.ok) {
+        setApplications(prev =>
+          prev.map(app =>
+            app._id === applicationId ? { ...app, status } : app
+          )
+        );
+        toast.success('Application status updated');
+      } else {
+        throw new Error('Failed to update application status');
+      }
     } catch (err: any) {
       toast.error(err.message || 'Failed to update application status');
     }
   };
+
   // Project CRUD
   const handleProjectSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -420,7 +430,7 @@ const AdminDashboard = () => {
         },
         body: formData
       });
-     
+
       if (response.ok) {
         setProjectForm({
           title: '',
@@ -442,6 +452,7 @@ const AdminDashboard = () => {
       toast.error(err.message || 'Failed to save project');
     }
   };
+
   const handleProjectEdit = (project: Project) => {
     setProjectForm({
       title: project.title,
@@ -455,6 +466,7 @@ const AdminDashboard = () => {
     });
     setEditingProjectId(project._id);
   };
+
   const handleProjectDelete = async (id: string) => {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/projects/${id}`, {
@@ -463,7 +475,7 @@ const AdminDashboard = () => {
           'Authorization': `Bearer ${token}`
         }
       });
-     
+
       if (response.ok) {
         fetchDashboardData(token!);
         toast.success('Project deleted successfully');
@@ -474,6 +486,7 @@ const AdminDashboard = () => {
       toast.error(err.message || 'Failed to delete project');
     }
   };
+
   // Get status icon
   const getStatusIcon = (status: Application['status']) => {
     switch (status) {
@@ -491,6 +504,7 @@ const AdminDashboard = () => {
         return <Clock className="w-4 h-4 text-gray-500" />;
     }
   };
+
   // Get status text
   const getStatusText = (status: Application['status']) => {
     switch (status) {
@@ -508,23 +522,20 @@ const AdminDashboard = () => {
         return 'Unknown';
     }
   };
+
   // Filtered data
   const filteredServices = useMemo(() => {
     return services.filter(s => s.title.toLowerCase().includes(serviceSearch.toLowerCase()));
   }, [services, serviceSearch]);
-
   const filteredCareers = useMemo(() => {
     return careers.filter(c => c.title.toLowerCase().includes(careerSearch.toLowerCase()));
   }, [careers, careerSearch]);
-
   const filteredContacts = useMemo(() => {
     return contacts.filter(c => c.name.toLowerCase().includes(contactSearch.toLowerCase()) || c.email.toLowerCase().includes(contactSearch.toLowerCase()));
   }, [contacts, contactSearch]);
-
   const filteredApplications = useMemo(() => {
     return applications.filter(a => a.name.toLowerCase().includes(applicationSearch.toLowerCase()) || a.jobTitle.toLowerCase().includes(applicationSearch.toLowerCase()));
   }, [applications, applicationSearch]);
-
   const filteredProjects = useMemo(() => {
     return projects.filter(p => p.title.toLowerCase().includes(projectSearch.toLowerCase()));
   }, [projects, projectSearch]);
@@ -541,6 +552,7 @@ const AdminDashboard = () => {
       </div>
     );
   }
+
   if (error) {
     return (
       <div className="min-h-screen bg-background">
@@ -558,6 +570,7 @@ const AdminDashboard = () => {
       </div>
     );
   }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/50">
       <Toaster position="top-right" />
@@ -578,7 +591,6 @@ const AdminDashboard = () => {
           </div>
         </div>
       </header>
-
       <div className="container mx-auto px-4 py-8">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
@@ -623,7 +635,6 @@ const AdminDashboard = () => {
             </CardHeader>
           </Card>
         </div>
-
         {/* Main Tabs */}
         <Tabs defaultValue="applications" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2 md:grid-cols-5">
@@ -633,7 +644,6 @@ const AdminDashboard = () => {
             <TabsTrigger value="careers">Careers</TabsTrigger>
             <TabsTrigger value="projects">Projects</TabsTrigger>
           </TabsList>
-
           {/* Applications Tab */}
           <TabsContent value="applications" className="space-y-4">
             <div className="flex items-center gap-4">
@@ -728,7 +738,6 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
           </TabsContent>
-
           {/* Contacts Tab */}
           <TabsContent value="contacts" className="space-y-4">
             <div className="flex items-center gap-4">
@@ -780,7 +789,6 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
           </TabsContent>
-
           {/* Services Tab */}
           <TabsContent value="services" className="space-y-4">
             <div className="flex items-center gap-4">
@@ -894,7 +902,6 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
           </TabsContent>
-
           {/* Careers Tab */}
           <TabsContent value="careers" className="space-y-4">
             <div className="flex items-center gap-4">
@@ -907,7 +914,7 @@ const AdminDashboard = () => {
                   onChange={(e) => setCareerSearch(e.target.value)}
                 />
               </div>
-              <Dialog open={editingCareerId !== null} onOpenChange=(open) => !open && setEditingCareerId(null)}>
+              <Dialog open={editingCareerId !== null} onOpenChange={(open) => !open && setEditingCareerId(null)}>
                 <DialogTrigger asChild>
                   <Button>
                     <Plus className="w-4 h-4 mr-2" /> New Career
@@ -1037,7 +1044,6 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
           </TabsContent>
-
           {/* Projects Tab */}
           <TabsContent value="projects" className="space-y-4">
             <div className="flex items-center gap-4">
@@ -1050,7 +1056,7 @@ const AdminDashboard = () => {
                   onChange={(e) => setProjectSearch(e.target.value)}
                 />
               </div>
-              <Dialog open={editingProjectId !== null} onOpenChange=(open) => !open && setEditingProjectId(null)}>
+              <Dialog open={editingProjectId !== null} onOpenChange={(open) => !open && setEditingProjectId(null)}>
                 <DialogTrigger asChild>
                   <Button>
                     <Plus className="w-4 h-4 mr-2" /> New Project
