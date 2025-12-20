@@ -19,7 +19,8 @@ import {
   Plus,
   Phone,
   MapPin,
-  Trash2
+  Trash2,
+  Loader2
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 const ClientsList = () => {
@@ -340,6 +341,20 @@ const ClientsList = () => {
               className="hover:shadow-xl transition-all duration-300 cursor-pointer group border-2 hover:border-primary"
               onClick={() => navigate(`/admin/clients/${client._id}`)}
             >
+              {/* DELETE BUTTON - Placed as a direct child of Card for best absolute positioning */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:bg-destructive/10 z-10"
+              disabled={isDeleting === client._id}
+              onClick={(e) => handleDeleteClient(e, client._id, client.name)}
+            >
+              {isDeleting === client._id ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Trash2 className="w-4 h-4" />
+              )}
+            </Button>
               <CardContent className="p-6 space-y-4">
                 {/* TOP SECTION */}
                 <div className="flex justify-between items-start">
@@ -435,20 +450,6 @@ const ClientsList = () => {
                       : "Pending"}
                   </Badge>
                 </div>
-                {/* DELETE BUTTON (Floating Top Right) */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:bg-destructive/10 z-10"
-            disabled={isDeleting === client._id}
-            onClick={(e) => handleDeleteClient(e, client._id, client.name)}
-          >
-            {isDeleting === client._id ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Trash2 className="w-4 h-4" />
-            )}
-          </Button>
 
                 {/* ACTIONS */}
                 <div className="flex gap-2 pt-2">
