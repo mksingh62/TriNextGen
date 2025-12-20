@@ -174,7 +174,7 @@ const ClientDetail = () => {
 
     const isEdit = !!editingProject;
     const url = isEdit 
-      ? `${import.meta.env.VITE_API_BASE}/api/projects/${editingProject?._id}`
+      ? `${import.meta.env.VITE_API_BASE}/api/clientProject/${editingProject?._id}`
       : `${import.meta.env.VITE_API_BASE}/api/clients/${id}/projects`;
 
 const payload = isEdit
