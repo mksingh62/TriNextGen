@@ -1,88 +1,43 @@
-import { useNavigate } from "react-router-dom";
-import { useEffect, useState, useMemo } from "react";
-// Shadcn UI Components
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
+import React, { useState, useEffect } from 'react';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-  DialogTrigger,
-  DialogClose
-} from "@/components/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from "@/components/ui/table";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger
-} from "@/components/ui/tabs";
-import { Toaster, toast } from "sonner";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Label } from "@/components/ui/label";
-// Icons
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import {
   FolderKanban,
-  Plus,
-  Edit2,
-  Trash2,
-  FileText,
-  CheckCircle2,
-  Clock,
-  Mail,
-  ArrowLeft,
-  MoreVertical,
-  Loader2,
   Users,
+  Mail,
   Briefcase,
+  BarChart3,
+  FileText,
   MessageSquare,
   LogOut,
   UserCheck,
+  Clock,
+  CheckCircle2,
   XCircle,
   Eye,
-  Search,
+  ArrowLeft,
+  Plus,
+  Edit2,
+  Trash2,
   Upload,
-  Code2,
-  Phone,
-  Palette,
-  Megaphone,
-  Wrench
-} from "lucide-react";
+  Calendar,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Separator } from '@/components/ui/separator';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useNavigate } from 'react-router-dom';
+import { adminApi, serviceApi, careerApi } from '@/lib/api';
+import { toast, Toaster } from 'sonner';
 
-/* -------------------------------------------------------------------------- */
-/* TYPES */
-/* -------------------------------------------------------------------------- */
-type ProjectCategory = "Web App" | "Mobile App" | "UI/UX Design" | "SEO/Marketing" | "Maintenance";
-interface Project {
-  _id: string;
-  title: string;
-  category?: ProjectCategory;
-  totalAmount?: number;
-  advancePaid?: number;
-  remainingAmount?: number;
-  status: string;
-  liveUrl?: string;
-  startDate?: string;
-  deadline?: string;
-  description?: string;
-  features?: string[];
-  techStack?: string[];
-  icon?: string;
-}
 interface Service {
   _id: string;
   title: string;
@@ -121,6 +76,17 @@ interface Application {
   status: 'pending' | 'reviewed' | 'interview' | 'rejected' | 'hired';
   appliedAt: string;
 }
+interface Project {
+  _id: string;
+  title: string;
+  description: string;
+  features: string[];
+  techStack: string[];
+  category: string;
+  icon: string;
+  liveUrl?: string;
+  status: string;
+}
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -128,19 +94,23 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // State for services
+  // Data states
   const [services, setServices] = useState<Service[]>([]);
+  const [careers, setCareers] = useState<Career[]>([]);
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+
+  // Form states
   const [serviceForm, setServiceForm] = useState({
     title: '',
     description: '',
     features: '',
     icon: '',
-    color: ''
+    color: '',
   });
   const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
 
-  // State for careers
-  const [careers, setCareers] = useState<Career[]>([]);
   const [careerForm, setCareerForm] = useState({
     title: '',
     location: '',
@@ -148,17 +118,10 @@ const AdminDashboard = () => {
     level: '',
     salary: '',
     tags: '',
-    description: ''
+    description: '',
   });
   const [editingCareerId, setEditingCareerId] = useState<string | null>(null);
 
-  // State for contacts and applications
-  const [contacts, setContacts] = useState<Contact[]>([]);
-  const [applications, setApplications] = useState<Application[]>([]);
-
-  // Projects
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [projectForm, setProjectForm] = useState({
     title: '',
     description: '',
@@ -167,15 +130,9 @@ const AdminDashboard = () => {
     category: '',
     icon: null as File | null,
     liveUrl: '',
-    status: 'Active'
+    status: 'Active',
   });
-
-  // Search states
-  const [serviceSearch, setServiceSearch] = useState('');
-  const [careerSearch, setCareerSearch] = useState('');
-  const [contactSearch, setContactSearch] = useState('');
-  const [applicationSearch, setApplicationSearch] = useState('');
-  const [projectSearch, setProjectSearch] = useState('');
+  const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
 
   useEffect(() => {
     const storedToken = localStorage.getItem('adminToken');
@@ -187,56 +144,33 @@ const AdminDashboard = () => {
     fetchDashboardData(storedToken);
   }, [navigate]);
 
- const fetchDashboardData = async (authToken: string) => {
-  try {
-    setLoading(true);
-    setError(null); // Clear previous errors
+  const fetchDashboardData = async (authToken: string) => {
+    try {
+      setLoading(true);
+      setError(null);
 
-    const headers = {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${authToken}`
-    };
+      const [servicesData, careersData, contactsData, applicationsData, projectRes] = await Promise.all([
+        serviceApi.getAllServices(),
+        careerApi.getAllCareers(),
+        adminApi.getAllContacts(authToken),
+        careerApi.getAllApplications(authToken),
+        fetch(`${import.meta.env.VITE_API_BASE}/api/projects`, {
+          headers: { Authorization: `Bearer ${authToken}` },
+        }).then((res) => (res.ok ? res.json() : [])),
+      ]);
 
-    // Helper function to fetch and handle response
-    const fetchWithErrorHandling = async (url: string) => {
-      const res = await fetch(url, { headers });
-      if (!res.ok) {
-        const text = await res.text(); // Get raw response as text
-        console.error(`Error fetching ${url}: Status ${res.status}, Response: ${text}`);
-        throw new Error(`Failed to fetch ${url}: ${res.status} - ${text}`);
-      }
-      // Check if it's JSON
-      const contentType = res.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        const text = await res.text();
-        throw new Error(`Expected JSON but got ${contentType}: ${text}`);
-      }
-      return res.json();
-    };
-
-    // Fetch all data
-    const [servicesData, careersData, contactsData, applicationsData, projectData] = await Promise.all([
-      fetchWithErrorHandling(`${import.meta.env.VITE_API_BASE}/api/services`),
-      fetchWithErrorHandling(`${import.meta.env.VITE_API_BASE}/api/careers`),
-      fetchWithErrorHandling(`${import.meta.env.VITE_API_BASE}/api/contacts`),
-      fetchWithErrorHandling(`${import.meta.env.VITE_API_BASE}/api/applications`),
-      fetchWithErrorHandling(`${import.meta.env.VITE_API_BASE}/api/projects`)
-    ]);
-
-    setServices(servicesData);
-    setCareers(careersData);
-    setContacts(contactsData);
-    setApplications(applicationsData);
-    setProjects(projectData);
-
-  } catch (err: any) {
-    setError(err.message);
-    toast.error(err.message || 'Failed to load dashboard data. Check console for details.');
-    console.error('Dashboard fetch error:', err);
-  } finally {
-    setLoading(false);
-  }
-};
+      setServices(servicesData);
+      setCareers(careersData);
+      setContacts(contactsData);
+      setApplications(applicationsData);
+      setProjects(projectRes);
+    } catch (err: any) {
+      setError(err.message || 'Failed to load dashboard data.');
+      toast.error('Failed to load data');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('adminToken');
@@ -251,28 +185,29 @@ const AdminDashboard = () => {
       const endpoint = editingServiceId ? `/api/services/${editingServiceId}` : '/api/services';
       const body = {
         ...serviceForm,
-        features: serviceForm.features.split(',').map(f => f.trim()).filter(Boolean)
+        features: serviceForm.features
+          .split(',')
+          .map((f) => f.trim())
+          .filter(Boolean),
       };
 
-      const response = await fetch(`${import.meta.env.VITE_API_BASE}${endpoint}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE}${endpoint}`, {
         method,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(body)
+        body: JSON.stringify(body),
       });
 
-      if (response.ok) {
+      if (res.ok) {
+        toast.success(editingServiceId ? 'Service updated' : 'Service created');
         setServiceForm({ title: '', description: '', features: '', icon: '', color: '' });
         setEditingServiceId(null);
         fetchDashboardData(token!);
-        toast.success(editingServiceId ? 'Service updated successfully' : 'Service created successfully');
-      } else {
-        throw new Error('Failed to save service');
-      }
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to save service.');
+      } else throw new Error('Failed');
+    } catch {
+      toast.error('Failed to save service');
     }
   };
 
@@ -282,53 +217,52 @@ const AdminDashboard = () => {
       description: service.description,
       features: service.features.join(', '),
       icon: service.icon,
-      color: service.color
+      color: service.color,
     });
     setEditingServiceId(service._id);
   };
 
   const handleServiceDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this service?')) return;
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/services/${id}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE}/api/services/${id}`, {
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        headers: { Authorization: `Bearer ${token}` },
       });
-
-      if (response.ok) {
+      if (res.ok) {
+        toast.success('Service deleted');
         fetchDashboardData(token!);
-        toast.success('Service deleted successfully');
-      } else {
-        throw new Error('Failed to delete service');
-      }
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to delete service.');
+      } else throw new Error();
+    } catch {
+      toast.error('Failed to delete service');
     }
   };
 
   // Career CRUD
   const handleCareerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     try {
       const method = editingCareerId ? 'PUT' : 'POST';
       const endpoint = editingCareerId ? `/api/careers/${editingCareerId}` : '/api/careers';
       const body = {
         ...careerForm,
-        tags: careerForm.tags.split(',').map(t => t.trim()).filter(Boolean)
+        tags: careerForm.tags
+          .split(',')
+          .map((t) => t.trim())
+          .filter(Boolean),
       };
 
-      const response = await fetch(`${import.meta.env.VITE_API_BASE}${endpoint}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE}${endpoint}`, {
         method,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(body)
+        body: JSON.stringify(body),
       });
 
-      if (response.ok) {
+      if (res.ok) {
+        toast.success(editingCareerId ? 'Career updated' : 'Career created');
         setCareerForm({
           title: '',
           location: '',
@@ -336,16 +270,13 @@ const AdminDashboard = () => {
           level: '',
           salary: '',
           tags: '',
-          description: ''
+          description: '',
         });
         setEditingCareerId(null);
         fetchDashboardData(token!);
-        toast.success(editingCareerId ? 'Career updated successfully' : 'Career created successfully');
-      } else {
-        throw new Error('Failed to save career');
-      }
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to save career.');
+      } else throw new Error();
+    } catch {
+      toast.error('Failed to save career');
     }
   };
 
@@ -357,55 +288,37 @@ const AdminDashboard = () => {
       level: career.level,
       salary: career.salary || '',
       tags: career.tags.join(', '),
-      description: career.description
+      description: career.description,
     });
     setEditingCareerId(career._id);
   };
 
   const handleCareerDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this career?')) return;
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/careers/${id}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE}/api/careers/${id}`, {
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        headers: { Authorization: `Bearer ${token}` },
       });
-
-      if (response.ok) {
+      if (res.ok) {
+        toast.success('Career deleted');
         fetchDashboardData(token!);
-        toast.success('Career deleted successfully');
-      } else {
-        throw new Error('Failed to delete career');
-      }
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to delete career.');
+      } else throw new Error();
+    } catch {
+      toast.error('Failed to delete career');
     }
   };
 
   // Application status update
   const updateApplicationStatus = async (applicationId: string, status: Application['status']) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/applications/${applicationId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ status })
-      });
-
-      if (response.ok) {
-        setApplications(prev =>
-          prev.map(app =>
-            app._id === applicationId ? { ...app, status } : app
-          )
-        );
-        toast.success('Application status updated');
-      } else {
-        throw new Error('Failed to update application status');
-      }
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to update application status');
+      await careerApi.updateApplicationStatus(token!, applicationId, status);
+      setApplications((prev) =>
+        prev.map((app) => (app._id === applicationId ? { ...app, status } : app))
+      );
+      toast.success('Application status updated');
+    } catch {
+      toast.error('Failed to update status');
     }
   };
 
@@ -413,29 +326,32 @@ const AdminDashboard = () => {
   const handleProjectSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const formData = new FormData();
-    formData.append("title", projectForm.title);
-    formData.append("description", projectForm.description);
-    formData.append("features", projectForm.features);
-    formData.append("techStack", projectForm.techStack);
-    formData.append("category", projectForm.category);
-    formData.append("liveUrl", projectForm.liveUrl);
-    formData.append("status", projectForm.status);
-    if (projectForm.icon) {
-      formData.append("icon", projectForm.icon);
-    }
+    formData.append('title', projectForm.title);
+    formData.append('description', projectForm.description);
+    formData.append(
+      'features',
+      JSON.stringify(projectForm.features.split(',').map((f) => f.trim()).filter(Boolean))
+    );
+    formData.append(
+      'techStack',
+      JSON.stringify(projectForm.techStack.split(',').map((t) => t.trim()).filter(Boolean))
+    );
+    formData.append('category', projectForm.category);
+    formData.append('liveUrl', projectForm.liveUrl);
+    formData.append('status', projectForm.status);
+    if (projectForm.icon) formData.append('icon', projectForm.icon);
 
     try {
       const method = editingProjectId ? 'PUT' : 'POST';
       const endpoint = editingProjectId ? `/api/projects/${editingProjectId}` : '/api/projects';
-      const response = await fetch(`${import.meta.env.VITE_API_BASE}${endpoint}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE}${endpoint}`, {
         method,
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formData
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
       });
 
-      if (response.ok) {
+      if (res.ok) {
+        toast.success(editingProjectId ? 'Project updated' : 'Project created');
         setProjectForm({
           title: '',
           description: '',
@@ -444,114 +360,66 @@ const AdminDashboard = () => {
           category: '',
           icon: null,
           liveUrl: '',
-          status: 'Active'
+          status: 'Active',
         });
         setEditingProjectId(null);
         fetchDashboardData(token!);
-        toast.success(editingProjectId ? 'Project updated successfully' : 'Project created successfully');
-      } else {
-        throw new Error('Failed to save project');
-      }
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to save project');
+      } else throw new Error();
+    } catch {
+      toast.error('Failed to save project');
     }
   };
 
   const handleProjectEdit = (project: Project) => {
     setProjectForm({
       title: project.title,
-      description: project.description || '',
-      features: project.features ? project.features.join(', ') : '',
-      techStack: project.techStack ? project.techStack.join(', ') : '',
-      category: project.category || '',
+      description: project.description,
+      features: project.features?.join(', ') || '',
+      techStack: project.techStack?.join(', ') || '',
+      category: project.category,
       icon: null,
       liveUrl: project.liveUrl || '',
-      status: project.status
+      status: project.status,
     });
     setEditingProjectId(project._id);
   };
 
   const handleProjectDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this project?')) return;
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/projects/${id}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE}/api/projects/${id}`, {
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        headers: { Authorization: `Bearer ${token}` },
       });
-
-      if (response.ok) {
+      if (res.ok) {
+        toast.success('Project deleted');
         fetchDashboardData(token!);
-        toast.success('Project deleted successfully');
-      } else {
-        throw new Error('Failed to delete project');
-      }
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to delete project');
+      } else throw new Error();
+    } catch {
+      toast.error('Failed to delete project');
     }
   };
 
-  // Get status icon
-  const getStatusIcon = (status: Application['status']) => {
-    switch (status) {
-      case 'pending':
-        return <Clock className="w-4 h-4 text-yellow-500" />;
-      case 'reviewed':
-        return <Eye className="w-4 h-4 text-blue-500" />;
-      case 'interview':
-        return <UserCheck className="w-4 h-4 text-purple-500" />;
-      case 'rejected':
-        return <XCircle className="w-4 h-4 text-red-500" />;
-      case 'hired':
-        return <CheckCircle2 className="w-4 h-4 text-green-500" />;
-      default:
-        return <Clock className="w-4 h-4 text-gray-500" />;
-    }
+  const getStatusConfig = (status: Application['status']) => {
+    const configs: Record<
+      Application['status'],
+      { icon: React.ReactNode; badge: 'default' | 'secondary' | 'destructive' | 'outline'; label: string }
+    > = {
+      pending: { icon: <Clock className="w-4 h-4" />, badge: 'secondary', label: 'Pending' },
+      reviewed: { icon: <Eye className="w-4 h-4" />, badge: 'outline', label: 'Reviewed' },
+      interview: { icon: <UserCheck className="w-4 h-4" />, badge: 'default', label: 'Interview' },
+      rejected: { icon: <XCircle className="w-4 h-4" />, badge: 'destructive', label: 'Rejected' },
+      hired: { icon: <CheckCircle2 className="w-4 h-4" />, badge: 'default', label: 'Hired' },
+    };
+    return configs[status] || configs.pending;
   };
-
-  // Get status text
-  const getStatusText = (status: Application['status']) => {
-    switch (status) {
-      case 'pending':
-        return 'Pending';
-      case 'reviewed':
-        return 'Reviewed';
-      case 'interview':
-        return 'Interview';
-      case 'rejected':
-        return 'Rejected';
-      case 'hired':
-        return 'Hired';
-      default:
-        return 'Unknown';
-    }
-  };
-
-  // Filtered data
-  const filteredServices = useMemo(() => {
-    return services.filter(s => s.title.toLowerCase().includes(serviceSearch.toLowerCase()));
-  }, [services, serviceSearch]);
-  const filteredCareers = useMemo(() => {
-    return careers.filter(c => c.title.toLowerCase().includes(careerSearch.toLowerCase()));
-  }, [careers, careerSearch]);
-  const filteredContacts = useMemo(() => {
-    return contacts.filter(c => c.name.toLowerCase().includes(contactSearch.toLowerCase()) || c.email.toLowerCase().includes(contactSearch.toLowerCase()));
-  }, [contacts, contactSearch]);
-  const filteredApplications = useMemo(() => {
-    return applications.filter(a => a.name.toLowerCase().includes(applicationSearch.toLowerCase()) || a.jobTitle.toLowerCase().includes(applicationSearch.toLowerCase()));
-  }, [applications, applicationSearch]);
-  const filteredProjects = useMemo(() => {
-    return projects.filter(p => p.title.toLowerCase().includes(projectSearch.toLowerCase()));
-  }, [projects, projectSearch]);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-16">
-          <div className="flex justify-center items-center h-64">
-            <Loader2 className="w-8 h-8 animate-spin mr-2" />
-            <span className="text-lg text-muted-foreground">Loading dashboard...</span>
-          </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
+          <p className="text-xl text-muted-foreground font-medium">Loading dashboard...</p>
         </div>
       </div>
     );
@@ -559,647 +427,632 @@ const AdminDashboard = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-16">
-          <Card className="max-w-md mx-auto">
-            <CardHeader>
-              <CardTitle className="text-destructive">Error</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground mb-4">{error}</p>
-              <Button onClick={() => fetchDashboardData(token!)}>Retry</Button>
-            </CardContent>
-          </Card>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
+        <Card className="max-w-lg w-full shadow-2xl border-destructive/20">
+          <CardHeader className="text-center">
+            <CardTitle className="text-3xl text-destructive">Error</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6 text-center">
+            <p className="text-lg text-muted-foreground">{error}</p>
+            <Button size="lg" onClick={() => window.location.reload()}>
+              Retry
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/50">
-      <Toaster position="top-right" />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      <Toaster position="top-right" richColors closeButton />
       {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-blur]:bg-background/60 sticky top-0 z-50">
-        <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
-                <ArrowLeft className="w-5 h-5" />
+      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b shadow-sm">
+        <div className="container mx-auto px-6 py-5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-6">
+              <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+                <ArrowLeft className="w-6 h-6" />
               </Button>
-              <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+              <div>
+                <h1 className="text-3xl font-bold text-slate-900">Admin Dashboard</h1>
+                <p className="text-sm text-muted-foreground mt-1">Manage your platform with full control</p>
+              </div>
             </div>
-            <Button variant="ghost" onClick={handleLogout} className="flex items-center gap-2">
-              <LogOut className="w-4 h-4" />
+            <Button variant="outline" size="lg" onClick={handleLogout} className="gap-3">
+              <LogOut className="w-5 h-5" />
               Logout
             </Button>
           </div>
         </div>
       </header>
-      <div className="container mx-auto px-4 py-8">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-          <Card className="hover:shadow-md transition-shadow">
-            <CardHeader className="pb-2">
-              <CardDescription className="flex items-center gap-2 text-muted-foreground">
-                <FileText className="w-4 h-4" /> Services
-              </CardDescription>
-              <CardTitle className="text-3xl">{services.length}</CardTitle>
-            </CardHeader>
+
+      <div className="container mx-auto px-6 py-10 space-y-12">
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+          <Card className="bg-gradient-to-br from-blue-600 to-blue-700 text-white border-0 shadow-xl hover:scale-105 transition">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-blue-100 text-sm">Services</p>
+                  <p className="text-4xl font-bold mt-2">{services.length}</p>
+                </div>
+                <FileText className="w-12 h-12 text-blue-200" />
+              </div>
+            </CardContent>
           </Card>
-          <Card className="hover:shadow-md transition-shadow">
-            <CardHeader className="pb-2">
-              <CardDescription className="flex items-center gap-2 text-muted-foreground">
-                <Briefcase className="w-4 h-4" /> Careers
-              </CardDescription>
-              <CardTitle className="text-3xl">{careers.length}</CardTitle>
-            </CardHeader>
+
+          <Card className="bg-gradient-to-br from-purple-600 to-purple-700 text-white border-0 shadow-xl hover:scale-105 transition">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-purple-100 text-sm">Careers</p>
+                  <p className="text-4xl font-bold mt-2">{careers.length}</p>
+                </div>
+                <Briefcase className="w-12 h-12 text-purple-200" />
+              </div>
+            </CardContent>
           </Card>
-          <Card className="hover:shadow-md transition-shadow">
-            <CardHeader className="pb-2">
-              <CardDescription className="flex items-center gap-2 text-muted-foreground">
-                <MessageSquare className="w-4 h-4" /> Messages
-              </CardDescription>
-              <CardTitle className="text-3xl">{contacts.length}</CardTitle>
-            </CardHeader>
+
+          <Card className="bg-gradient-to-br from-green-600 to-green-700 text-white border-0 shadow-xl hover:scale-105 transition">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-green-100 text-sm">Messages</p>
+                  <p className="text-4xl font-bold mt-2">{contacts.length}</p>
+                </div>
+                <MessageSquare className="w-12 h-12 text-green-200" />
+              </div>
+            </CardContent>
           </Card>
-          <Card className="hover:shadow-md transition-shadow">
-            <CardHeader className="pb-2">
-              <CardDescription className="flex items-center gap-2 text-muted-foreground">
-                <UserCheck className="w-4 h-4" /> Applications
-              </CardDescription>
-              <CardTitle className="text-3xl">{applications.length}</CardTitle>
-            </CardHeader>
+
+          <Card className="bg-gradient-to-br from-orange-600 to-orange-700 text-white border-0 shadow-xl hover:scale-105 transition">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-orange-100 text-sm">Applications</p>
+                  <p className="text-4xl font-bold mt-2">{applications.length}</p>
+                </div>
+                <BarChart3 className="w-12 h-12 text-orange-200" />
+              </div>
+            </CardContent>
           </Card>
-          <Card className="hover:shadow-md transition-shadow">
-            <CardHeader className="pb-2">
-              <CardDescription className="flex items-center gap-2 text-muted-foreground">
-                <FolderKanban className="w-4 h-4" /> Projects
-              </CardDescription>
-              <CardTitle className="text-3xl">{projects.length}</CardTitle>
-            </CardHeader>
+
+          <Card className="bg-gradient-to-br from-indigo-600 to-indigo-700 text-white border-0 shadow-xl hover:scale-105 transition">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-indigo-100 text-sm">Projects</p>
+                  <p className="text-4xl font-bold mt-2">{projects.length}</p>
+                </div>
+                <FolderKanban className="w-12 h-12 text-indigo-200" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card
+            onClick={() => navigate('/admin/clients')}
+            className="bg-gradient-to-br from-pink-600 to-pink-700 text-white border-0 shadow-xl cursor-pointer hover:scale-105 transition"
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-pink-100 text-sm">Clients</p>
+                  <p className="text-2xl font-bold mt-2">Manage</p>
+                </div>
+                <Users className="w-12 h-12 text-pink-200" />
+              </div>
+            </CardContent>
           </Card>
         </div>
-        {/* Main Tabs */}
-        <Tabs defaultValue="applications" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-5">
-            <TabsTrigger value="applications">Applications</TabsTrigger>
-            <TabsTrigger value="contacts">Contacts</TabsTrigger>
-            <TabsTrigger value="services">Services</TabsTrigger>
-            <TabsTrigger value="careers">Careers</TabsTrigger>
-            <TabsTrigger value="projects">Projects</TabsTrigger>
-          </TabsList>
-          {/* Applications Tab */}
-          <TabsContent value="applications" className="space-y-4">
-            <div className="flex items-center gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search applications..."
-                  className="pl-10"
-                  value={applicationSearch}
-                  onChange={(e) => setApplicationSearch(e.target.value)}
-                />
-              </div>
-            </div>
-            <Card>
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Job</TableHead>
-                      <TableHead>Applied</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredApplications.map((app) => (
-                      <TableRow key={app._id}>
-                        <TableCell className="font-medium">{app.name}</TableCell>
-                        <TableCell>{app.email}</TableCell>
-                        <TableCell>{app.jobTitle}</TableCell>
-                        <TableCell>{new Date(app.appliedAt).toLocaleDateString()}</TableCell>
-                        <TableCell>
-                          <Badge variant="secondary" className="flex items-center gap-1">
-                            {getStatusIcon(app.status)}
-                            {getStatusText(app.status)}
+
+        {/* Recent Applications */}
+        <Card className="shadow-2xl">
+          <CardHeader>
+            <CardTitle className="text-2xl flex items-center gap-3">
+              <UserCheck className="w-8 h-8 text-primary" />
+              Recent Job Applications
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {applications.length === 0 ? (
+              <p className="text-center py-16 text-muted-foreground text-lg">No applications received yet</p>
+            ) : (
+              <div className="grid gap-6">
+                {applications.slice(0, 6).map((app) => {
+                  const statusConfig = getStatusConfig(app.status);
+                  return (
+                    <div
+                      key={app._id}
+                      className="border rounded-2xl p-6 bg-white hover:shadow-lg transition-all"
+                    >
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center gap-4">
+                          <Avatar className="w-14 h-14 border-2 border-primary/20">
+                            <AvatarFallback className="text-lg font-semibold">
+                              {app.name
+                                .split(' ')
+                                .map((n) => n[0])
+                                .join('')
+                                .toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <h3 className="text-xl font-semibold">{app.name}</h3>
+                            <p className="text-muted-foreground">{app.email}</p>
+                            {app.phone && <p className="text-sm text-muted-foreground mt-1">{app.phone}</p>}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <Badge variant={statusConfig.badge} className="px-4 py-2 text-sm flex items-center gap-2">
+                            {statusConfig.icon}
+                            {statusConfig.label}
                           </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <MoreVertical className="w-4 h-4" />
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-48">
-                              <div className="space-y-1">
-                                <Button
-                                  variant="ghost"
-                                  className="w-full justify-start"
-                                  onClick={() => updateApplicationStatus(app._id, 'reviewed')}
-                                  disabled={app.status !== 'pending'}
-                                >
-                                  Mark Reviewed
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  className="w-full justify-start"
-                                  onClick={() => updateApplicationStatus(app._id, 'interview')}
-                                  disabled={app.status === 'rejected' || app.status === 'hired'}
-                                >
-                                  Schedule Interview
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  className="w-full justify-start"
-                                  onClick={() => updateApplicationStatus(app._id, 'hired')}
-                                  disabled={app.status === 'rejected' || app.status === 'hired'}
-                                >
-                                  Hire
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  className="w-full justify-start text-destructive"
-                                  onClick={() => updateApplicationStatus(app._id, 'rejected')}
-                                  disabled={app.status === 'rejected' || app.status === 'hired'}
-                                >
-                                  Reject
-                                </Button>
-                              </div>
-                            </PopoverContent>
-                          </Popover>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-                {filteredApplications.length === 0 && (
-                  <p className="text-center py-8 text-muted-foreground">No applications found</p>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-          {/* Contacts Tab */}
-          <TabsContent value="contacts" className="space-y-4">
-            <div className="flex items-center gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search contacts..."
-                  className="pl-10"
-                  value={contactSearch}
-                  onChange={(e) => setContactSearch(e.target.value)}
-                />
-              </div>
-            </div>
-            <Card>
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Subject</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredContacts.map((contact) => (
-                      <TableRow key={contact._id}>
-                        <TableCell className="font-medium">{contact.name}</TableCell>
-                        <TableCell>{contact.email}</TableCell>
-                        <TableCell>{contact.subject}</TableCell>
-                        <TableCell>{new Date(contact.date).toLocaleDateString()}</TableCell>
-                        <TableCell>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => window.open(`mailto:${contact.email}?subject=Re: ${contact.subject}`)}
-                          >
-                            <Mail className="w-4 h-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-                {filteredContacts.length === 0 && (
-                  <p className="text-center py-8 text-muted-foreground">No contacts found</p>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-          {/* Services Tab */}
-          <TabsContent value="services" className="space-y-4">
-            <div className="flex items-center gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search services..."
-                  className="pl-10"
-                  value={serviceSearch}
-                  onChange={(e) => setServiceSearch(e.target.value)}
-                />
-              </div>
-              <Dialog open={editingServiceId !== null} onOpenChange={(open) => !open && setEditingServiceId(null)}>
-                <DialogTrigger asChild>
-                  <Button>
-                    <Plus className="w-4 h-4 mr-2" /> New Service
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>{editingServiceId ? 'Edit Service' : 'Create Service'}</DialogTitle>
-                  </DialogHeader>
-                  <form onSubmit={handleServiceSubmit} className="space-y-4">
-                    <Input
-                      placeholder="Title"
-                      value={serviceForm.title}
-                      onChange={e => setServiceForm({...serviceForm, title: e.target.value})}
-                      required
-                    />
-                    <Textarea
-                      placeholder="Description"
-                      value={serviceForm.description}
-                      onChange={e => setServiceForm({...serviceForm, description: e.target.value})}
-                      required
-                    />
-                    <Input
-                      placeholder="Features (comma separated)"
-                      value={serviceForm.features}
-                      onChange={e => setServiceForm({...serviceForm, features: e.target.value})}
-                    />
-                    <Input
-                      placeholder="Icon (e.g., lucide icon name)"
-                      value={serviceForm.icon}
-                      onChange={e => setServiceForm({...serviceForm, icon: e.target.value})}
-                      required
-                    />
-                    <Input
-                      placeholder="Color (e.g., #hex)"
-                      value={serviceForm.color}
-                      onChange={e => setServiceForm({...serviceForm, color: e.target.value})}
-                    />
-                    <DialogFooter>
-                      <Button type="submit">{editingServiceId ? 'Update' : 'Create'}</Button>
-                    </DialogFooter>
-                  </form>
-                </DialogContent>
-              </Dialog>
-            </div>
-            <Card>
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Title</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead>Features</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredServices.map((service) => (
-                      <TableRow key={service._id}>
-                        <TableCell className="font-medium">{service.title}</TableCell>
-                        <TableCell>{service.description.substring(0, 50)}...</TableCell>
-                        <TableCell>{service.features.join(', ')}</TableCell>
-                        <TableCell>
-                          <Button variant="ghost" size="icon" onClick={() => handleServiceEdit(service)}>
-                            <Edit2 className="w-4 h-4" />
-                          </Button>
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button variant="ghost" size="icon" className="text-destructive">
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent>
-                              <DialogHeader>
-                                <DialogTitle>Confirm Deletion</DialogTitle>
-                                <DialogDescription>
-                                  Are you sure you want to delete this service? This action cannot be undone.
-                                </DialogDescription>
-                              </DialogHeader>
-                              <DialogFooter>
-                                <DialogClose asChild>
-                                  <Button variant="outline">Cancel</Button>
-                                </DialogClose>
-                                <Button variant="destructive" onClick={() => handleServiceDelete(service._id)}>
-                                  Delete
-                                </Button>
-                              </DialogFooter>
-                            </DialogContent>
-                          </Dialog>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-                {filteredServices.length === 0 && (
-                  <p className="text-center py-8 text-muted-foreground">No services found</p>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-          {/* Careers Tab */}
-          <TabsContent value="careers" className="space-y-4">
-            <div className="flex items-center gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search careers..."
-                  className="pl-10"
-                  value={careerSearch}
-                  onChange={(e) => setCareerSearch(e.target.value)}
-                />
-              </div>
-              <Dialog open={editingCareerId !== null} onOpenChange={(open) => !open && setEditingCareerId(null)}>
-                <DialogTrigger asChild>
-                  <Button>
-                    <Plus className="w-4 h-4 mr-2" /> New Career
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>{editingCareerId ? 'Edit Career' : 'Create Career'}</DialogTitle>
-                  </DialogHeader>
-                  <form onSubmit={handleCareerSubmit} className="space-y-4">
-                    <Input
-                      placeholder="Title"
-                      value={careerForm.title}
-                      onChange={e => setCareerForm({...careerForm, title: e.target.value})}
-                      required
-                    />
-                    <Input
-                      placeholder="Location"
-                      value={careerForm.location}
-                      onChange={e => setCareerForm({...careerForm, location: e.target.value})}
-                      required
-                    />
-                    <Select
-                      value={careerForm.type}
-                      onValueChange={(val) => setCareerForm({...careerForm, type: val})}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Full-time">Full-time</SelectItem>
-                        <SelectItem value="Part-time">Part-time</SelectItem>
-                        <SelectItem value="Contract">Contract</SelectItem>
-                        <SelectItem value="Internship">Internship</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Select
-                      value={careerForm.level}
-                      onValueChange={(val) => setCareerForm({...careerForm, level: val})}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Level" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Entry">Entry</SelectItem>
-                        <SelectItem value="Mid">Mid</SelectItem>
-                        <SelectItem value="Senior">Senior</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Input
-                      placeholder="Salary"
-                      value={careerForm.salary}
-                      onChange={e => setCareerForm({...careerForm, salary: e.target.value})}
-                    />
-                    <Input
-                      placeholder="Tags (comma separated)"
-                      value={careerForm.tags}
-                      onChange={e => setCareerForm({...careerForm, tags: e.target.value})}
-                    />
-                    <Textarea
-                      placeholder="Description"
-                      value={careerForm.description}
-                      onChange={e => setCareerForm({...careerForm, description: e.target.value})}
-                      required
-                    />
-                    <DialogFooter>
-                      <Button type="submit">{editingCareerId ? 'Update' : 'Create'}</Button>
-                    </DialogFooter>
-                  </form>
-                </DialogContent>
-              </Dialog>
-            </div>
-            <Card>
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Title</TableHead>
-                      <TableHead>Location</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Level</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredCareers.map((career) => (
-                      <TableRow key={career._id}>
-                        <TableCell className="font-medium">{career.title}</TableCell>
-                        <TableCell>{career.location}</TableCell>
-                        <TableCell>{career.type}</TableCell>
-                        <TableCell>{career.level}</TableCell>
-                        <TableCell>
-                          <Button variant="ghost" size="icon" onClick={() => handleCareerEdit(career)}>
-                            <Edit2 className="w-4 h-4" />
-                          </Button>
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button variant="ghost" size="icon" className="text-destructive">
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent>
-                              <DialogHeader>
-                                <DialogTitle>Confirm Deletion</DialogTitle>
-                                <DialogDescription>
-                                  Are you sure you want to delete this career?
-                                </DialogDescription>
-                              </DialogHeader>
-                              <DialogFooter>
-                                <DialogClose asChild>
-                                  <Button variant="outline">Cancel</Button>
-                                </DialogClose>
-                                <Button variant="destructive" onClick={() => handleCareerDelete(career._id)}>
-                                  Delete
-                                </Button>
-                              </DialogFooter>
-                            </DialogContent>
-                          </Dialog>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-                {filteredCareers.length === 0 && (
-                  <p className="text-center py-8 text-muted-foreground">No careers found</p>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-          {/* Projects Tab */}
-          <TabsContent value="projects" className="space-y-4">
-            <div className="flex items-center gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search projects..."
-                  className="pl-10"
-                  value={projectSearch}
-                  onChange={(e) => setProjectSearch(e.target.value)}
-                />
-              </div>
-              <Dialog open={editingProjectId !== null} onOpenChange={(open) => !open && setEditingProjectId(null)}>
-                <DialogTrigger asChild>
-                  <Button>
-                    <Plus className="w-4 h-4 mr-2" /> New Project
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>{editingProjectId ? 'Edit Project' : 'Create Project'}</DialogTitle>
-                  </DialogHeader>
-                  <form onSubmit={handleProjectSubmit} className="space-y-4">
-                    <Input
-                      placeholder="Title"
-                      value={projectForm.title}
-                      onChange={e => setProjectForm({...projectForm, title: e.target.value})}
-                      required
-                    />
-                    <Textarea
-                      placeholder="Description"
-                      value={projectForm.description}
-                      onChange={e => setProjectForm({...projectForm, description: e.target.value})}
-                      required
-                    />
-                    <Input
-                      placeholder="Features (comma separated)"
-                      value={projectForm.features}
-                      onChange={e => setProjectForm({...projectForm, features: e.target.value})}
-                    />
-                    <Input
-                      placeholder="Tech Stack (comma separated)"
-                      value={projectForm.techStack}
-                      onChange={e => setProjectForm({...projectForm, techStack: e.target.value})}
-                    />
-                    <Select
-                      value={projectForm.category}
-                      onValueChange={(val) => setProjectForm({...projectForm, category: val})}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Web App">Web App</SelectItem>
-                        <SelectItem value="Mobile App">Mobile App</SelectItem>
-                        <SelectItem value="UI/UX Design">UI/UX Design</SelectItem>
-                        <SelectItem value="SEO/Marketing">SEO/Marketing</SelectItem>
-                        <SelectItem value="Maintenance">Maintenance</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <div className="border-2 border-dashed rounded-md p-4 flex flex-col items-center justify-center">
-                      <Upload className="w-8 h-8 text-muted-foreground mb-2" />
-                      <Input
-                        type="file"
-                        accept="image/*"
-                        onChange={e => setProjectForm({...projectForm, icon: e.target.files?.[0] || null})}
-                        className="w-full cursor-pointer"
-                      />
-                      {projectForm.icon && <p className="text-sm text-muted-foreground mt-2">{projectForm.icon.name}</p>}
+                          <p className="text-xs text-muted-foreground mt-2 flex items-center justify-end gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {new Date(app.appliedAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="mb-4">
+                        <p className="font-medium">Applied for: <span className="text-primary">{app.jobTitle}</span></p>
+                      </div>
+
+                      <p className="text-muted-foreground line-clamp-3 mb-6">{app.coverLetter}</p>
+
+                      <div className="flex flex-wrap gap-3">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => updateApplicationStatus(app._id, 'reviewed')}
+                          disabled={['reviewed', 'interview', 'hired', 'rejected'].includes(app.status)}
+                        >
+                          Mark Reviewed
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => updateApplicationStatus(app._id, 'interview')}
+                          disabled={['interview', 'hired', 'rejected'].includes(app.status)}
+                        >
+                          Schedule Interview
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="default"
+                          onClick={() => updateApplicationStatus(app._id, 'hired')}
+                          disabled={['hired', 'rejected'].includes(app.status)}
+                        >
+                          Hire
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => updateApplicationStatus(app._id, 'rejected')}
+                          disabled={['rejected', 'hired'].includes(app.status)}
+                        >
+                          Reject
+                        </Button>
+                      </div>
                     </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Management Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+          {/* Services */}
+          <Card className="shadow-2xl">
+            <CardHeader>
+              <CardTitle className="text-2xl flex items-center gap-3">
+                <FileText className="w-7 h-7 text-primary" />
+                Manage Services
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-8">
+              <form onSubmit={handleServiceSubmit} className="space-y-5">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Title</Label>
                     <Input
-                      placeholder="Live URL"
-                      value={projectForm.liveUrl}
-                      onChange={e => setProjectForm({...projectForm, liveUrl: e.target.value})}
+                      value={serviceForm.title}
+                      onChange={(e) => setServiceForm((p) => ({ ...p, title: e.target.value }))}
+                      required
                     />
-                    <Select
-                      value={projectForm.status}
-                      onValueChange={(val) => setProjectForm({...projectForm, status: val})}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Active">Active</SelectItem>
-                        <SelectItem value="Completed">Completed</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <DialogFooter>
-                      <Button type="submit">{editingProjectId ? 'Update' : 'Create'}</Button>
-                    </DialogFooter>
-                  </form>
-                </DialogContent>
-              </Dialog>
-            </div>
-            <Card>
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Title</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredProjects.map((project) => (
-                      <TableRow key={project._id}>
-                        <TableCell className="font-medium">{project.title}</TableCell>
-                        <TableCell>{project.category}</TableCell>
-                        <TableCell>
-                          <Badge variant="secondary">{project.status}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Button variant="ghost" size="icon" onClick={() => handleProjectEdit(project)}>
-                            <Edit2 className="w-4 h-4" />
-                          </Button>
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button variant="ghost" size="icon" className="text-destructive">
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent>
-                              <DialogHeader>
-                                <DialogTitle>Confirm Deletion</DialogTitle>
-                                <DialogDescription>
-                                  Are you sure you want to delete this project?
-                                </DialogDescription>
-                              </DialogHeader>
-                              <DialogFooter>
-                                <DialogClose asChild>
-                                  <Button variant="outline">Cancel</Button>
-                                </DialogClose>
-                                <Button variant="destructive" onClick={() => handleProjectDelete(project._id)}>
-                                  Delete
-                                </Button>
-                              </DialogFooter>
-                            </DialogContent>
-                          </Dialog>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-                {filteredProjects.length === 0 && (
-                  <p className="text-center py-8 text-muted-foreground">No projects found</p>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                  </div>
+                  <div>
+                    <Label>Icon Name (Lucide)</Label>
+                    <Input
+                      value={serviceForm.icon}
+                      onChange={(e) => setServiceForm((p) => ({ ...p, icon: e.target.value }))}
+                      required
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label>Description</Label>
+                  <Textarea
+                    rows={3}
+                    value={serviceForm.description}
+                    onChange={(e) => setServiceForm((p) => ({ ...p, description: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label>Features (comma separated)</Label>
+                  <Input
+                    value={serviceForm.features}
+                    onChange={(e) => setServiceForm((p) => ({ ...p, features: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <Label>Color (hex)</Label>
+                  <Input
+                    value={serviceForm.color}
+                    onChange={(e) => setServiceForm((p) => ({ ...p, color: e.target.value }))}
+                    placeholder="#3b82f6"
+                  />
+                </div>
+                <Button type="submit" className="w-full" size="lg">
+                  {editingServiceId ? 'Update Service' : 'Create Service'}
+                </Button>
+              </form>
+
+              <Separator />
+
+              <div className="space-y-4 max-h-96 overflow-y-auto">
+                {services.map((service) => (
+                  <div
+                    key={service._id}
+                    className="border rounded-xl p-5 bg-muted/30 hover:bg-muted/60 transition"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-lg">{service.title}</h4>
+                        <p className="text-sm text-muted-foreground mt-1">{service.description}</p>
+                        <div className="flex flex-wrap gap-2 mt-3">
+                          {service.features.map((f, i) => (
+                            <Badge key={i} variant="secondary">
+                              {f}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="flex gap-2 ml-4">
+                        <Button size="sm" variant="ghost" onClick={() => handleServiceEdit(service)}>
+                          <Edit2 className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-destructive"
+                          onClick={() => handleServiceDelete(service._id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Careers */}
+          <Card className="shadow-2xl">
+            <CardHeader>
+              <CardTitle className="text-2xl flex items-center gap-3">
+                <Briefcase className="w-7 h-7 text-primary" />
+                Manage Careers
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-8">
+              <form onSubmit={handleCareerSubmit} className="space-y-5">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Title</Label>
+                    <Input
+                      value={careerForm.title}
+                      onChange={(e) => setCareerForm((p) => ({ ...p, title: e.target.value }))}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label>Location</Label>
+                    <Input
+                      value={careerForm.location}
+                      onChange={(e) => setCareerForm((p) => ({ ...p, location: e.target.value }))}
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <Label>Type</Label>
+                    <Input
+                      value={careerForm.type}
+                      onChange={(e) => setCareerForm((p) => ({ ...p, type: e.target.value }))}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label>Level</Label>
+                    <Input
+                      value={careerForm.level}
+                      onChange={(e) => setCareerForm((p) => ({ ...p, level: e.target.value }))}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label>Salary</Label>
+                    <Input
+                      value={careerForm.salary}
+                      onChange={(e) => setCareerForm((p) => ({ ...p, salary: e.target.value }))}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label>Tags (comma separated)</Label>
+                  <Input
+                    value={careerForm.tags}
+                    onChange={(e) => setCareerForm((p) => ({ ...p, tags: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <Label>Description</Label>
+                  <Textarea
+                    rows={4}
+                    value={careerForm.description}
+                    onChange={(e) => setCareerForm((p) => ({ ...p, description: e.target.value }))}
+                    required
+                  />
+                </div>
+                <Button type="submit" className="w-full" size="lg">
+                  {editingCareerId ? 'Update Career' : 'Create Career'}
+                </Button>
+              </form>
+
+              <Separator />
+
+              <div className="space-y-4 max-h-96 overflow-y-auto">
+                {careers.map((career) => (
+                  <div
+                    key={career._id}
+                    className="border rounded-xl p-5 bg-muted/30 hover:bg-muted/60 transition"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-lg">{career.title}</h4>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {career.location} • {career.type} • {career.level}
+                          {career.salary && ` • ${career.salary}`}
+                        </p>
+                        <p className="text-sm mt-2">{career.description}</p>
+                        <div className="flex flex-wrap gap-2 mt-3">
+                          {career.tags.map((t, i) => (
+                            <Badge key={i} variant="outline">
+                              {t}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="flex gap-2 ml-4">
+                        <Button size="sm" variant="ghost" onClick={() => handleCareerEdit(career)}>
+                          <Edit2 className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-destructive"
+                          onClick={() => handleCareerDelete(career._id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Projects */}
+          <Card className="shadow-2xl">
+            <CardHeader>
+              <CardTitle className="text-2xl flex items-center gap-3">
+                <FolderKanban className="w-7 h-7 text-primary" />
+                Manage Projects
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-8">
+              <form onSubmit={handleProjectSubmit} className="space-y-5">
+                <div>
+                  <Label>Title</Label>
+                  <Input
+                    value={projectForm.title}
+                    onChange={(e) => setProjectForm((p) => ({ ...p, title: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label>Description</Label>
+                  <Textarea
+                    rows={3}
+                    value={projectForm.description}
+                    onChange={(e) => setProjectForm((p) => ({ ...p, description: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Features (comma separated)</Label>
+                    <Input
+                      value={projectForm.features}
+                      onChange={(e) => setProjectForm((p) => ({ ...p, features: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <Label>Tech Stack (comma separated)</Label>
+                    <Input
+                      value={projectForm.techStack}
+                      onChange={(e) => setProjectForm((p) => ({ ...p, techStack: e.target.value }))}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label>Category</Label>
+                  <Select
+                    value={projectForm.category}
+                    onValueChange={(val) => setProjectForm((p) => ({ ...p, category: val }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Web App">Web App</SelectItem>
+                      <SelectItem value="Mobile App">Mobile App</SelectItem>
+                      <SelectItem value="UI/UX Design">UI/UX Design</SelectItem>
+                      <SelectItem value="SEO/Marketing">SEO/Marketing</SelectItem>
+                      <SelectItem value="Maintenance">Maintenance</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Project Image</Label>
+                  <div className="border-2 border-dashed border-muted-foreground/30 rounded-xl p-8 text-center hover:border-primary/50 transition">
+                    <Upload className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) =>
+                        setProjectForm((p) => ({
+                          ...p,
+                          icon: e.target.files ? e.target.files[0] : null,
+                        }))
+                      }
+                      className="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+                    />
+                    {projectForm.icon && (
+                      <p className="text-sm text-muted-foreground mt-3">{projectForm.icon.name}</p>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <Label>Live URL</Label>
+                  <Input
+                    value={projectForm.liveUrl}
+                    onChange={(e) => setProjectForm((p) => ({ ...p, liveUrl: e.target.value }))}
+                  />
+                </div>
+                <Button type="submit" className="w-full" size="lg">
+                  {editingProjectId ? 'Update Project' : 'Create Project'}
+                </Button>
+              </form>
+
+              <Separator />
+
+              <div className="space-y-4 max-h-96 overflow-y-auto">
+                {projects.map((project) => (
+                  <div
+                    key={project._id}
+                    className="border rounded-xl p-5 bg-muted/30 hover:bg-muted/60 transition flex justify-between items-center"
+                  >
+                    <div>
+                      <h4 className="font-semibold text-lg">{project.title}</h4>
+                      <Badge variant="outline" className="mt-2">
+                        {project.category}
+                      </Badge>
+                    </div>
+                    <div className="flex gap-3">
+                      <Button size="sm" variant="ghost" onClick={() => handleProjectEdit(project)}>
+                        <Edit2 className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-destructive"
+                        onClick={() => handleProjectDelete(project._id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Contact Messages */}
+        <Card className="shadow-2xl">
+          <CardHeader>
+            <CardTitle className="text-2xl flex items-center gap-3">
+              <Mail className="w-8 h-8 text-primary" />
+              Contact Messages
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {contacts.length === 0 ? (
+              <p className="text-center py-16 text-muted-foreground text-lg">No messages received yet</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {contacts.map((contact) => (
+                  <div
+                    key={contact._id}
+                    className="border rounded-2xl p-6 bg-white hover:shadow-xl transition-all"
+                  >
+                    <div className="flex items-start justify-between mb-5">
+                      <div className="flex items-center gap-4">
+                        <Avatar className="w-14 h-14 border-2 border-primary/20">
+                          <AvatarFallback className="text-lg">
+                            {contact.name
+                              .split(' ')
+                              .map((n) => n[0])
+                              .join('')
+                              .toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <h4 className="font-semibold text-xl">{contact.name}</h4>
+                          <p className="text-muted-foreground">{contact.email}</p>
+                          {contact.company && (
+                            <p className="text-sm text-muted-foreground mt-1">Company: {contact.company}</p>
+                          )}
+                        </div>
+                      </div>
+                      <Badge variant="outline" className="px-3 py-1">
+                        <Calendar className="w-3 h-3 mr-1" />
+                        {new Date(contact.date).toLocaleDateString()}
+                      </Badge>
+                    </div>
+
+                    <div className="space-y-3">
+                      <p className="font-medium text-lg">Subject: {contact.subject}</p>
+                      <p className="text-muted-foreground leading-relaxed">{contact.message}</p>
+                    </div>
+
+                    <div className="mt-6">
+                      <Button
+                        onClick={() =>
+                          window.open(
+                            `mailto:${contact.email}?subject=Re: ${encodeURIComponent(contact.subject)}`,
+                            '_blank'
+                          )
+                        }
+                      >
+                        Reply via Email
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
