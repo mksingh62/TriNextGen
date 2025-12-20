@@ -187,52 +187,56 @@ const AdminDashboard = () => {
     fetchDashboardData(storedToken);
   }, [navigate]);
 
-  const fetchDashboardData = async (authToken: string) => {
-    try {
-      setLoading(true);
+ const fetchDashboardData = async (authToken: string) => {
+  try {
+    setLoading(true);
+    setError(null); // Clear previous errors
 
-      // Fetch services
-      const servicesRes = await fetch(`${import.meta.env.VITE_API_BASE}/api/services`, {
-        headers: { 'Authorization': `Bearer ${authToken}` }
-      });
-      const servicesData = await servicesRes.json();
-      setServices(servicesData);
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`
+    };
 
-      // Fetch careers
-      const careersRes = await fetch(`${import.meta.env.VITE_API_BASE}/api/careers`, {
-        headers: { 'Authorization': `Bearer ${authToken}` }
-      });
-      const careersData = await careersRes.json();
-      setCareers(careersData);
+    // Helper function to fetch and handle response
+    const fetchWithErrorHandling = async (url: string) => {
+      const res = await fetch(url, { headers });
+      if (!res.ok) {
+        const text = await res.text(); // Get raw response as text
+        console.error(`Error fetching ${url}: Status ${res.status}, Response: ${text}`);
+        throw new Error(`Failed to fetch ${url}: ${res.status} - ${text}`);
+      }
+      // Check if it's JSON
+      const contentType = res.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await res.text();
+        throw new Error(`Expected JSON but got ${contentType}: ${text}`);
+      }
+      return res.json();
+    };
 
-      // Fetch contacts
-      const contactsRes = await fetch(`${import.meta.env.VITE_API_BASE}/api/contacts`, {
-        headers: { 'Authorization': `Bearer ${authToken}` }
-      });
-      const contactsData = await contactsRes.json();
-      setContacts(contactsData);
+    // Fetch all data
+    const [servicesData, careersData, contactsData, applicationsData, projectData] = await Promise.all([
+      fetchWithErrorHandling(`${import.meta.env.VITE_API_BASE}/api/services`),
+      fetchWithErrorHandling(`${import.meta.env.VITE_API_BASE}/api/careers`),
+      fetchWithErrorHandling(`${import.meta.env.VITE_API_BASE}/api/contacts`),
+      fetchWithErrorHandling(`${import.meta.env.VITE_API_BASE}/api/applications`),
+      fetchWithErrorHandling(`${import.meta.env.VITE_API_BASE}/api/projects`)
+    ]);
 
-      // Fetch applications
-      const applicationsRes = await fetch(`${import.meta.env.VITE_API_BASE}/api/applications`, {
-        headers: { 'Authorization': `Bearer ${authToken}` }
-      });
-      const applicationsData = await applicationsRes.json();
-      setApplications(applicationsData);
+    setServices(servicesData);
+    setCareers(careersData);
+    setContacts(contactsData);
+    setApplications(applicationsData);
+    setProjects(projectData);
 
-      // Fetch projects
-      const projectRes = await fetch(`${import.meta.env.VITE_API_BASE}/api/projects`, {
-        headers: { 'Authorization': `Bearer ${authToken}` }
-      });
-      const projectData = await projectRes.json();
-      setProjects(projectData);
-
-    } catch (err: any) {
-      setError(err.message || 'Failed to load dashboard data.');
-      toast.error(err.message || 'Failed to load dashboard data.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  } catch (err: any) {
+    setError(err.message);
+    toast.error(err.message || 'Failed to load dashboard data. Check console for details.');
+    console.error('Dashboard fetch error:', err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleLogout = () => {
     localStorage.removeItem('adminToken');
