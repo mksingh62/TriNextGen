@@ -334,151 +334,155 @@ const ClientsList = () => {
         </Card>
       ) : (
         /* CLIENT GRID */
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredClients.map((client) => (
-            <Card
-              key={client._id}
-              className="hover:shadow-xl transition-all duration-300 cursor-pointer group border-2 hover:border-primary"
-              onClick={() => navigate(`/admin/clients/${client._id}`)}
-            >
-              {/* DELETE BUTTON - Placed as a direct child of Card for best absolute positioning */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:bg-destructive/10 z-10"
-              disabled={isDeleting === client._id}
-              onClick={(e) => handleDeleteClient(e, client._id, client.name)}
-            >
-              {isDeleting === client._id ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Trash2 className="w-4 h-4" />
+/* CLIENT GRID */
+<div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+  {filteredClients.map((client) => (
+    <Card
+      key={client._id}
+      {/* FIX: added 'relative' class below */}
+      className="relative hover:shadow-xl transition-all duration-300 cursor-pointer group border-2 hover:border-primary"
+      onClick={() => navigate(`/admin/clients/${client._id}`)}
+    >
+      {/* DELETE BUTTON - Placed as a direct child of Card for best absolute positioning */}
+      <Button
+        variant="ghost"
+        size="icon"
+        {/* FIX: added 'z-10' and ensured top/right positioning */}
+        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:bg-destructive/10 z-10"
+        disabled={isDeleting === client._id}
+        onClick={(e) => handleDeleteClient(e, client._id, client.name)}
+      >
+        {isDeleting === client._id ? (
+          <Loader2 className="w-4 h-4 animate-spin" />
+        ) : (
+          <Trash2 className="w-4 h-4" />
+        )}
+      </Button>
+
+      <CardContent className="p-6 space-y-4">
+        {/* TOP SECTION - pr-8 added to prevent text overlap with delete icon */}
+        <div className="flex justify-between items-start pr-8">
+          <div className="flex-1">
+            <h3 className="font-bold text-xl group-hover:text-primary transition-colors">
+              {client.name}
+            </h3>
+            
+            <div className="space-y-1 mt-2">
+              {client.email && (
+                <div className="flex items-center text-xs text-muted-foreground">
+                  <Mail className="w-3 h-3 mr-1.5" />
+                  {client.email}
+                </div>
               )}
-            </Button>
-              <CardContent className="p-6 space-y-4">
-                {/* TOP SECTION */}
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <h3 className="font-bold text-xl group-hover:text-primary transition-colors">
-                      {client.name}
-                    </h3>
-                    
-                    <div className="space-y-1 mt-2">
-                      {client.email && (
-                        <div className="flex items-center text-xs text-muted-foreground">
-                          <Mail className="w-3 h-3 mr-1.5" />
-                          {client.email}
-                        </div>
-                      )}
-                      {client.phone && (
-                        <div className="flex items-center text-xs text-muted-foreground">
-                          <Phone className="w-3 h-3 mr-1.5" />
-                          {client.phone}
-                        </div>
-                      )}
-                      {client.address && (
-                        <div className="flex items-center text-xs text-muted-foreground">
-                          <MapPin className="w-3 h-3 mr-1.5" />
-                          {client.address}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <Badge className={`${getStatusColor(client.status)} flex items-center gap-1`}>
-                    {getStatusIcon(client.status)}
-                    {client.status || "Active"}
-                  </Badge>
+              {client.phone && (
+                <div className="flex items-center text-xs text-muted-foreground">
+                  <Phone className="w-3 h-3 mr-1.5" />
+                  {client.phone}
                 </div>
-
-                {/* FINANCIAL OVERVIEW */}
-                <div className="bg-muted/50 rounded-lg p-3 space-y-2">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">Total Value</span>
-                    <span className="font-bold text-green-600">
-                      ₹{(client.totalDealValue || 0).toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">Advance</span>
-                    <span className="font-semibold text-blue-600">
-                      ₹{(client.totalAdvance || 0).toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">Remaining</span>
-                    <span className="font-semibold text-orange-600">
-                      ₹{(client.totalRemaining || 0).toLocaleString()}
-                    </span>
-                  </div>
+              )}
+              {client.address && (
+                <div className="flex items-center text-xs text-muted-foreground">
+                  <MapPin className="w-3 h-3 mr-1.5" />
+                  {client.address}
                 </div>
+              )}
+            </div>
+          </div>
 
-                {/* PROGRESS BAR */}
-                {client.totalDealValue > 0 && (
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>Payment Progress</span>
-                      <span>
-                        {((client.totalAdvance / client.totalDealValue) * 100).toFixed(0)}%
-                      </span>
-                    </div>
-                    <div className="h-2 bg-muted rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-gradient-to-r from-green-500 to-green-600 transition-all duration-500"
-                        style={{
-                          width: `${Math.min(
-                            (client.totalAdvance / client.totalDealValue) * 100,
-                            100
-                          )}%`,
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-                )}
-
-                {/* STATS ROW */}
-                <div className="flex items-center justify-between pt-2 border-t">
-                  <div className="flex items-center gap-1.5 text-sm">
-                    <FolderKanban className="w-4 h-4 text-purple-600" />
-                    <span className="font-medium">{client.projectsCount || 0}</span>
-                    <span className="text-muted-foreground">Projects</span>
-                  </div>
-
-                  <Badge variant="outline" className="text-xs">
-                    {client.totalRemaining === 0 && client.projectsCount > 0
-                      ? "✓ Fully Paid"
-                      : "Pending"}
-                  </Badge>
-                </div>
-
-                {/* ACTIONS */}
-                <div className="flex gap-2 pt-2">
-                  <Button
-                    size="sm"
-                    className="flex-1"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/admin/clients/${client._id}`);
-                    }}
-                  >
-                    View Details
-                  </Button>
-
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/admin/clients/${client._id}/edit`);
-                    }}
-                  >
-                    Edit
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          <Badge className={`${getStatusColor(client.status)} flex items-center gap-1 shrink-0`}>
+            {getStatusIcon(client.status)}
+            {client.status || "Active"}
+          </Badge>
         </div>
+
+        {/* FINANCIAL OVERVIEW */}
+        <div className="bg-muted/50 rounded-lg p-3 space-y-2">
+          <div className="flex justify-between items-center text-sm">
+            <span className="text-muted-foreground">Total Value</span>
+            <span className="font-bold text-green-600">
+              ₹{(client.totalDealValue || 0).toLocaleString()}
+            </span>
+          </div>
+          <div className="flex justify-between items-center text-sm">
+            <span className="text-muted-foreground">Advance</span>
+            <span className="font-semibold text-blue-600">
+              ₹{(client.totalAdvance || 0).toLocaleString()}
+            </span>
+          </div>
+          <div className="flex justify-between items-center text-sm">
+            <span className="text-muted-foreground">Remaining</span>
+            <span className="font-semibold text-orange-600">
+              ₹{(client.totalRemaining || 0).toLocaleString()}
+            </span>
+          </div>
+        </div>
+
+        {/* PROGRESS BAR */}
+        {client.totalDealValue > 0 && (
+          <div className="space-y-1">
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>Payment Progress</span>
+              <span>
+                {((client.totalAdvance / client.totalDealValue) * 100).toFixed(0)}%
+              </span>
+            </div>
+            <div className="h-2 bg-muted rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-green-500 to-green-600 transition-all duration-500"
+                style={{
+                  width: `${Math.min(
+                    (client.totalAdvance / client.totalDealValue) * 100,
+                    100
+                  )}%`,
+                }}
+              ></div>
+            </div>
+          </div>
+        )}
+
+        {/* STATS ROW */}
+        <div className="flex items-center justify-between pt-2 border-t">
+          <div className="flex items-center gap-1.5 text-sm">
+            <FolderKanban className="w-4 h-4 text-purple-600" />
+            <span className="font-medium">{client.projectsCount || 0}</span>
+            <span className="text-muted-foreground">Projects</span>
+          </div>
+
+          <Badge variant="outline" className="text-xs">
+            {client.totalRemaining === 0 && client.projectsCount > 0
+              ? "✓ Fully Paid"
+              : "Pending"}
+          </Badge>
+        </div>
+
+        {/* ACTIONS */}
+        <div className="flex gap-2 pt-2">
+          <Button
+            size="sm"
+            className="flex-1"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/admin/clients/${client._id}`);
+            }}
+          >
+            View Details
+          </Button>
+
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/admin/clients/${client._id}/edit`);
+            }}
+          >
+            Edit
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  ))}
+</div>
       )}
     </div>
   );
