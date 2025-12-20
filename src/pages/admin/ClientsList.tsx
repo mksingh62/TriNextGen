@@ -339,15 +339,15 @@ const ClientsList = () => {
   {filteredClients.map((client) => (
     <Card
       key={client._id}
-      // FIX: Added 'relative' and 'overflow-hidden' to contain the absolute button
-      className="relative overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group border-2 hover:border-primary"
+      {/* FIX: added 'relative' for absolute positioning of delete button */}
+      className="relative hover:shadow-xl transition-all duration-300 cursor-pointer group border-2 hover:border-primary overflow-hidden"
       onClick={() => navigate(`/admin/clients/${client._id}`)}
     >
-      {/* DELETE BUTTON - Placed as a direct child of Card */}
+      {/* DELETE BUTTON - Visible on Hover */}
       <Button
         variant="ghost"
         size="icon"
-        // FIX: Added 'z-10' and ensured 'top-2 right-2' are within the relative card
+        {/* FIX: added 'z-10' and absolute positioning */}
         className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:bg-destructive/10 z-10"
         disabled={isDeleting === client._id}
         onClick={(e) => handleDeleteClient(e, client._id, client.name)}
@@ -360,7 +360,7 @@ const ClientsList = () => {
       </Button>
 
       <CardContent className="p-6 space-y-4">
-        {/* TOP SECTION - Added 'pr-8' (padding right) to avoid text overlapping with the delete icon */}
+        {/* TOP SECTION - pr-8 added to prevent name overlapping with trash icon */}
         <div className="flex justify-between items-start pr-8">
           <div className="flex-1">
             <h3 className="font-bold text-xl group-hover:text-primary transition-colors truncate">
@@ -418,12 +418,30 @@ const ClientsList = () => {
               <div
                 className="h-full bg-gradient-to-r from-green-500 to-green-600 transition-all duration-500"
                 style={{
-                  width: `${Math.min((client.totalAdvance / client.totalDealValue) * 100, 100)}%`,
+                  width: `${Math.min(
+                    (client.totalAdvance / client.totalDealValue) * 100,
+                    100
+                  )}%`,
                 }}
               ></div>
             </div>
           </div>
         )}
+
+        {/* STATS ROW */}
+        <div className="flex items-center justify-between pt-2 border-t">
+          <div className="flex items-center gap-1.5 text-sm">
+            <FolderKanban className="w-4 h-4 text-purple-600" />
+            <span className="font-medium">{client.projectsCount || 0}</span>
+            <span className="text-muted-foreground">Projects</span>
+          </div>
+
+          <Badge variant="outline" className="text-xs">
+            {client.totalRemaining === 0 && client.projectsCount > 0
+              ? "✓ Fully Paid"
+              : "Pending"}
+          </Badge>
+        </div>
 
         {/* ACTIONS */}
         <div className="flex gap-2 pt-2">
