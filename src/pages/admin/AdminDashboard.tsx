@@ -1,26 +1,101 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FolderKanban } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useNavigate } from 'react-router-dom';
-import { adminApi, serviceApi, careerApi } from '@/lib/api';
-import { 
-  Users, 
-  Mail, 
-  Briefcase, 
+import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useState, useCallback, useMemo } from "react";
+// Shadcn UI Components
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+  DialogTrigger,
+  DialogClose
+} from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from "@/components/ui/table";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger
+} from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
+import { Toaster, toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
+// Icons
+import {
+  IndianRupee,
+  FolderKanban,
+  Plus,
+  TrendingUp,
+  Wallet,
   Calendar,
-  BarChart3,
+  Edit2,
+  Trash2,
+  DollarSign,
   FileText,
+  CheckCircle2,
+  Clock,
+  AlertCircle,
+  ExternalLink,
+  Phone,
+  Mail,
+  ArrowLeft,
+  MoreVertical,
+  Loader2,
+  Users,
+  Briefcase,
+  BarChart3,
   MessageSquare,
   LogOut,
   UserCheck,
-  Clock,
-  CheckCircle,
   XCircle,
-  Eye
-} from 'lucide-react';
-
+  Eye,
+  Search,
+  Filter,
+  Upload
+} from "lucide-react";
+// Recharts for visualization
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer
+} from 'recharts';
+/* -------------------------------------------------------------------------- */
+/* TYPES */
+/* -------------------------------------------------------------------------- */
+type ProjectCategory = "Web App" | "Mobile App" | "UI/UX Design" | "SEO/Marketing" | "Maintenance";
+interface Project {
+  _id: string;
+  title: string;
+  category?: ProjectCategory; // New optional field (for backward compatibility)
+  totalAmount: number;
+  advancePaid: number;
+  remainingAmount: number;
+  status: string;
+  liveUrl?: string;
+  startDate?: string;
+  deadline?: string;
+  description?: string;
+}
 interface Service {
   _id: string;
   title: string;
@@ -29,7 +104,6 @@ interface Service {
   icon: string;
   color: string;
 }
-
 interface Career {
   _id: string;
   title: string;
@@ -40,7 +114,6 @@ interface Career {
   tags: string[];
   description: string;
 }
-
 interface Contact {
   _id: string;
   name: string;
@@ -50,7 +123,6 @@ interface Contact {
   message: string;
   date: string;
 }
-
 interface Application {
   _id: string;
   name: string;
@@ -62,25 +134,12 @@ interface Application {
   status: 'pending' | 'reviewed' | 'interview' | 'rejected' | 'hired';
   appliedAt: string;
 }
-interface Project {
-  _id: string;
-  title: string;
-  description: string;
-  features: string[];
-  techStack: string[];
-  category: string;
-  icon: string;
-  liveUrl?: string;
-  status: string;
-}
-
-
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+ 
   // State for services
   const [services, setServices] = useState<Service[]>([]);
   const [serviceForm, setServiceForm] = useState({
@@ -91,7 +150,6 @@ const AdminDashboard = () => {
     color: ''
   });
   const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
-
   // State for careers
   const [careers, setCareers] = useState<Career[]>([]);
   const [careerForm, setCareerForm] = useState({
@@ -104,11 +162,9 @@ const AdminDashboard = () => {
     description: ''
   });
   const [editingCareerId, setEditingCareerId] = useState<string | null>(null);
-
   // State for contacts and applications
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);
-
     // Projects
   const [projects, setProjects] = useState<Project[]>([]);
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
@@ -118,11 +174,16 @@ const AdminDashboard = () => {
     features: '',
     techStack: '',
     category: '',
-    icon: null as File | null, 
+    icon: null as File | null,
     liveUrl: '',
     status: 'Active'
   });
-
+  // Search and filter states
+  const [serviceSearch, setServiceSearch] = useState('');
+  const [careerSearch, setCareerSearch] = useState('');
+  const [contactSearch, setContactSearch] = useState('');
+  const [applicationSearch, setApplicationSearch] = useState('');
+  const [projectSearch, setProjectSearch] = useState('');
 
   useEffect(() => {
     // Check if user is authenticated
@@ -131,7 +192,7 @@ const AdminDashboard = () => {
       navigate('/admin/login');
       return;
     }
-    
+   
     setToken(storedToken);
     fetchDashboardData(storedToken);
   }, [navigate]);
@@ -139,19 +200,19 @@ const AdminDashboard = () => {
   const fetchDashboardData = async (authToken: string) => {
     try {
       setLoading(true);
-      
+     
       // Fetch services from backend using API utility
       const servicesData = await serviceApi.getAllServices();
       setServices(servicesData);
-      
+     
       // Fetch careers from backend using API utility
       const careersData = await careerApi.getAllCareers();
       setCareers(careersData);
-      
+     
       // Fetch contacts from backend using API utility
       const contactsData = await adminApi.getAllContacts(authToken);
       setContacts(contactsData);
-      
+     
       // Fetch applications from backend using API utility
       const applicationsData = await careerApi.getAllApplications(authToken);
       setApplications(applicationsData);
@@ -159,11 +220,9 @@ const AdminDashboard = () => {
       const projectRes = await fetch(`${import.meta.env.VITE_API_BASE}/api/projects`);
       const projectData = await projectRes.json();
       setProjects(projectData);
-
-      
+     
     } catch (err: any) {
-      setError(err.message || 'Failed to load dashboard data. Please try again later.');
-      console.error('Error fetching dashboard data:', err);
+      toast.error(err.message || 'Failed to load dashboard data.');
     } finally {
       setLoading(false);
     }
@@ -177,49 +236,47 @@ const AdminDashboard = () => {
   // Service CRUD
   const handleServiceSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+   
     try {
       const method = editingServiceId ? 'PUT' : 'POST';
-      const endpoint = editingServiceId 
-        ? `/api/services/${editingServiceId}` 
+      const endpoint = editingServiceId
+        ? `/api/services/${editingServiceId}`
         : '/api/services';
-      
-      const body = { 
-        ...serviceForm, 
-        features: serviceForm.features.split(',').map(f => f.trim()) 
+     
+      const body = {
+        ...serviceForm,
+        features: serviceForm.features.split(',').map(f => f.trim())
       };
-      
-      // Use the apiCall utility function from lib/api.ts
+     
       const response = await fetch(`${import.meta.env.VITE_API_BASE}${endpoint}`, {
         method,
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(body)
       });
-      
+     
       if (response.ok) {
-        setServiceForm({ 
-          title: '', 
-          description: '', 
-          features: '', 
-          icon: '', 
-          color: '' 
+        setServiceForm({
+          title: '',
+          description: '',
+          features: '',
+          icon: '',
+          color: ''
         });
         setEditingServiceId(null);
         fetchDashboardData(token!);
+        toast.success(editingServiceId ? 'Service updated successfully' : 'Service created successfully');
       } else {
         throw new Error('Failed to save service');
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to save service. Please try again.');
-      console.error('Error saving service:', err);
+      toast.error(err.message || 'Failed to save service.');
     }
   };
-
   const handleServiceEdit = (service: Service) => {
-    setServiceForm({ 
+    setServiceForm({
       title: service.title,
       description: service.description,
       features: service.features.join(', '),
@@ -228,75 +285,71 @@ const AdminDashboard = () => {
     });
     setEditingServiceId(service._id);
   };
-
   const handleServiceDelete = async (id: string) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/services/${id}`, { 
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/services/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
-      
+     
       if (response.ok) {
         fetchDashboardData(token!);
+        toast.success('Service deleted successfully');
       } else {
         throw new Error('Failed to delete service');
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to delete service. Please try again.');
-      console.error('Error deleting service:', err);
+      toast.error(err.message || 'Failed to delete service.');
     }
   };
-
   // Career CRUD
   const handleCareerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+   
     try {
       const method = editingCareerId ? 'PUT' : 'POST';
-      const endpoint = editingCareerId 
-        ? `/api/careers/${editingCareerId}` 
+      const endpoint = editingCareerId
+        ? `/api/careers/${editingCareerId}`
         : '/api/careers';
-      
-      const body = { 
-        ...careerForm, 
-        tags: careerForm.tags.split(',').map(t => t.trim()) 
+     
+      const body = {
+        ...careerForm,
+        tags: careerForm.tags.split(',').map(t => t.trim())
       };
-      
-      // Use the apiCall utility function from lib/api.ts
+     
       const response = await fetch(`${import.meta.env.VITE_API_BASE}${endpoint}`, {
         method,
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(body)
       });
-      
+     
       if (response.ok) {
-        setCareerForm({ 
-          title: '', 
-          location: '', 
-          type: '', 
-          level: '', 
-          salary: '', 
-          tags: '', 
-          description: '' 
+        setCareerForm({
+          title: '',
+          location: '',
+          type: '',
+          level: '',
+          salary: '',
+          tags: '',
+          description: ''
         });
         setEditingCareerId(null);
         fetchDashboardData(token!);
+        toast.success(editingCareerId ? 'Career updated successfully' : 'Career created successfully');
       } else {
         throw new Error('Failed to save career');
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to save career. Please try again.');
-      console.error('Error saving career:', err);
+      toast.error(err.message || 'Failed to save career.');
     }
   };
-
   const handleCareerEdit = (career: Career) => {
-    setCareerForm({ 
+    setCareerForm({
       title: career.title,
       location: career.location,
       type: career.type,
@@ -307,117 +360,120 @@ const AdminDashboard = () => {
     });
     setEditingCareerId(career._id);
   };
-
   const handleCareerDelete = async (id: string) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/careers/${id}`, { 
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/careers/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
-      
+     
       if (response.ok) {
         fetchDashboardData(token!);
+        toast.success('Career deleted successfully');
       } else {
         throw new Error('Failed to delete career');
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to delete career. Please try again.');
-      console.error('Error deleting career:', err);
+      toast.error(err.message || 'Failed to delete career.');
     }
   };
-
   // Application status update
   const updateApplicationStatus = async (applicationId: string, status: Application['status']) => {
     try {
       await careerApi.updateApplicationStatus(token!, applicationId, status);
-      
+     
       // Update local state
-      setApplications(prev => 
-        prev.map(app => 
+      setApplications(prev =>
+        prev.map(app =>
           app._id === applicationId ? { ...app, status } : app
         )
       );
+      toast.success('Application status updated');
     } catch (err: any) {
-      setError(err.message || 'Failed to update application status. Please try again.');
-      console.error('Error updating application status:', err);
+      toast.error(err.message || 'Failed to update application status');
     }
   };
-const handleProjectSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-
-  const method = editingProjectId ? 'PUT' : 'POST';
-  const endpoint = editingProjectId
-    ? `/api/projects/${editingProjectId}`
-    : '/api/projects';
-
-  const formData = new FormData();
-  formData.append("title", projectForm.title);
-  formData.append("description", projectForm.description);
-  formData.append(
-    "features",
-    JSON.stringify(projectForm.features.split(",").map(f => f.trim()))
-  );
-  formData.append(
-    "techStack",
-    JSON.stringify(projectForm.techStack.split(",").map(t => t.trim()))
-  );
-  formData.append("category", projectForm.category);
-  formData.append("liveUrl", projectForm.liveUrl);
-  formData.append("status", projectForm.status);
-
-  if (projectForm.icon) {
-    formData.append("icon", projectForm.icon); // 🔥 FILE
-  }
-
-  await fetch(`${import.meta.env.VITE_API_BASE}${endpoint}`, {
-    method,
-    headers: {
-      Authorization: `Bearer ${token}` // ❌ Content-Type MAT lagao
-    },
-    body: formData
-  });
-
-  setProjectForm({
-    title: '',
-    description: '',
-    features: '',
-    techStack: '',
-    category: '',
-    icon: null,
-    liveUrl: '',
-    status: 'Active'
-  });
-
-  setEditingProjectId(null);
-  fetchDashboardData(token!);
-};
-
-const handleProjectEdit = (project: Project) => {
-  setProjectForm({
-    title: project.title,
-    description: project.description,
-    features: project.features.join(', '),
-    techStack: project.techStack.join(', '),
-    category: project.category,
-    icon: null,
-    liveUrl: project.liveUrl || '',
-    status: project.status
-  });
-  setEditingProjectId(project._id);
-};
-
-const handleProjectDelete = async (id: string) => {
-  await fetch(`${import.meta.env.VITE_API_BASE}/api/projects/${id}`, {
-    method: 'DELETE',
-    headers: {
-      Authorization: `Bearer ${token}`
+  // Project CRUD
+  const handleProjectSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append("title", projectForm.title);
+    formData.append("description", projectForm.description);
+    formData.append("features", projectForm.features);
+    formData.append("techStack", projectForm.techStack);
+    formData.append("category", projectForm.category);
+    formData.append("liveUrl", projectForm.liveUrl);
+    formData.append("status", projectForm.status);
+    if (projectForm.icon) {
+      formData.append("icon", projectForm.icon);
     }
-  });
-  fetchDashboardData(token!);
-};
 
+    try {
+      const method = editingProjectId ? 'PUT' : 'POST';
+      const endpoint = editingProjectId ? `/api/projects/${editingProjectId}` : '/api/projects';
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}${endpoint}`, {
+        method,
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+     
+      if (response.ok) {
+        setProjectForm({
+          title: '',
+          description: '',
+          features: '',
+          techStack: '',
+          category: '',
+          icon: null,
+          liveUrl: '',
+          status: 'Active'
+        });
+        setEditingProjectId(null);
+        fetchDashboardData(token!);
+        toast.success(editingProjectId ? 'Project updated successfully' : 'Project created successfully');
+      } else {
+        throw new Error('Failed to save project');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to save project');
+    }
+  };
+  const handleProjectEdit = (project: Project) => {
+    setProjectForm({
+      title: project.title,
+      description: project.description || '',
+      features: project.features ? project.features.join(', ') : '',
+      techStack: project.techStack ? project.techStack.join(', ') : '',
+      category: project.category || '',
+      icon: null,
+      liveUrl: project.liveUrl || '',
+      status: project.status
+    });
+    setEditingProjectId(project._id);
+  };
+  const handleProjectDelete = async (id: string) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/projects/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+     
+      if (response.ok) {
+        fetchDashboardData(token!);
+        toast.success('Project deleted successfully');
+      } else {
+        throw new Error('Failed to delete project');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to delete project');
+    }
+  };
   // Get status icon
   const getStatusIcon = (status: Application['status']) => {
     switch (status) {
@@ -430,12 +486,11 @@ const handleProjectDelete = async (id: string) => {
       case 'rejected':
         return <XCircle className="w-4 h-4 text-red-500" />;
       case 'hired':
-        return <CheckCircle className="w-4 h-4 text-green-500" />;
+        return <CheckCircle2 className="w-4 h-4 text-green-500" />;
       default:
         return <Clock className="w-4 h-4 text-gray-500" />;
     }
   };
-
   // Get status text
   const getStatusText = (status: Application['status']) => {
     switch (status) {
@@ -453,51 +508,71 @@ const handleProjectDelete = async (id: string) => {
         return 'Unknown';
     }
   };
+  // Filtered data
+  const filteredServices = useMemo(() => {
+    return services.filter(s => s.title.toLowerCase().includes(serviceSearch.toLowerCase()));
+  }, [services, serviceSearch]);
+
+  const filteredCareers = useMemo(() => {
+    return careers.filter(c => c.title.toLowerCase().includes(careerSearch.toLowerCase()));
+  }, [careers, careerSearch]);
+
+  const filteredContacts = useMemo(() => {
+    return contacts.filter(c => c.name.toLowerCase().includes(contactSearch.toLowerCase()) || c.email.toLowerCase().includes(contactSearch.toLowerCase()));
+  }, [contacts, contactSearch]);
+
+  const filteredApplications = useMemo(() => {
+    return applications.filter(a => a.name.toLowerCase().includes(applicationSearch.toLowerCase()) || a.jobTitle.toLowerCase().includes(applicationSearch.toLowerCase()));
+  }, [applications, applicationSearch]);
+
+  const filteredProjects = useMemo(() => {
+    return projects.filter(p => p.title.toLowerCase().includes(projectSearch.toLowerCase()));
+  }, [projects, projectSearch]);
 
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-16">
           <div className="flex justify-center items-center h-64">
-            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-            <span className="ml-3 text-lg text-muted-foreground">Loading dashboard...</span>
+            <Loader2 className="w-8 h-8 animate-spin mr-2" />
+            <span className="text-lg text-muted-foreground">Loading dashboard...</span>
           </div>
         </div>
       </div>
     );
   }
-
   if (error) {
     return (
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-16">
-          <div className="max-w-2xl mx-auto text-center">
-            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-8">
-              <h2 className="text-2xl font-bold text-destructive mb-4">Error Loading Dashboard</h2>
-              <p className="text-muted-foreground mb-6">{error}</p>
-              <Button 
-                onClick={() => window.location.reload()} 
-                variant="outline"
-                className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-              >
-                Try Again
-              </Button>
-            </div>
-          </div>
+          <Card className="max-w-md mx-auto">
+            <CardHeader>
+              <CardTitle className="text-destructive">Error</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground mb-4">{error}</p>
+              <Button onClick={() => fetchDashboardData(token!)}>Retry</Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
   }
-
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/50">
+      <Toaster position="top-right" />
       {/* Header */}
-      <header className="border-b">
+      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-blur]:bg-background/60 sticky top-0 z-50">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center py-4">
-            <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
-            <Button onClick={handleLogout} variant="outline" className="flex items-center">
-              <LogOut className="w-4 h-4 mr-2" />
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+              <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+            </div>
+            <Button variant="ghost" onClick={handleLogout} className="flex items-center gap-2">
+              <LogOut className="w-4 h-4" />
               Logout
             </Button>
           </div>
@@ -506,575 +581,615 @@ const handleProjectDelete = async (id: string) => {
 
       <div className="container mx-auto px-4 py-8">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                  <FileText className="w-6 h-6 text-primary" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm text-muted-foreground">Services</p>
-                  <p className="text-2xl font-bold">{services.length}</p>
-                </div>
-              </div>
-            </CardContent>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="pb-2">
+              <CardDescription className="flex items-center gap-2 text-muted-foreground">
+                <FileText className="w-4 h-4" /> Services
+              </CardDescription>
+              <CardTitle className="text-3xl">{services.length}</CardTitle>
+            </CardHeader>
           </Card>
-          
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                  <Briefcase className="w-6 h-6 text-primary" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm text-muted-foreground">Careers</p>
-                  <p className="text-2xl font-bold">{careers.length}</p>
-                </div>
-              </div>
-            </CardContent>
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="pb-2">
+              <CardDescription className="flex items-center gap-2 text-muted-foreground">
+                <Briefcase className="w-4 h-4" /> Careers
+              </CardDescription>
+              <CardTitle className="text-3xl">{careers.length}</CardTitle>
+            </CardHeader>
           </Card>
-          
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                  <Mail className="w-6 h-6 text-primary" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm text-muted-foreground">Messages</p>
-                  <p className="text-2xl font-bold">{contacts.length}</p>
-                </div>
-              </div>
-            </CardContent>
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="pb-2">
+              <CardDescription className="flex items-center gap-2 text-muted-foreground">
+                <MessageSquare className="w-4 h-4" /> Messages
+              </CardDescription>
+              <CardTitle className="text-3xl">{contacts.length}</CardTitle>
+            </CardHeader>
           </Card>
-          
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                  <BarChart3 className="w-6 h-6 text-primary" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm text-muted-foreground">Applications</p>
-                  <p className="text-2xl font-bold">{applications.length}</p>
-                </div>
-              </div>
-            </CardContent>
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="pb-2">
+              <CardDescription className="flex items-center gap-2 text-muted-foreground">
+                <UserCheck className="w-4 h-4" /> Applications
+              </CardDescription>
+              <CardTitle className="text-3xl">{applications.length}</CardTitle>
+            </CardHeader>
           </Card>
-          <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                <FolderKanban className="w-6 h-6 text-primary" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm text-muted-foreground">Projects</p>
-                <p className="text-2xl font-bold">{projects.length}</p>
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="pb-2">
+              <CardDescription className="flex items-center gap-2 text-muted-foreground">
+                <FolderKanban className="w-4 h-4" /> Projects
+              </CardDescription>
+              <CardTitle className="text-3xl">{projects.length}</CardTitle>
+            </CardHeader>
+          </Card>
+        </div>
+
+        {/* Main Tabs */}
+        <Tabs defaultValue="applications" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-5">
+            <TabsTrigger value="applications">Applications</TabsTrigger>
+            <TabsTrigger value="contacts">Contacts</TabsTrigger>
+            <TabsTrigger value="services">Services</TabsTrigger>
+            <TabsTrigger value="careers">Careers</TabsTrigger>
+            <TabsTrigger value="projects">Projects</TabsTrigger>
+          </TabsList>
+
+          {/* Applications Tab */}
+          <TabsContent value="applications" className="space-y-4">
+            <div className="flex items-center gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search applications..."
+                  className="pl-10"
+                  value={applicationSearch}
+                  onChange={(e) => setApplicationSearch(e.target.value)}
+                />
               </div>
             </div>
-          </CardContent>
-        </Card>  
-          <Card
-  onClick={() => navigate("/admin/clients")}
-  className="cursor-pointer hover:shadow-md transition"
->
-  <CardContent className="p-6">
-    <div className="flex items-center">
-      <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-        <Users className="w-6 h-6 text-primary" />
-      </div>
-      <div className="ml-4">
-        <p className="text-sm text-muted-foreground">Clients</p>
-        <p className="text-2xl font-bold">Manage</p>
-      </div>
-    </div>
-  </CardContent>
-</Card>
+            <Card>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Job</TableHead>
+                      <TableHead>Applied</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredApplications.map((app) => (
+                      <TableRow key={app._id}>
+                        <TableCell className="font-medium">{app.name}</TableCell>
+                        <TableCell>{app.email}</TableCell>
+                        <TableCell>{app.jobTitle}</TableCell>
+                        <TableCell>{new Date(app.appliedAt).toLocaleDateString()}</TableCell>
+                        <TableCell>
+                          <Badge variant="secondary" className="flex items-center gap-1">
+                            {getStatusIcon(app.status)}
+                            {getStatusText(app.status)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreVertical className="w-4 h-4" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-48">
+                              <div className="space-y-1">
+                                <Button
+                                  variant="ghost"
+                                  className="w-full justify-start"
+                                  onClick={() => updateApplicationStatus(app._id, 'reviewed')}
+                                  disabled={app.status !== 'pending'}
+                                >
+                                  Mark Reviewed
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  className="w-full justify-start"
+                                  onClick={() => updateApplicationStatus(app._id, 'interview')}
+                                  disabled={app.status === 'rejected' || app.status === 'hired'}
+                                >
+                                  Schedule Interview
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  className="w-full justify-start"
+                                  onClick={() => updateApplicationStatus(app._id, 'hired')}
+                                  disabled={app.status === 'rejected' || app.status === 'hired'}
+                                >
+                                  Hire
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  className="w-full justify-start text-destructive"
+                                  onClick={() => updateApplicationStatus(app._id, 'rejected')}
+                                  disabled={app.status === 'rejected' || app.status === 'hired'}
+                                >
+                                  Reject
+                                </Button>
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                {filteredApplications.length === 0 && (
+                  <p className="text-center py-8 text-muted-foreground">No applications found</p>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-        </div>
+          {/* Contacts Tab */}
+          <TabsContent value="contacts" className="space-y-4">
+            <div className="flex items-center gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search contacts..."
+                  className="pl-10"
+                  value={contactSearch}
+                  onChange={(e) => setContactSearch(e.target.value)}
+                />
+              </div>
+            </div>
+            <Card>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Subject</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredContacts.map((contact) => (
+                      <TableRow key={contact._id}>
+                        <TableCell className="font-medium">{contact.name}</TableCell>
+                        <TableCell>{contact.email}</TableCell>
+                        <TableCell>{contact.subject}</TableCell>
+                        <TableCell>{new Date(contact.date).toLocaleDateString()}</TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => window.open(`mailto:${contact.email}?subject=Re: ${contact.subject}`)}
+                          >
+                            <Mail className="w-4 h-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                {filteredContacts.length === 0 && (
+                  <p className="text-center py-8 text-muted-foreground">No contacts found</p>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-        {/* Applications Section */}
-        <div className="mb-8">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <UserCheck className="w-5 h-5 mr-2" />
-                Recent Job Applications
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {applications.length === 0 ? (
-                <p className="text-muted-foreground text-center py-4">No applications found</p>
-              ) : (
-                <div className="space-y-4">
-                  {applications.map((application) => (
-                    <div key={application._id} className="border rounded-lg p-4">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="font-semibold">{application.name}</h3>
-                          <p className="text-sm text-muted-foreground">{application.email}</p>
-                          {application.phone && (
-                            <p className="text-sm text-muted-foreground">{application.phone}</p>
-                          )}
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          {getStatusIcon(application.status)}
-                          <span className="text-sm font-medium">{getStatusText(application.status)}</span>
-                        </div>
-                      </div>
-                      
-                      <div className="mt-3">
-                        <p className="text-sm font-medium">Applied for: {application.jobTitle}</p>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Applied on: {new Date(application.appliedAt).toLocaleDateString()}
-                        </p>
-                      </div>
-                      
-                      <div className="mt-3">
-                        <p className="text-sm line-clamp-2">{application.coverLetter}</p>
-                      </div>
-                      
-                      <div className="mt-4 flex space-x-2">
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          onClick={() => updateApplicationStatus(application._id, 'reviewed')}
-                          disabled={application.status === 'reviewed' || application.status === 'interview' || application.status === 'hired' || application.status === 'rejected'}
-                        >
-                          Mark as Reviewed
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          onClick={() => updateApplicationStatus(application._id, 'interview')}
-                          disabled={application.status === 'interview' || application.status === 'hired' || application.status === 'rejected'}
-                        >
-                          Schedule Interview
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          onClick={() => updateApplicationStatus(application._id, 'rejected')}
-                          disabled={application.status === 'rejected' || application.status === 'hired'}
-                        >
-                          Reject
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Services Management */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <FileText className="w-5 h-5 mr-2" />
-                Manage Services
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleServiceSubmit} className="space-y-4 mb-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Input 
-                      placeholder="Title" 
-                      value={serviceForm.title} 
-                      onChange={e => setServiceForm(f => ({ ...f, title: e.target.value }))} 
-                      required 
-                    />
-                  </div>
-                  <div>
-                    <Input 
-                      placeholder="Icon" 
-                      value={serviceForm.icon} 
-                      onChange={e => setServiceForm(f => ({ ...f, icon: e.target.value }))} 
-                      required 
-                    />
-                  </div>
-                </div>
-                
-                <Input 
-                  placeholder="Description" 
-                  value={serviceForm.description} 
-                  onChange={e => setServiceForm(f => ({ ...f, description: e.target.value }))} 
-                  required 
+          {/* Services Tab */}
+          <TabsContent value="services" className="space-y-4">
+            <div className="flex items-center gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search services..."
+                  className="pl-10"
+                  value={serviceSearch}
+                  onChange={(e) => setServiceSearch(e.target.value)}
                 />
-                
-                <Input 
-                  placeholder="Features (comma separated)" 
-                  value={serviceForm.features} 
-                  onChange={e => setServiceForm(f => ({ ...f, features: e.target.value }))} 
-                />
-                
-                <Input 
-                  placeholder="Color" 
-                  value={serviceForm.color} 
-                  onChange={e => setServiceForm(f => ({ ...f, color: e.target.value }))} 
-                />
-                
-                <div className="flex space-x-2">
-                  <Button type="submit" className="bg-primary hover:bg-primary-dark">
-                    {editingServiceId ? 'Update' : 'Create'} Service
+              </div>
+              <Dialog open={editingServiceId !== null} onOpenChange={(open) => !open && setEditingServiceId(null)}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="w-4 h-4 mr-2" /> New Service
                   </Button>
-                  {editingServiceId && (
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={() => { 
-                        setServiceForm({ 
-                          title: '', 
-                          description: '', 
-                          features: '', 
-                          icon: '', 
-                          color: '' 
-                        }); 
-                        setEditingServiceId(null); 
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                  )}
-                </div>
-              </form>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>{editingServiceId ? 'Edit Service' : 'Create Service'}</DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={handleServiceSubmit} className="space-y-4">
+                    <Input
+                      placeholder="Title"
+                      value={serviceForm.title}
+                      onChange={e => setServiceForm({...serviceForm, title: e.target.value})}
+                      required
+                    />
+                    <Textarea
+                      placeholder="Description"
+                      value={serviceForm.description}
+                      onChange={e => setServiceForm({...serviceForm, description: e.target.value})}
+                      required
+                    />
+                    <Input
+                      placeholder="Features (comma separated)"
+                      value={serviceForm.features}
+                      onChange={e => setServiceForm({...serviceForm, features: e.target.value})}
+                    />
+                    <Input
+                      placeholder="Icon (e.g., lucide icon name)"
+                      value={serviceForm.icon}
+                      onChange={e => setServiceForm({...serviceForm, icon: e.target.value})}
+                      required
+                    />
+                    <Input
+                      placeholder="Color (e.g., #hex)"
+                      value={serviceForm.color}
+                      onChange={e => setServiceForm({...serviceForm, color: e.target.value})}
+                    />
+                    <DialogFooter>
+                      <Button type="submit">{editingServiceId ? 'Update' : 'Create'}</Button>
+                    </DialogFooter>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
+            <Card>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Title</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead>Features</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredServices.map((service) => (
+                      <TableRow key={service._id}>
+                        <TableCell className="font-medium">{service.title}</TableCell>
+                        <TableCell>{service.description.substring(0, 50)}...</TableCell>
+                        <TableCell>{service.features.join(', ')}</TableCell>
+                        <TableCell>
+                          <Button variant="ghost" size="icon" onClick={() => handleServiceEdit(service)}>
+                            <Edit2 className="w-4 h-4" />
+                          </Button>
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button variant="ghost" size="icon" className="text-destructive">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Confirm Deletion</DialogTitle>
+                                <DialogDescription>
+                                  Are you sure you want to delete this service? This action cannot be undone.
+                                </DialogDescription>
+                              </DialogHeader>
+                              <DialogFooter>
+                                <DialogClose asChild>
+                                  <Button variant="outline">Cancel</Button>
+                                </DialogClose>
+                                <Button variant="destructive" onClick={() => handleServiceDelete(service._id)}>
+                                  Delete
+                                </Button>
+                              </DialogFooter>
+                            </DialogContent>
+                          </Dialog>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                {filteredServices.length === 0 && (
+                  <p className="text-center py-8 text-muted-foreground">No services found</p>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-              <div className="space-y-3 max-h-96 overflow-y-auto">
-                {services.map(service => (
-                  <div key={service._id} className="border rounded-lg p-4">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-semibold">{service.title}</h3>
-                        <p className="text-sm text-muted-foreground mt-1">{service.description}</p>
-                        <div className="flex flex-wrap gap-1 mt-2">
-                          {service.features.map((feature, index) => (
-                            <span key={index} className="text-xs bg-secondary px-2 py-1 rounded">
-                              {feature}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="flex space-x-2">
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          onClick={() => handleServiceEdit(service)}
-                        >
-                          Edit
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="destructive" 
-                          onClick={() => handleServiceDelete(service._id)}
-                        >
-                          Delete
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+          {/* Careers Tab */}
+          <TabsContent value="careers" className="space-y-4">
+            <div className="flex items-center gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search careers..."
+                  className="pl-10"
+                  value={careerSearch}
+                  onChange={(e) => setCareerSearch(e.target.value)}
+                />
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Careers Management */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Briefcase className="w-5 h-5 mr-2" />
-                Manage Careers
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleCareerSubmit} className="space-y-4 mb-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Input 
-                      placeholder="Title" 
-                      value={careerForm.title} 
-                      onChange={e => setCareerForm(f => ({ ...f, title: e.target.value }))} 
-                      required 
-                    />
-                  </div>
-                  <div>
-                    <Input 
-                      placeholder="Location" 
-                      value={careerForm.location} 
-                      onChange={e => setCareerForm(f => ({ ...f, location: e.target.value }))} 
-                      required 
-                    />
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <Input 
-                      placeholder="Type" 
-                      value={careerForm.type} 
-                      onChange={e => setCareerForm(f => ({ ...f, type: e.target.value }))} 
-                      required 
-                    />
-                  </div>
-                  <div>
-                    <Input 
-                      placeholder="Level" 
-                      value={careerForm.level} 
-                      onChange={e => setCareerForm(f => ({ ...f, level: e.target.value }))} 
-                      required 
-                    />
-                  </div>
-                  <div>
-                    <Input 
-                      placeholder="Salary" 
-                      value={careerForm.salary} 
-                      onChange={e => setCareerForm(f => ({ ...f, salary: e.target.value }))} 
-                    />
-                  </div>
-                </div>
-                
-                <Input 
-                  placeholder="Tags (comma separated)" 
-                  value={careerForm.tags} 
-                  onChange={e => setCareerForm(f => ({ ...f, tags: e.target.value }))} 
-                />
-                
-                <textarea
-                  placeholder="Description"
-                  value={careerForm.description}
-                  onChange={e => setCareerForm(f => ({ ...f, description: e.target.value }))}
-                  className="w-full min-h-[100px] p-3 border rounded-md bg-background text-foreground"
-                  required
-                />
-                
-                <div className="flex space-x-2">
-                  <Button type="submit" className="bg-primary hover:bg-primary-dark">
-                    {editingCareerId ? 'Update' : 'Create'} Career
+              <Dialog open={editingCareerId !== null} onOpenChange=(open) => !open && setEditingCareerId(null)}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="w-4 h-4 mr-2" /> New Career
                   </Button>
-                  {editingCareerId && (
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={() => { 
-                        setCareerForm({ 
-                          title: '', 
-                          location: '', 
-                          type: '', 
-                          level: '', 
-                          salary: '', 
-                          tags: '', 
-                          description: '' 
-                        }); 
-                        setEditingCareerId(null); 
-                      }}
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>{editingCareerId ? 'Edit Career' : 'Create Career'}</DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={handleCareerSubmit} className="space-y-4">
+                    <Input
+                      placeholder="Title"
+                      value={careerForm.title}
+                      onChange={e => setCareerForm({...careerForm, title: e.target.value})}
+                      required
+                    />
+                    <Input
+                      placeholder="Location"
+                      value={careerForm.location}
+                      onChange={e => setCareerForm({...careerForm, location: e.target.value})}
+                      required
+                    />
+                    <Select
+                      value={careerForm.type}
+                      onValueChange={(val) => setCareerForm({...careerForm, type: val})}
                     >
-                      Cancel
-                    </Button>
-                  )}
-                </div>
-              </form>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Full-time">Full-time</SelectItem>
+                        <SelectItem value="Part-time">Part-time</SelectItem>
+                        <SelectItem value="Contract">Contract</SelectItem>
+                        <SelectItem value="Internship">Internship</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select
+                      value={careerForm.level}
+                      onValueChange={(val) => setCareerForm({...careerForm, level: val})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Level" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Entry">Entry</SelectItem>
+                        <SelectItem value="Mid">Mid</SelectItem>
+                        <SelectItem value="Senior">Senior</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      placeholder="Salary"
+                      value={careerForm.salary}
+                      onChange={e => setCareerForm({...careerForm, salary: e.target.value})}
+                    />
+                    <Input
+                      placeholder="Tags (comma separated)"
+                      value={careerForm.tags}
+                      onChange={e => setCareerForm({...careerForm, tags: e.target.value})}
+                    />
+                    <Textarea
+                      placeholder="Description"
+                      value={careerForm.description}
+                      onChange={e => setCareerForm({...careerForm, description: e.target.value})}
+                      required
+                    />
+                    <DialogFooter>
+                      <Button type="submit">{editingCareerId ? 'Update' : 'Create'}</Button>
+                    </DialogFooter>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
+            <Card>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Title</TableHead>
+                      <TableHead>Location</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Level</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredCareers.map((career) => (
+                      <TableRow key={career._id}>
+                        <TableCell className="font-medium">{career.title}</TableCell>
+                        <TableCell>{career.location}</TableCell>
+                        <TableCell>{career.type}</TableCell>
+                        <TableCell>{career.level}</TableCell>
+                        <TableCell>
+                          <Button variant="ghost" size="icon" onClick={() => handleCareerEdit(career)}>
+                            <Edit2 className="w-4 h-4" />
+                          </Button>
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button variant="ghost" size="icon" className="text-destructive">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Confirm Deletion</DialogTitle>
+                                <DialogDescription>
+                                  Are you sure you want to delete this career?
+                                </DialogDescription>
+                              </DialogHeader>
+                              <DialogFooter>
+                                <DialogClose asChild>
+                                  <Button variant="outline">Cancel</Button>
+                                </DialogClose>
+                                <Button variant="destructive" onClick={() => handleCareerDelete(career._id)}>
+                                  Delete
+                                </Button>
+                              </DialogFooter>
+                            </DialogContent>
+                          </Dialog>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                {filteredCareers.length === 0 && (
+                  <p className="text-center py-8 text-muted-foreground">No careers found</p>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-              <div className="space-y-3 max-h-96 overflow-y-auto">
-                {careers.map(career => (
-                  <div key={career._id} className="border rounded-lg p-4">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-semibold">{career.title}</h3>
-                        <div className="flex flex-wrap items-center gap-2 mt-1 text-sm text-muted-foreground">
-                          <span>{career.location}</span>
-                          <span>•</span>
-                          <span>{career.type}</span>
-                          <span>•</span>
-                          <span>{career.level}</span>
-                          {career.salary && (
-                            <>
-                              <span>•</span>
-                              <span>{career.salary}</span>
-                            </>
-                          )}
-                        </div>
-                        <p className="text-sm mt-2">{career.description}</p>
-                        <div className="flex flex-wrap gap-1 mt-2">
-                          {career.tags.map((tag, index) => (
-                            <span key={index} className="text-xs bg-secondary px-2 py-1 rounded">
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="flex space-x-2">
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          onClick={() => handleCareerEdit(career)}
-                        >
-                          Edit
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="destructive" 
-                          onClick={() => handleCareerDelete(career._id)}
-                        >
-                          Delete
-                        </Button>
-                      </div>
+          {/* Projects Tab */}
+          <TabsContent value="projects" className="space-y-4">
+            <div className="flex items-center gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search projects..."
+                  className="pl-10"
+                  value={projectSearch}
+                  onChange={(e) => setProjectSearch(e.target.value)}
+                />
+              </div>
+              <Dialog open={editingProjectId !== null} onOpenChange=(open) => !open && setEditingProjectId(null)}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="w-4 h-4 mr-2" /> New Project
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>{editingProjectId ? 'Edit Project' : 'Create Project'}</DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={handleProjectSubmit} className="space-y-4">
+                    <Input
+                      placeholder="Title"
+                      value={projectForm.title}
+                      onChange={e => setProjectForm({...projectForm, title: e.target.value})}
+                      required
+                    />
+                    <Textarea
+                      placeholder="Description"
+                      value={projectForm.description}
+                      onChange={e => setProjectForm({...projectForm, description: e.target.value})}
+                      required
+                    />
+                    <Input
+                      placeholder="Features (comma separated)"
+                      value={projectForm.features}
+                      onChange={e => setProjectForm({...projectForm, features: e.target.value})}
+                    />
+                    <Input
+                      placeholder="Tech Stack (comma separated)"
+                      value={projectForm.techStack}
+                      onChange={e => setProjectForm({...projectForm, techStack: e.target.value})}
+                    />
+                    <Select
+                      value={projectForm.category}
+                      onValueChange={(val) => setProjectForm({...projectForm, category: val})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Web App">Web App</SelectItem>
+                        <SelectItem value="Mobile App">Mobile App</SelectItem>
+                        <SelectItem value="UI/UX Design">UI/UX Design</SelectItem>
+                        <SelectItem value="SEO/Marketing">SEO/Marketing</SelectItem>
+                        <SelectItem value="Maintenance">Maintenance</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <div className="border-2 border-dashed rounded-md p-4 flex flex-col items-center justify-center">
+                      <Upload className="w-8 h-8 text-muted-foreground mb-2" />
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={e => setProjectForm({...projectForm, icon: e.target.files?.[0] || null})}
+                        className="w-full cursor-pointer"
+                      />
+                      {projectForm.icon && <p className="text-sm text-muted-foreground mt-2">{projectForm.icon.name}</p>}
                     </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <FolderKanban className="w-5 h-5 mr-2" />
-              Manage Projects
-            </CardTitle>
-          </CardHeader>
-        
-          <CardContent>
-            <form onSubmit={handleProjectSubmit} className="space-y-4 mb-6">
-              <Input placeholder="Title" value={projectForm.title}
-                onChange={e => setProjectForm(f => ({ ...f, title: e.target.value }))} required />
-        
-              <Input placeholder="Description" value={projectForm.description}
-                onChange={e => setProjectForm(f => ({ ...f, description: e.target.value }))} required />
-        
-              <Input placeholder="Features (comma separated)" value={projectForm.features}
-                onChange={e => setProjectForm(f => ({ ...f, features: e.target.value }))} />
-        
-              <Input placeholder="Tech Stack (comma separated)" value={projectForm.techStack}
-                onChange={e => setProjectForm(f => ({ ...f, techStack: e.target.value }))} />
-        
-              <select
-                value={projectForm.category}
-                onChange={(e) =>
-                  setProjectForm(f => ({ ...f, category: e.target.value }))
-                }
-                className="w-full border rounded px-3 py-2"
-                required
-              >
-                <option value="">Select Category</option>
-                <option value="Web">Web</option>
-                <option value="Mobile">Mobile</option>
-                <option value="Cloud">Cloud</option>
-              </select>
-
-        
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) =>
-                  setProjectForm(f => ({
-                    ...f,
-                    icon: e.target.files ? e.target.files[0] : null
-                  }))
-                }
-                className="block w-full text-sm"
-              />
-        
-              <Input placeholder="Live URL" value={projectForm.liveUrl}
-                onChange={e => setProjectForm(f => ({ ...f, liveUrl: e.target.value }))} />
-        
-              <Button type="submit">
-                {editingProjectId ? 'Update Project' : 'Create Project'}
-              </Button>
-            </form>
-        
-            <div className="space-y-3 max-h-96 overflow-y-auto">
-              {projects.map(project => (
-                <div key={project._id} className="border rounded-lg p-4 flex justify-between">
-                  <div>
-                    <h3 className="font-semibold">{project.title}</h3>
-                    <p className="text-sm text-muted-foreground">{project.category}</p>
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button size="sm" variant="outline" onClick={() => handleProjectEdit(project)}>
-                      Edit
-                    </Button>
-                    <Button size="sm" variant="destructive" onClick={() => handleProjectDelete(project._id)}>
-                      Delete
-                    </Button>
-                  </div>
-                </div>
-              ))}
+                    <Input
+                      placeholder="Live URL"
+                      value={projectForm.liveUrl}
+                      onChange={e => setProjectForm({...projectForm, liveUrl: e.target.value})}
+                    />
+                    <Select
+                      value={projectForm.status}
+                      onValueChange={(val) => setProjectForm({...projectForm, status: val})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Active">Active</SelectItem>
+                        <SelectItem value="Completed">Completed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <DialogFooter>
+                      <Button type="submit">{editingProjectId ? 'Update' : 'Create'}</Button>
+                    </DialogFooter>
+                  </form>
+                </DialogContent>
+              </Dialog>
             </div>
-          </CardContent>
-        </Card>
-
-          {/* Contacts / Messages Section */}
-<div className="mb-8">
-  <Card>
-    <CardHeader>
-      <CardTitle className="flex items-center">
-        <MessageSquare className="w-5 h-5 mr-2" />
-        Contact Messages
-      </CardTitle>
-    </CardHeader>
-
-    <CardContent>
-      {contacts.length === 0 ? (
-        <p className="text-muted-foreground text-center py-4">
-          No contact messages found
-        </p>
-      ) : (
-        <div className="space-y-4 max-h-[400px] overflow-y-auto">
-          {contacts.map((contact) => (
-            <div
-              key={contact._id}
-              className="border rounded-lg p-4 bg-background"
-            >
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="font-semibold">{contact.name}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {contact.email}
-                  </p>
-                  {contact.company && (
-                    <p className="text-sm text-muted-foreground">
-                      Company: {contact.company}
-                    </p>
-                  )}
-                </div>
-
-                <span className="text-xs text-muted-foreground">
-                  {new Date(contact.date || "").toLocaleDateString()}
-                </span>
-              </div>
-
-              <div className="mt-3">
-                <p className="text-sm font-medium">
-                  Subject: {contact.subject}
-                </p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {contact.message}
-                </p>
-              </div>
-
-              <div className="mt-4 flex gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() =>
-                    window.open(`mailto:${contact.email}`, "_blank")
-                  }
-                >
-                  Reply
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </CardContent>
-  </Card>
-</div>
-
-
-        </div>
+            <Card>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Title</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredProjects.map((project) => (
+                      <TableRow key={project._id}>
+                        <TableCell className="font-medium">{project.title}</TableCell>
+                        <TableCell>{project.category}</TableCell>
+                        <TableCell>
+                          <Badge variant="secondary">{project.status}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Button variant="ghost" size="icon" onClick={() => handleProjectEdit(project)}>
+                            <Edit2 className="w-4 h-4" />
+                          </Button>
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button variant="ghost" size="icon" className="text-destructive">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Confirm Deletion</DialogTitle>
+                                <DialogDescription>
+                                  Are you sure you want to delete this project?
+                                </DialogDescription>
+                              </DialogHeader>
+                              <DialogFooter>
+                                <DialogClose asChild>
+                                  <Button variant="outline">Cancel</Button>
+                                </DialogClose>
+                                <Button variant="destructive" onClick={() => handleProjectDelete(project._id)}>
+                                  Delete
+                                </Button>
+                              </DialogFooter>
+                            </DialogContent>
+                          </Dialog>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                {filteredProjects.length === 0 && (
+                  <p className="text-center py-8 text-muted-foreground">No projects found</p>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
