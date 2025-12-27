@@ -131,7 +131,86 @@ const Hero = () => {
           {/* Right Column - Animated Showcase */}
           <div className="relative min-h-[300px] lg:min-h-full animate-slide-in-right mt-8 lg:mt-0" style={{ animationDelay: '0.5s' }}>
             {/* Enhanced Stats - Now relative on mobile */}
-            <div className="grid grid-cols-2 gap-4 mb-12 lg:absolute lg:top-0 lg:right-0 lg:w-full lg:max-w-md lg:mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 
+                max-w-5xl mx-auto mt-10 px-4">
+
+              
+                
+                
+              
+            </div>
+{/* =============================================================   ajay================================= */}
+            {/* Animation - Now relative on mobile */}
+            {/* <div
+              ref={tiltRef}
+              onMouseMove={handleMouseMove}
+              onMouseLeave={handleMouseLeave}
+              className="relative mx-auto lg:absolute lg:bottom-0 lg:-right-8 w-72 h-72 lg:w-80 lg:h-80 will-change-transform"
+              style={{ transform: `perspective(1000px) rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg) scale(0.8)` }}
+            > */}
+              {/* Rotating ring - darker */}
+              {/* <div className="absolute inset-0 rounded-full border-2 border-black/10 dark:border-white/30" />
+              <div className="absolute inset-0 rounded-full border border-black/10 dark:border-white/40 blur-sm" /> */}
+
+              {/* Orbit container */}
+              {/* <div className="absolute inset-0 animate-[orbitWobble_20s_ease-in-out_infinite]"> */}
+                {/* Top */}
+                {/* <div className="absolute left-1/2 -translate-x-1/2 -top-2 w-12 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center shadow-strong hover-scale hover-glow animate-[floatY_3s_ease-in-out_infinite]">
+                  <Code className="w-6 h-6 text-white" />
+                </div> */}
+                {/* Right */}
+                {/* <div className="absolute top-1/2 -translate-y-1/2 -right-2 w-12 h-12 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center shadow-strong hover-scale hover-glow animate-[floatY_3.4s_ease-in-out_infinite]" style={{ animationDelay: '0.2s' }}>
+                  <Smartphone className="w-6 h-6 text-white" />
+                </div> */}
+                {/* Bottom */}
+                {/* <div className="absolute left-1/2 -translate-x-1/2 -bottom-2 w-12 h-12 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center shadow-strong hover-scale hover-glow animate-[floatY_2.8s_ease-in-out_infinite]" style={{ animationDelay: '0.4s' }}>
+                  <Cloud className="w-6 h-6 text-white" />
+                </div> */}
+                {/* Left */}
+                {/* <div className="absolute top-1/2 -translate-y-1/2 -left-2 w-12 h-12 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 flex items-center justify-center shadow-strong hover-scale hover-glow animate-[floatY_3.2s_ease-in-out_infinite]" style={{ animationDelay: '0.6s' }}>
+                  <Database className="w-6 h-6 text-white" />
+                </div>
+              </div> */}
+
+              {/* Inner orbit (counter-rotate) */}
+              {/* <div className="absolute inset-8 animate-[orbitWobble_14s_ease-in-out_infinite_reverse]">
+                <div className="absolute left-1/2 -translate-x-1/2 top-0 w-10 h-10 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 flex items-center justify-center shadow-strong hover-scale hover-glow animate-[floatY_2.6s_ease-in-out_infinite]">
+                  <Zap className="w-5 h-5 text-white" />
+                </div>
+                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-gradient-to-r from-rose-500 to-red-500 flex items-center justify-center shadow-strong hover-scale hover-glow animate-[floatY_3s_ease-in-out_infinite]" style={{ animationDelay: '0.15s' }}>
+                  <Shield className="w-5 h-5 text-white" />
+                </div>
+                <div className="absolute left-1/2 -translate-x-1/2 bottom-0 w-10 h-10 rounded-full bg-gradient-to-r from-indigo-500 to-sky-500 flex items-center justify-center shadow-strong hover-scale hover-glow animate-[floatY_2.4s_ease-in-out_infinite]" style={{ animationDelay: '0.3s' }}>
+                  <Lightbulb className="w-5 h-5 text-white" />
+                </div>
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-gradient-to-r from-teal-500 to-emerald-500 flex items-center justify-center shadow-strong hover-scale hover-glow animate-[floatY_2.2s_ease-in-out_infinite]" style={{ animationDelay: '0.45s' }}>
+                  <Globe className="w-5 h-5 text-white" />
+                </div>
+              </div> */}
+
+              {/* Center logo/mark - cooler icon */}
+              {/* <div className="absolute inset-0 flex items-center justify-center">
+                <div className="relative w-28 h-28 rounded-2xl bg-gradient-to-br from-primary to-primary-light shadow-strong hover-lift hover-glow" style={{ animation: 'glowPulse 3s ease-in-out infinite' }}>
+                  <div className="absolute inset-0 rounded-2xl bg-white/10" />
+                  <div className="absolute -inset-1 rounded-3xl blur-2xl bg-primary/20" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Rocket className="w-12 h-12 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] animate-[floatY_3s_ease-in-out_infinite]" />
+                  </div>
+                </div>
+              </div>
+
+            </div> */}
+
+            {/* ========================================================================================================= */}
+          </div>
+        </div>
+
+{/* ===================================================================== */}
+        <div className="relative min-h-[300px] lg:min-h-full animate-slide-in-right mt-8 lg:mt-0" style={{ animationDelay: '0.5s' }}>
+            {/* Enhanced Stats - Now relative on mobile */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 
+                max-w-5xl mx-auto mt-10 px-4">
+
               {achievements.map((item, index) => {
                 return(
                 <div 
@@ -152,69 +231,7 @@ const Hero = () => {
                 );
               })}
             </div>
-
-            {/* Animation - Now relative on mobile */}
-            <div
-              ref={tiltRef}
-              onMouseMove={handleMouseMove}
-              onMouseLeave={handleMouseLeave}
-              className="relative mx-auto lg:absolute lg:bottom-0 lg:-right-8 w-72 h-72 lg:w-80 lg:h-80 will-change-transform"
-              style={{ transform: `perspective(1000px) rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg) scale(0.8)` }}
-            >
-              {/* Rotating ring - darker */}
-              <div className="absolute inset-0 rounded-full border-2 border-black/10 dark:border-white/30" />
-              <div className="absolute inset-0 rounded-full border border-black/10 dark:border-white/40 blur-sm" />
-
-              {/* Orbit container */}
-              <div className="absolute inset-0 animate-[orbitWobble_20s_ease-in-out_infinite]">
-                {/* Top */}
-                <div className="absolute left-1/2 -translate-x-1/2 -top-2 w-12 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center shadow-strong hover-scale hover-glow animate-[floatY_3s_ease-in-out_infinite]">
-                  <Code className="w-6 h-6 text-white" />
-                </div>
-                {/* Right */}
-                <div className="absolute top-1/2 -translate-y-1/2 -right-2 w-12 h-12 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center shadow-strong hover-scale hover-glow animate-[floatY_3.4s_ease-in-out_infinite]" style={{ animationDelay: '0.2s' }}>
-                  <Smartphone className="w-6 h-6 text-white" />
-                </div>
-                {/* Bottom */}
-                <div className="absolute left-1/2 -translate-x-1/2 -bottom-2 w-12 h-12 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center shadow-strong hover-scale hover-glow animate-[floatY_2.8s_ease-in-out_infinite]" style={{ animationDelay: '0.4s' }}>
-                  <Cloud className="w-6 h-6 text-white" />
-                </div>
-                {/* Left */}
-                <div className="absolute top-1/2 -translate-y-1/2 -left-2 w-12 h-12 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 flex items-center justify-center shadow-strong hover-scale hover-glow animate-[floatY_3.2s_ease-in-out_infinite]" style={{ animationDelay: '0.6s' }}>
-                  <Database className="w-6 h-6 text-white" />
-                </div>
-              </div>
-
-              {/* Inner orbit (counter-rotate) */}
-              <div className="absolute inset-8 animate-[orbitWobble_14s_ease-in-out_infinite_reverse]">
-                <div className="absolute left-1/2 -translate-x-1/2 top-0 w-10 h-10 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 flex items-center justify-center shadow-strong hover-scale hover-glow animate-[floatY_2.6s_ease-in-out_infinite]">
-                  <Zap className="w-5 h-5 text-white" />
-                </div>
-                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-gradient-to-r from-rose-500 to-red-500 flex items-center justify-center shadow-strong hover-scale hover-glow animate-[floatY_3s_ease-in-out_infinite]" style={{ animationDelay: '0.15s' }}>
-                  <Shield className="w-5 h-5 text-white" />
-                </div>
-                <div className="absolute left-1/2 -translate-x-1/2 bottom-0 w-10 h-10 rounded-full bg-gradient-to-r from-indigo-500 to-sky-500 flex items-center justify-center shadow-strong hover-scale hover-glow animate-[floatY_2.4s_ease-in-out_infinite]" style={{ animationDelay: '0.3s' }}>
-                  <Lightbulb className="w-5 h-5 text-white" />
-                </div>
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-gradient-to-r from-teal-500 to-emerald-500 flex items-center justify-center shadow-strong hover-scale hover-glow animate-[floatY_2.2s_ease-in-out_infinite]" style={{ animationDelay: '0.45s' }}>
-                  <Globe className="w-5 h-5 text-white" />
-                </div>
-              </div>
-
-              {/* Center logo/mark - cooler icon */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="relative w-28 h-28 rounded-2xl bg-gradient-to-br from-primary to-primary-light shadow-strong hover-lift hover-glow" style={{ animation: 'glowPulse 3s ease-in-out infinite' }}>
-                  <div className="absolute inset-0 rounded-2xl bg-white/10" />
-                  <div className="absolute -inset-1 rounded-3xl blur-2xl bg-primary/20" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Rocket className="w-12 h-12 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] animate-[floatY_3s_ease-in-out_infinite]" />
-                  </div>
-                </div>
-              </div>
-
             </div>
-          </div>
-        </div>
       </div>
 
       {/* Scroll Indicator */}
