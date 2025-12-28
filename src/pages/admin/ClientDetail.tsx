@@ -61,7 +61,12 @@ import {
   Globe,
   Smartphone,
   Palette,
-  Settings
+  Settings,
+  Upload,
+  Image as ImageIcon,
+  X,
+  Eye,
+  Download
 } from "lucide-react";
 // Recharts for visualization
 import {
@@ -107,6 +112,7 @@ interface Payment {
   paymentDate: string;
   paymentMethod: string;
   notes?: string;
+  screenshot?: string; // Base64 or URL
 }
 
 interface Client {
@@ -144,7 +150,9 @@ const ClientDetail = () => {
   /* ---------- MODAL STATES ---------- */
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [isScreenshotViewOpen, setIsScreenshotViewOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [viewingScreenshot, setViewingScreenshot] = useState<string | null>(null);
 
   /* ---------- FORMS ---------- */
   const [projectForm, setProjectForm] = useState({
@@ -165,7 +173,10 @@ const ClientDetail = () => {
     paymentDate: new Date().toISOString().split('T')[0],
     paymentMethod: "Bank Transfer",
     notes: "",
+    screenshot: null as File | null,
   });
+
+  const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
 
   /* ---------- DATA FETCHING ---------- */
   const fetchData = useCallback(async () => {
@@ -229,6 +240,50 @@ const ClientDetail = () => {
 
     return { donutData, radialData, collectionRate };
   }, [projects, stats]);
+
+  /* ---------- SCREENSHOT HANDLING ---------- */
+  const handleScreenshotChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please upload an image file');
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File size must be less than 5MB');
+        return;
+      }
+
+      setPaymentForm({ ...paymentForm, screenshot: file });
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setScreenshotPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeScreenshot = () => {
+    setPaymentForm({ ...paymentForm, screenshot: null });
+    setScreenshotPreview(null);
+  };
+
+  const viewScreenshot = (screenshot: string) => {
+    setViewingScreenshot(screenshot);
+    setIsScreenshotViewOpen(true);
+  };
+
+  const downloadScreenshot = (screenshot: string, paymentId: string) => {
+    const link = document.createElement('a');
+    link.href = screenshot;
+    link.download = `payment-${paymentId}.png`;
+    link.click();
+  };
 
   /* ---------- PROJECT OPERATIONS ---------- */
   const handleProjectSubmit = async (e: React.FormEvent) => {
@@ -308,7 +363,14 @@ const ClientDetail = () => {
   const handleAddPayment = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsActionLoading(true);
+    
     try {
+      // Convert screenshot to base64 if exists
+      let screenshotBase64 = null;
+      if (paymentForm.screenshot) {
+        screenshotBase64 = screenshotPreview;
+      }
+
       const res = await fetch(`${import.meta.env.VITE_API_BASE}/api/clients/${id}/payments`, {
         method: "POST",
         headers: {
@@ -318,8 +380,10 @@ const ClientDetail = () => {
         body: JSON.stringify({
           ...paymentForm,
           amount: Number(paymentForm.amount),
+          screenshot: screenshotBase64,
         }),
       });
+      
       if (res.ok) {
         setIsPaymentModalOpen(false);
         resetPaymentForm();
@@ -343,8 +407,9 @@ const ClientDetail = () => {
   const resetPaymentForm = () => {
     setPaymentForm({
       projectId: "", amount: "", paymentDate: new Date().toISOString().split('T')[0],
-      paymentMethod: "Bank Transfer", notes: ""
+      paymentMethod: "Bank Transfer", notes: "", screenshot: null
     });
+    setScreenshotPreview(null);
   };
 
   const getStatusColor = (status: string) => {
@@ -666,13 +731,14 @@ const ClientDetail = () => {
                         <TableHead>Date</TableHead>
                         <TableHead>Project</TableHead>
                         <TableHead>Method</TableHead>
+                        <TableHead>Proof</TableHead>
                         <TableHead className="text-right">Amount</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {payments.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={4} className="text-center py-10 text-muted-foreground">
+                          <TableCell colSpan={5} className="text-center py-10 text-muted-foreground">
                             No transactions recorded yet.
                           </TableCell>
                         </TableRow>
@@ -685,6 +751,30 @@ const ClientDetail = () => {
                             </TableCell>
                             <TableCell>
                               <Badge variant="outline">{payment.paymentMethod}</Badge>
+                            </TableCell>
+                            <TableCell>
+                              {payment.screenshot ? (
+                                <div className="flex gap-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={() => viewScreenshot(payment.screenshot!)}
+                                  >
+                                    <Eye className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={() => downloadScreenshot(payment.screenshot!, payment._id)}
+                                  >
+                                    <Download className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">No proof</span>
+                              )}
                             </TableCell>
                             <TableCell className="text-right font-bold text-emerald-600">
                               ₹{payment.amount?.toLocaleString()}
@@ -700,6 +790,7 @@ const ClientDetail = () => {
           </Tabs>
         </div>
       </div>
+      
       {/* ---------- MODAL: ADD/EDIT PROJECT ---------- */}
       <Dialog open={isProjectModalOpen} onOpenChange={setIsProjectModalOpen}>
         <DialogContent className="sm:max-w-[600px]">
@@ -819,11 +910,13 @@ const ClientDetail = () => {
           </form>
         </DialogContent>
       </Dialog>
-      {/* PAYMENT MODAL */}
+
+      {/* ---------- MODAL: ADD PAYMENT WITH SCREENSHOT ---------- */}
       <Dialog open={isPaymentModalOpen} onOpenChange={setIsPaymentModalOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>Log Payment</DialogTitle>
+            <DialogDescription>Record a new payment with optional proof of transaction</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleAddPayment} className="space-y-4 py-4">
             <div className="space-y-2">
@@ -842,6 +935,7 @@ const ClientDetail = () => {
                 </SelectContent>
               </Select>
             </div>
+            
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-semibold">Amount (₹)</label>
@@ -862,6 +956,74 @@ const ClientDetail = () => {
                 />
               </div>
             </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-semibold">Payment Method</label>
+              <Select
+                value={paymentForm.paymentMethod}
+                onValueChange={(val) => setPaymentForm({ ...paymentForm, paymentMethod: val })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+                  <SelectItem value="UPI">UPI</SelectItem>
+                  <SelectItem value="Cash">Cash</SelectItem>
+                  <SelectItem value="Cheque">Cheque</SelectItem>
+                  <SelectItem value="Card">Card</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-semibold">Payment Proof (Screenshot)</label>
+              <div className="border-2 border-dashed rounded-lg p-4 text-center">
+                {screenshotPreview ? (
+                  <div className="relative">
+                    <img 
+                      src={screenshotPreview} 
+                      alt="Payment proof preview" 
+                      className="max-h-48 mx-auto rounded-lg"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-2 right-2"
+                      onClick={removeScreenshot}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <label className="cursor-pointer block">
+                    <div className="flex flex-col items-center gap-2 py-6">
+                      <Upload className="w-8 h-8 text-muted-foreground" />
+                      <p className="text-sm font-medium">Click to upload screenshot</p>
+                      <p className="text-xs text-muted-foreground">PNG, JPG up to 5MB</p>
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleScreenshotChange}
+                    />
+                  </label>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-semibold">Notes (Optional)</label>
+              <Textarea
+                placeholder="Add any additional notes..."
+                value={paymentForm.notes}
+                onChange={(e) => setPaymentForm({ ...paymentForm, notes: e.target.value })}
+                rows={2}
+              />
+            </div>
+
             <DialogFooter>
               <Button type="submit" disabled={isActionLoading}>
                 {isActionLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -869,6 +1031,36 @@ const ClientDetail = () => {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* ---------- MODAL: VIEW SCREENSHOT ---------- */}
+      <Dialog open={isScreenshotViewOpen} onOpenChange={setIsScreenshotViewOpen}>
+        <DialogContent className="sm:max-w-[700px]">
+          <DialogHeader>
+            <DialogTitle>Payment Proof</DialogTitle>
+            <DialogDescription>Transaction screenshot</DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            {viewingScreenshot && (
+              <img 
+                src={viewingScreenshot} 
+                alt="Payment proof" 
+                className="w-full rounded-lg"
+              />
+            )}
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => viewingScreenshot && downloadScreenshot(viewingScreenshot, 'payment')}
+            >
+              <Download className="w-4 h-4 mr-2" /> Download
+            </Button>
+            <Button onClick={() => setIsScreenshotViewOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
