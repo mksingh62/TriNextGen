@@ -93,7 +93,7 @@ interface Requirement {
 
 interface ProjectFile {
   name: string;
-  data: string; // base64
+  data: string; // base64 (compressed for images)
   type: string;
 }
 
@@ -248,7 +248,7 @@ const ClientDetail = () => {
     return { donutData, radialData, collectionRate };
   }, [projects, stats]);
 
-  /* ---------- SCREENSHOT HANDLING ---------- */
+  /* ---------- PAYMENT SCREENSHOT HANDLING (UNCHANGED – WORKS AS IS) ---------- */
   const handleScreenshotChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -286,7 +286,7 @@ const ClientDetail = () => {
     link.click();
   };
 
-  /* ---------- REQUIREMENT HANDLERS ---------- */
+  /* ---------- REQUIREMENT HANDLERS (NO FILE UPLOAD PER REQUIREMENT) ---------- */
   const addRequirement = () => {
     if (!newRequirementText.trim()) return;
     const newReq: Requirement = {
@@ -294,7 +294,6 @@ const ClientDetail = () => {
       text: newRequirementText.trim(),
       createdAt: new Date().toISOString(),
     };
-
     if (editingProject) {
       setEditingProject({
         ...editingProject,
@@ -323,39 +322,82 @@ const ClientDetail = () => {
     }
   };
 
-  /* ---------- PROJECT-LEVEL FILE UPLOAD ---------- */
-  const handleProjectFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  /* ---------- CLIENT-SIDE COMPRESSION FOR PROJECT FILES ---------- */
+  const compressAndAddFile = async (file: File): Promise<ProjectFile | null> => {
+    if (file.type.startsWith('image/')) {
+      // Compress images
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d')!;
+            const MAX_WIDTH = 1200;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > MAX_WIDTH) {
+              height = (height * MAX_WIDTH) / width;
+              width = MAX_WIDTH;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            ctx.drawImage(img, 0, 0, width, height);
+
+            const compressed = canvas.toDataURL('image/jpeg', 0.7);
+
+            resolve({
+              name: file.name.replace(/\.[^/.]+$/, ".jpg"),
+              data: compressed,
+              type: 'image/jpeg'
+            });
+          };
+          img.src = e.target?.result as string;
+        };
+        reader.readAsDataURL(file);
+      });
+    } else {
+      // Non-images: limit to 5MB
+      if (file.size > 5 * 1024 * 1024) {
+        alert(`"${file.name}" is too large! Max 5MB for documents.`);
+        return null;
+      }
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          resolve({
+            name: file.name,
+            data: e.target?.result as string,
+            type: file.type || 'application/octet-stream'
+          });
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  };
+
+  const handleProjectFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    Array.from(files).forEach(file => {
-      if (file.size > 15 * 1024 * 1024) {
-        alert(`"${file.name}" is too large! Max 15MB per file.`);
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const newFile: ProjectFile = {
-          name: file.name,
-          data: reader.result as string,
-          type: file.type || 'application/octet-stream',
-        };
-
+    for (const file of Array.from(files)) {
+      const processedFile = await compressAndAddFile(file);
+      if (processedFile) {
         if (editingProject) {
           setEditingProject(prev => ({
             ...prev!,
-            projectFiles: [...(prev!.projectFiles || []), newFile]
+            projectFiles: [...(prev!.projectFiles || []), processedFile]
           }));
         } else {
           setProjectForm(prev => ({
             ...prev,
-            projectFiles: [...prev.projectFiles, newFile]
+            projectFiles: [...prev.projectFiles, processedFile]
           }));
         }
-      };
-      reader.readAsDataURL(file);
-    });
+      }
+    }
   };
 
   const removeProjectFile = (index: number) => {
@@ -418,12 +460,12 @@ const ClientDetail = () => {
         resetProjectForm();
         fetchData();
       } else {
-        const errorData = await res.json();
-        alert(`Error: ${errorData.message || "Failed to save"}`);
+        const errorData = await res.json().catch(() => ({}));
+        alert(`Error: ${errorData.message || "Failed to save project"}`);
       }
     } catch (error) {
       console.error("Project save error:", error);
-      alert("Network error. Please try again.");
+      alert("Network error. Please try with smaller files.");
     } finally {
       setIsActionLoading(false);
     }
@@ -455,7 +497,7 @@ const ClientDetail = () => {
     }
   };
 
-  /* ---------- PAYMENT OPERATIONS ---------- */
+  /* ---------- PAYMENT OPERATIONS (UNCHANGED) ---------- */
   const handleAddPayment = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsActionLoading(true);
@@ -965,7 +1007,7 @@ const ClientDetail = () => {
                     <div className="flex flex-col items-center gap-3">
                       <Upload className="w-10 h-10 text-muted-foreground" />
                       <p className="text-sm font-medium">Click to upload files</p>
-                      <p className="text-xs text-muted-foreground">Images, PDFs, Docs • Max 15MB each</p>
+                      <p className="text-xs text-muted-foreground">Images auto-compressed • Docs max 5MB</p>
                     </div>
                     <input
                       type="file"
@@ -1006,7 +1048,7 @@ const ClientDetail = () => {
         </DialogContent>
       </Dialog>
 
-      {/* PAYMENT MODAL */}
+      {/* PAYMENT MODAL (UNCHANGED) */}
       <Dialog open={isPaymentModalOpen} onOpenChange={setIsPaymentModalOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
@@ -1014,6 +1056,7 @@ const ClientDetail = () => {
             <DialogDescription>Record a new payment with optional proof of transaction</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleAddPayment} className="space-y-4 py-4">
+            {/* ... entire payment form remains exactly as you had it ... */}
             <div className="space-y-2">
               <label className="text-sm font-semibold">Select Project</label>
               <Select
