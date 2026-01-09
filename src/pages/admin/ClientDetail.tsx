@@ -36,6 +36,7 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
+import { Copy, Download, File, Image as ImageIcon, FileText, Eye } from "lucide-react";
 // Icons
 import {
   IndianRupee,
@@ -55,13 +56,9 @@ import {
   Palette,
   Settings,
   Upload,
-  Image as ImageIcon,
   X,
-  Eye,
-  Download,
   Edit2,
-  Trash2,
-  FileText
+  Trash2
 } from "lucide-react";
 // Recharts
 import {
@@ -93,7 +90,7 @@ interface Requirement {
 
 interface ProjectFile {
   name: string;
-  data: string; // base64 (compressed for images)
+  data: string; // base64
   type: string;
 }
 
@@ -158,8 +155,11 @@ const ClientDetail = () => {
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isScreenshotViewOpen, setIsScreenshotViewOpen] = useState(false);
+  const [isRequirementsModalOpen, setIsRequirementsModalOpen] = useState(false);
+  const [viewingProject, setViewingProject] = useState<Project | null>(null);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [viewingScreenshot, setViewingScreenshot] = useState<string | null>(null);
+  const [viewingFile, setViewingFile] = useState<ProjectFile | null>(null);
 
   /* ---------- FORMS ---------- */
   const [projectForm, setProjectForm] = useState({
@@ -248,7 +248,7 @@ const ClientDetail = () => {
     return { donutData, radialData, collectionRate };
   }, [projects, stats]);
 
-  /* ---------- PAYMENT SCREENSHOT HANDLING (UNCHANGED – WORKS AS IS) ---------- */
+  /* ---------- SCREENSHOT HANDLING ---------- */
   const handleScreenshotChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -286,7 +286,7 @@ const ClientDetail = () => {
     link.click();
   };
 
-  /* ---------- REQUIREMENT HANDLERS (NO FILE UPLOAD PER REQUIREMENT) ---------- */
+  /* ---------- REQUIREMENT HANDLERS ---------- */
   const addRequirement = () => {
     if (!newRequirementText.trim()) return;
     const newReq: Requirement = {
@@ -322,82 +322,36 @@ const ClientDetail = () => {
     }
   };
 
-  /* ---------- CLIENT-SIDE COMPRESSION FOR PROJECT FILES ---------- */
-  const compressAndAddFile = async (file: File): Promise<ProjectFile | null> => {
-    if (file.type.startsWith('image/')) {
-      // Compress images
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const img = new Image();
-          img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d')!;
-            const MAX_WIDTH = 1200;
-            let width = img.width;
-            let height = img.height;
-
-            if (width > MAX_WIDTH) {
-              height = (height * MAX_WIDTH) / width;
-              width = MAX_WIDTH;
-            }
-
-            canvas.width = width;
-            canvas.height = height;
-            ctx.drawImage(img, 0, 0, width, height);
-
-            const compressed = canvas.toDataURL('image/jpeg', 0.7);
-
-            resolve({
-              name: file.name.replace(/\.[^/.]+$/, ".jpg"),
-              data: compressed,
-              type: 'image/jpeg'
-            });
-          };
-          img.src = e.target?.result as string;
-        };
-        reader.readAsDataURL(file);
-      });
-    } else {
-      // Non-images: limit to 5MB
-      if (file.size > 5 * 1024 * 1024) {
-        alert(`"${file.name}" is too large! Max 5MB for documents.`);
-        return null;
-      }
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          resolve({
-            name: file.name,
-            data: e.target?.result as string,
-            type: file.type || 'application/octet-stream'
-          });
-        };
-        reader.readAsDataURL(file);
-      });
-    }
-  };
-
-  const handleProjectFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  /* ---------- PROJECT-LEVEL FILE UPLOAD ---------- */
+  const handleProjectFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
-
-    for (const file of Array.from(files)) {
-      const processedFile = await compressAndAddFile(file);
-      if (processedFile) {
+    Array.from(files).forEach(file => {
+      if (file.size > 15 * 1024 * 1024) {
+        alert(`"${file.name}" is too large! Max 15MB per file.`);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const newFile: ProjectFile = {
+          name: file.name,
+          data: reader.result as string,
+          type: file.type || 'application/octet-stream',
+        };
         if (editingProject) {
           setEditingProject(prev => ({
             ...prev!,
-            projectFiles: [...(prev!.projectFiles || []), processedFile]
+            projectFiles: [...(prev!.projectFiles || []), newFile]
           }));
         } else {
           setProjectForm(prev => ({
             ...prev,
-            projectFiles: [...prev.projectFiles, processedFile]
+            projectFiles: [...prev.projectFiles, newFile]
           }));
         }
-      }
-    }
+      };
+      reader.readAsDataURL(file);
+    });
   };
 
   const removeProjectFile = (index: number) => {
@@ -418,15 +372,12 @@ const ClientDetail = () => {
   const handleProjectSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsActionLoading(true);
-
     const isEdit = !!editingProject;
     const url = isEdit
       ? `${import.meta.env.VITE_API_BASE}/api/clientProject/${editingProject?._id}`
       : `${import.meta.env.VITE_API_BASE}/api/clients/${id}/projects`;
-
     const currentReqs = isEdit ? editingProject!.requirements || [] : projectForm.requirements;
     const currentFiles = isEdit ? editingProject!.projectFiles || [] : projectForm.projectFiles;
-
     const payload = {
       title: isEdit ? editingProject!.title : projectForm.title,
       category: isEdit ? editingProject!.category || "Web App" : projectForm.category,
@@ -443,7 +394,6 @@ const ClientDetail = () => {
       })),
       projectFiles: currentFiles,
     };
-
     try {
       const res = await fetch(url, {
         method: isEdit ? "PUT" : "POST",
@@ -453,19 +403,14 @@ const ClientDetail = () => {
         },
         body: JSON.stringify(payload),
       });
-
       if (res.ok) {
         setIsProjectModalOpen(false);
         setEditingProject(null);
         resetProjectForm();
         fetchData();
-      } else {
-        const errorData = await res.json().catch(() => ({}));
-        alert(`Error: ${errorData.message || "Failed to save project"}`);
       }
     } catch (error) {
       console.error("Project save error:", error);
-      alert("Network error. Please try with smaller files.");
     } finally {
       setIsActionLoading(false);
     }
@@ -497,7 +442,7 @@ const ClientDetail = () => {
     }
   };
 
-  /* ---------- PAYMENT OPERATIONS (UNCHANGED) ---------- */
+  /* ---------- PAYMENT OPERATIONS ---------- */
   const handleAddPayment = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsActionLoading(true);
@@ -533,16 +478,29 @@ const ClientDetail = () => {
   /* ---------- HELPERS ---------- */
   const resetProjectForm = () => {
     setProjectForm({
-      title: "", category: "Web App", totalAmount: "", advancePaid: "", status: "Active",
-      liveUrl: "", startDate: "", deadline: "", description: "", requirements: [], projectFiles: []
+      title: "",
+      category: "Web App",
+      totalAmount: "",
+      advancePaid: "",
+      status: "Active",
+      liveUrl: "",
+      startDate: "",
+      deadline: "",
+      description: "",
+      requirements: [],
+      projectFiles: [],
     });
     setNewRequirementText("");
   };
 
   const resetPaymentForm = () => {
     setPaymentForm({
-      projectId: "", amount: "", paymentDate: new Date().toISOString().split('T')[0],
-      paymentMethod: "Bank Transfer", notes: "", screenshot: null
+      projectId: "",
+      amount: "",
+      paymentDate: new Date().toISOString().split('T')[0],
+      paymentMethod: "Bank Transfer",
+      notes: "",
+      screenshot: null
     });
     setScreenshotPreview(null);
   };
@@ -576,6 +534,32 @@ const ClientDetail = () => {
       projectFiles: project.projectFiles || [],
     });
     setIsProjectModalOpen(true);
+  };
+
+  const openRequirementsModal = (project: Project) => {
+    setViewingProject(project);
+    setIsRequirementsModalOpen(true);
+  };
+
+  const downloadFile = (file: ProjectFile) => {
+    const link = document.createElement('a');
+    link.href = file.data;
+    link.download = file.name;
+    link.click();
+  };
+
+  const copyRequirement = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      alert("Requirement copied to clipboard!");
+    });
+  };
+
+  const viewFile = (file: ProjectFile) => {
+    if (file.type.startsWith('image/')) {
+      setViewingFile(file);
+    } else {
+      downloadFile(file);
+    }
   };
 
   if (loading) {
@@ -734,7 +718,6 @@ const ClientDetail = () => {
               <TabsTrigger value="projects">Active Projects</TabsTrigger>
               <TabsTrigger value="payments">Payment History</TabsTrigger>
             </TabsList>
-
             <TabsContent value="projects" className="space-y-6">
               {projects.length === 0 ? (
                 <div className="text-center py-20 border-2 border-dashed rounded-xl">
@@ -771,6 +754,9 @@ const ClientDetail = () => {
                             )}
                           </div>
                           <div className="flex gap-1">
+                            <Button variant="ghost" size="icon" onClick={() => openRequirementsModal(project)}>
+                              <Eye className="w-4 h-4" />
+                            </Button>
                             <Button variant="ghost" size="icon" onClick={() => openEditModal(project)}>
                               <Edit2 className="w-4 h-4" />
                             </Button>
@@ -803,7 +789,6 @@ const ClientDetail = () => {
                 ))
               )}
             </TabsContent>
-
             <TabsContent value="payments">
               <Card>
                 <CardHeader>
@@ -851,7 +836,7 @@ const ClientDetail = () => {
         </div>
       </div>
 
-      {/* PROJECT MODAL */}
+      {/* PROJECT MODAL WITH REQUIREMENTS */}
       <Dialog open={isProjectModalOpen} onOpenChange={setIsProjectModalOpen}>
         <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -944,7 +929,6 @@ const ClientDetail = () => {
                 />
               </div>
             </div>
-
             <div className="space-y-2">
               <label className="text-sm font-semibold">Description</label>
               <Textarea
@@ -956,7 +940,6 @@ const ClientDetail = () => {
                 }
               />
             </div>
-
             {/* REQUIREMENTS SECTION */}
             <div className="space-y-6">
               <div className="space-y-4">
@@ -972,7 +955,6 @@ const ClientDetail = () => {
                     <Plus className="w-4 h-4" />
                   </Button>
                 </div>
-
                 <div className="space-y-3 max-h-64 overflow-y-auto">
                   {(editingProject ? editingProject.requirements : projectForm.requirements)?.length === 0 ? (
                     <p className="text-sm text-muted-foreground text-center py-4">No requirements added yet.</p>
@@ -998,7 +980,6 @@ const ClientDetail = () => {
                   )}
                 </div>
               </div>
-
               {/* SINGLE PROJECT-LEVEL FILE UPLOAD */}
               <div className="space-y-3">
                 <label className="text-sm font-semibold">Project Attachments (Any number of files)</label>
@@ -1007,7 +988,7 @@ const ClientDetail = () => {
                     <div className="flex flex-col items-center gap-3">
                       <Upload className="w-10 h-10 text-muted-foreground" />
                       <p className="text-sm font-medium">Click to upload files</p>
-                      <p className="text-xs text-muted-foreground">Images auto-compressed • Docs max 5MB</p>
+                      <p className="text-xs text-muted-foreground">Images, PDFs, Docs • Max 15MB each</p>
                     </div>
                     <input
                       type="file"
@@ -1018,7 +999,6 @@ const ClientDetail = () => {
                     />
                   </label>
                 </div>
-
                 {(editingProject ? editingProject.projectFiles : projectForm.projectFiles)?.length > 0 && (
                   <div className="space-y-2 mt-4">
                     <p className="text-xs font-medium text-muted-foreground">Uploaded Files:</p>
@@ -1037,7 +1017,6 @@ const ClientDetail = () => {
                 )}
               </div>
             </div>
-
             <DialogFooter>
               <Button type="submit" disabled={isActionLoading}>
                 {isActionLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -1048,7 +1027,96 @@ const ClientDetail = () => {
         </DialogContent>
       </Dialog>
 
-      {/* PAYMENT MODAL (UNCHANGED) */}
+      {/* REQUIREMENTS VIEW MODAL */}
+      <Dialog open={isRequirementsModalOpen} onOpenChange={setIsRequirementsModalOpen}>
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{viewingProject?.title} - Requirements & Attachments</DialogTitle>
+            <DialogDescription>View, copy requirements, and manage attachments.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            <div className="space-y-4">
+              <label className="text-sm font-semibold">Requirements</label>
+              <div className="space-y-3 max-h-64 overflow-y-auto">
+                {viewingProject?.requirements?.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">No requirements.</p>
+                ) : (
+                  viewingProject.requirements.map((req, idx) => (
+                    <Card key={req.id} className="p-4">
+                      <div className="flex justify-between items-start gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="font-medium">#{idx + 1}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {new Date(req.createdAt).toLocaleString()}
+                            </span>
+                          </div>
+                          <p>{req.text}</p>
+                        </div>
+                        <Button variant="ghost" size="icon" onClick={() => copyRequirement(req.text)}>
+                          <Copy className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </Card>
+                  ))
+                )}
+              </div>
+            </div>
+            <div className="space-y-4">
+              <label className="text-sm font-semibold">Attachments</label>
+              <div className="space-y-3 max-h-64 overflow-y-auto">
+                {viewingProject?.projectFiles?.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">No attachments.</p>
+                ) : (
+                  viewingProject.projectFiles.map((file, idx) => (
+                    <Card key={idx} className="p-4">
+                      <div className="flex justify-between items-center gap-4">
+                        <div className="flex items-center gap-2">
+                          {file.type.startsWith('image/') ? <ImageIcon className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
+                          <span className="truncate max-w-md">{file.name}</span>
+                        </div>
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => viewFile(file)}>
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => downloadFile(file)}>
+                            <Download className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </Card>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setIsRequirementsModalOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* FILE VIEW MODAL (FOR IMAGES) */}
+      <Dialog open={!!viewingFile} onOpenChange={() => setViewingFile(null)}>
+        <DialogContent className="sm:max-w-[700px]">
+          <DialogHeader>
+            <DialogTitle>{viewingFile?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            {viewingFile && viewingFile.type.startsWith('image/') && (
+              <img src={viewingFile.data} alt={viewingFile.name} className="w-full rounded-lg" />
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => viewingFile && downloadFile(viewingFile)}>
+              <Download className="w-4 h-4 mr-2" /> Download
+            </Button>
+            <Button onClick={() => setViewingFile(null)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* PAYMENT MODAL */}
       <Dialog open={isPaymentModalOpen} onOpenChange={setIsPaymentModalOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
@@ -1056,7 +1124,6 @@ const ClientDetail = () => {
             <DialogDescription>Record a new payment with optional proof of transaction</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleAddPayment} className="space-y-4 py-4">
-            {/* ... entire payment form remains exactly as you had it ... */}
             <div className="space-y-2">
               <label className="text-sm font-semibold">Select Project</label>
               <Select
