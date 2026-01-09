@@ -36,7 +36,7 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { Copy, Download, File, Image as ImageIcon, FileText, Eye } from "lucide-react";
+import { Copy, Download, FileText, Image as ImageIcon, Eye } from "lucide-react";
 // Icons
 import {
   IndianRupee,
@@ -248,7 +248,7 @@ const ClientDetail = () => {
     return { donutData, radialData, collectionRate };
   }, [projects, stats]);
 
-  /* ---------- SCREENSHOT HANDLING ---------- */
+  /* ---------- PAYMENT SCREENSHOT HANDLING ---------- */
   const handleScreenshotChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -322,36 +322,81 @@ const ClientDetail = () => {
     }
   };
 
-  /* ---------- PROJECT-LEVEL FILE UPLOAD ---------- */
-  const handleProjectFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  /* ---------- CLIENT-SIDE COMPRESSION FOR PROJECT FILES (PREVENTS 413 ERROR) ---------- */
+  const compressAndAddFile = async (file: File): Promise<ProjectFile | null> => {
+    if (file.type.startsWith('image/')) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d')!;
+            const MAX_WIDTH = 1200;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > MAX_WIDTH) {
+              height = (height * MAX_WIDTH) / width;
+              width = MAX_WIDTH;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            ctx.drawImage(img, 0, 0, width, height);
+
+            const compressed = canvas.toDataURL('image/jpeg', 0.7); // 70% quality
+
+            resolve({
+              name: file.name.replace(/\.[^/.]+$/, ".jpg"),
+              data: compressed,
+              type: 'image/jpeg'
+            });
+          };
+          img.src = e.target?.result as string;
+        };
+        reader.readAsDataURL(file);
+      });
+    } else {
+      // Non-images: limit to 5MB
+      if (file.size > 5 * 1024 * 1024) {
+        alert(`"${file.name}" exceeds 5MB limit for documents.`);
+        return null;
+      }
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          resolve({
+            name: file.name,
+            data: e.target?.result as string,
+            type: file.type || 'application/octet-stream'
+          });
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  };
+
+  const handleProjectFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
-    Array.from(files).forEach(file => {
-      if (file.size > 15 * 1024 * 1024) {
-        alert(`"${file.name}" is too large! Max 15MB per file.`);
-        return;
-      }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const newFile: ProjectFile = {
-          name: file.name,
-          data: reader.result as string,
-          type: file.type || 'application/octet-stream',
-        };
+
+    for (const file of Array.from(files)) {
+      const processedFile = await compressAndAddFile(file);
+      if (processedFile) {
         if (editingProject) {
           setEditingProject(prev => ({
             ...prev!,
-            projectFiles: [...(prev!.projectFiles || []), newFile]
+            projectFiles: [...(prev!.projectFiles || []), processedFile]
           }));
         } else {
           setProjectForm(prev => ({
             ...prev,
-            projectFiles: [...prev.projectFiles, newFile]
+            projectFiles: [...prev.projectFiles, processedFile]
           }));
         }
-      };
-      reader.readAsDataURL(file);
-    });
+      }
+    }
   };
 
   const removeProjectFile = (index: number) => {
@@ -376,8 +421,10 @@ const ClientDetail = () => {
     const url = isEdit
       ? `${import.meta.env.VITE_API_BASE}/api/clientProject/${editingProject?._id}`
       : `${import.meta.env.VITE_API_BASE}/api/clients/${id}/projects`;
+
     const currentReqs = isEdit ? editingProject!.requirements || [] : projectForm.requirements;
     const currentFiles = isEdit ? editingProject!.projectFiles || [] : projectForm.projectFiles;
+
     const payload = {
       title: isEdit ? editingProject!.title : projectForm.title,
       category: isEdit ? editingProject!.category || "Web App" : projectForm.category,
@@ -394,6 +441,7 @@ const ClientDetail = () => {
       })),
       projectFiles: currentFiles,
     };
+
     try {
       const res = await fetch(url, {
         method: isEdit ? "PUT" : "POST",
@@ -408,9 +456,13 @@ const ClientDetail = () => {
         setEditingProject(null);
         resetProjectForm();
         fetchData();
+      } else {
+        const errorData = await res.json().catch(() => ({}));
+        alert(`Error: ${errorData.message || "Failed to save project"}`);
       }
     } catch (error) {
       console.error("Project save error:", error);
+      alert("Network error. Files may be too large.");
     } finally {
       setIsActionLoading(false);
     }
@@ -478,29 +530,16 @@ const ClientDetail = () => {
   /* ---------- HELPERS ---------- */
   const resetProjectForm = () => {
     setProjectForm({
-      title: "",
-      category: "Web App",
-      totalAmount: "",
-      advancePaid: "",
-      status: "Active",
-      liveUrl: "",
-      startDate: "",
-      deadline: "",
-      description: "",
-      requirements: [],
-      projectFiles: [],
+      title: "", category: "Web App", totalAmount: "", advancePaid: "", status: "Active",
+      liveUrl: "", startDate: "", deadline: "", description: "", requirements: [], projectFiles: []
     });
     setNewRequirementText("");
   };
 
   const resetPaymentForm = () => {
     setPaymentForm({
-      projectId: "",
-      amount: "",
-      paymentDate: new Date().toISOString().split('T')[0],
-      paymentMethod: "Bank Transfer",
-      notes: "",
-      screenshot: null
+      projectId: "", amount: "", paymentDate: new Date().toISOString().split('T')[0],
+      paymentMethod: "Bank Transfer", notes: "", screenshot: null
     });
     setScreenshotPreview(null);
   };
@@ -536,11 +575,11 @@ const ClientDetail = () => {
     setIsProjectModalOpen(true);
   };
 
-const openRequirementsModal = (project: Project) => {
-  if (!project) return; // Safety
-  setViewingProject(project);
-  setIsRequirementsModalOpen(true);
-};
+  const openRequirementsModal = (project: Project) => {
+    if (!project) return;
+    setViewingProject(project);
+    setIsRequirementsModalOpen(true);
+  };
 
   const downloadFile = (file: ProjectFile) => {
     const link = document.createElement('a');
@@ -837,7 +876,7 @@ const openRequirementsModal = (project: Project) => {
         </div>
       </div>
 
-      {/* PROJECT MODAL WITH REQUIREMENTS */}
+      {/* PROJECT MODAL */}
       <Dialog open={isProjectModalOpen} onOpenChange={setIsProjectModalOpen}>
         <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -941,7 +980,6 @@ const openRequirementsModal = (project: Project) => {
                 }
               />
             </div>
-            {/* REQUIREMENTS SECTION */}
             <div className="space-y-6">
               <div className="space-y-4">
                 <label className="text-sm font-semibold">Requirements</label>
@@ -981,7 +1019,6 @@ const openRequirementsModal = (project: Project) => {
                   )}
                 </div>
               </div>
-              {/* SINGLE PROJECT-LEVEL FILE UPLOAD */}
               <div className="space-y-3">
                 <label className="text-sm font-semibold">Project Attachments (Any number of files)</label>
                 <div className="border-2 border-dashed rounded-lg p-6 text-center">
@@ -989,7 +1026,7 @@ const openRequirementsModal = (project: Project) => {
                     <div className="flex flex-col items-center gap-3">
                       <Upload className="w-10 h-10 text-muted-foreground" />
                       <p className="text-sm font-medium">Click to upload files</p>
-                      <p className="text-xs text-muted-foreground">Images, PDFs, Docs • Max 15MB each</p>
+                      <p className="text-xs text-muted-foreground">Images auto-compressed • Docs max 5MB</p>
                     </div>
                     <input
                       type="file"
@@ -1028,87 +1065,80 @@ const openRequirementsModal = (project: Project) => {
         </DialogContent>
       </Dialog>
 
-    {/* REQUIREMENTS VIEW MODAL */}
-<Dialog open={isRequirementsModalOpen} onOpenChange={setIsRequirementsModalOpen}>
-  <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
-    <DialogHeader>
-      <DialogTitle>
-        {viewingProject ? viewingProject.title : "Project"} - Requirements & Attachments
-      </DialogTitle>
-      <DialogDescription>
-        View, copy requirements, and manage attachments.
-      </DialogDescription>
-    </DialogHeader>
-    <div className="space-y-6 py-4">
-      {/* REQUIREMENTS SECTION */}
-      <div className="space-y-4">
-        <label className="text-sm font-semibold">Requirements</label>
-        <div className="space-y-3 max-h-64 overflow-y-auto">
-          {!viewingProject || !viewingProject.requirements || viewingProject.requirements.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">No requirements.</p>
-          ) : (
-            viewingProject.requirements.map((req, idx) => (
-              <Card key={req.id} className="p-4">
-                <div className="flex justify-between items-start gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="font-medium">#{idx + 1}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {new Date(req.createdAt).toLocaleString()}
-                      </span>
-                    </div>
-                    <p>{req.text}</p>
-                  </div>
-                  <Button variant="ghost" size="icon" onClick={() => copyRequirement(req.text)}>
-                    <Copy className="w-4 h-4" />
-                  </Button>
-                </div>
-              </Card>
-            ))
-          )}
-        </div>
-      </div>
+      {/* REQUIREMENTS & ATTACHMENTS VIEW MODAL */}
+      <Dialog open={isRequirementsModalOpen} onOpenChange={setIsRequirementsModalOpen}>
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{viewingProject?.title || "Project"} - Requirements & Attachments</DialogTitle>
+            <DialogDescription>View, copy requirements, and manage attachments.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            <div className="space-y-4">
+              <label className="text-sm font-semibold">Requirements</label>
+              <div className="space-y-3 max-h-64 overflow-y-auto">
+                {!viewingProject || !viewingProject.requirements || viewingProject.requirements.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">No requirements.</p>
+                ) : (
+                  viewingProject.requirements.map((req, idx) => (
+                    <Card key={req.id} className="p-4">
+                      <div className="flex justify-between items-start gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="font-medium">#{idx + 1}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {new Date(req.createdAt).toLocaleString()}
+                            </span>
+                          </div>
+                          <p>{req.text}</p>
+                        </div>
+                        <Button variant="ghost" size="icon" onClick={() => copyRequirement(req.text)}>
+                          <Copy className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </Card>
+                  ))
+                )}
+              </div>
+            </div>
+            <div className="space-y-4">
+              <label className="text-sm font-semibold">Attachments</label>
+              <div className="space-y-3 max-h-64 overflow-y-auto">
+                {!viewingProject || !viewingProject.projectFiles || viewingProject.projectFiles.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">No attachments.</p>
+                ) : (
+                  viewingProject.projectFiles.map((file, idx) => (
+                    <Card key={idx} className="p-4">
+                      <div className="flex justify-between items-center gap-4">
+                        <div className="flex items-center gap-2">
+                          {file.type.startsWith('image/') ? <ImageIcon className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
+                          <span className="truncate max-w-md">{file.name}</span>
+                        </div>
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => viewFile(file)}>
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => downloadFile(file)}>
+                            <Download className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </Card>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setIsRequirementsModalOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-      {/* ATTACHMENTS SECTION */}
-      <div className="space-y-4">
-        <label className="text-sm font-semibold">Attachments</label>
-        <div className="space-y-3 max-h-64 overflow-y-auto">
-          {!viewingProject || !viewingProject.projectFiles || viewingProject.projectFiles.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">No attachments.</p>
-          ) : (
-            viewingProject.projectFiles.map((file, idx) => (
-              <Card key={idx} className="p-4">
-                <div className="flex justify-between items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    {file.type.startsWith('image/') ? <ImageIcon className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
-                    <span className="truncate max-w-md">{file.name}</span>
-                  </div>
-                  <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => viewFile(file)}>
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => downloadFile(file)}>
-                      <Download className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            ))
-          )}
-        </div>
-      </div>
-    </div>
-    <DialogFooter>
-      <Button onClick={() => setIsRequirementsModalOpen(false)}>Close</Button>
-    </DialogFooter>
-  </DialogContent>
-</Dialog>
-
-      {/* FILE VIEW MODAL (FOR IMAGES) */}
+      {/* IMAGE VIEW MODAL */}
       <Dialog open={!!viewingFile} onOpenChange={() => setViewingFile(null)}>
         <DialogContent className="sm:max-w-[700px]">
           <DialogHeader>
-            <DialogTitle>{viewingFile?.name}</DialogTitle>
+            <DialogTitle>{viewingFile?.name || "File"}</DialogTitle>
           </DialogHeader>
           <div className="py-4">
             {viewingFile && viewingFile.type.startsWith('image/') && (
