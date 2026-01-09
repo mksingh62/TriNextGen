@@ -892,12 +892,28 @@ const compressPaymentScreenshot = async (file: File): Promise<string | null> => 
                             <TableCell className="font-medium">{projects.find(p => p._id === payment.projectId)?.title || "General"}</TableCell>
                             <TableCell><Badge variant="outline">{payment.paymentMethod}</Badge></TableCell>
                             <TableCell>
-                              {payment.screenshot ? (
+                              {payment.screenshot && payment.screenshot.trim() !== "" ? (
                                 <div className="flex gap-2">
-                                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => viewScreenshot(payment.screenshot!)}><Eye className="w-4 h-4" /></Button>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => downloadScreenshot(payment.screenshot!, payment._id)}><Download className="w-4 h-4" /></Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-8 w-8" 
+                                    onClick={() => viewScreenshot(payment.screenshot)}
+                                  >
+                                    <Eye className="w-4 h-4" />
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-8 w-8" 
+                                    onClick={() => downloadScreenshot(payment.screenshot, payment._id)}
+                                  >
+                                    <Download className="w-4 h-4" />
+                                  </Button>
                                 </div>
-                              ) : <span className="text-xs text-muted-foreground">No proof</span>}
+                              ) : (
+                                <span className="text-xs text-muted-foreground">No proof</span>
+                              )}
                             </TableCell>
                             <TableCell className="text-right font-bold text-emerald-600">₹{payment.amount?.toLocaleString()}</TableCell>
                           </TableRow>
