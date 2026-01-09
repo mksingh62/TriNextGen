@@ -86,14 +86,15 @@ import {
 type ProjectCategory = "Web App" | "Mobile App" | "UI/UX Design" | "SEO/Marketing" | "Maintenance";
 
 interface Requirement {
-  id: string;                    // temporary client-side ID
+  id: string;
   text: string;
-  createdAt: string;              // ISO string
-  files?: {
-    name: string;
-    data: string;                // base64
-    type: string;
-  }[];
+  createdAt: string;
+}
+
+interface ProjectFile {
+  name: string;
+  data: string; // base64
+  type: string;
 }
 
 interface Project {
@@ -109,6 +110,7 @@ interface Project {
   deadline?: string;
   description?: string;
   requirements?: Requirement[];
+  projectFiles?: ProjectFile[];
 }
 
 interface Payment {
@@ -171,6 +173,7 @@ const ClientDetail = () => {
     deadline: "",
     description: "",
     requirements: [] as Requirement[],
+    projectFiles: [] as ProjectFile[],
   });
 
   const [newRequirementText, setNewRequirementText] = useState("");
@@ -286,12 +289,10 @@ const ClientDetail = () => {
   /* ---------- REQUIREMENT HANDLERS ---------- */
   const addRequirement = () => {
     if (!newRequirementText.trim()) return;
-
     const newReq: Requirement = {
       id: Date.now().toString(),
       text: newRequirementText.trim(),
       createdAt: new Date().toISOString(),
-      files: [],
     };
 
     if (editingProject) {
@@ -322,54 +323,52 @@ const ClientDetail = () => {
     }
   };
 
-  const handleRequirementFileUpload = (reqId: string, e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 10 * 1024 * 1024) {
-      alert("File size must be less than 10MB");
-      return;
-    }
+  /* ---------- PROJECT-LEVEL FILE UPLOAD ---------- */
+  const handleProjectFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const newFile = {
-        name: file.name,
-        data: reader.result as string,
-        type: file.type,
-      };
-
-      const updateReqs = (reqs: Requirement[]) =>
-        reqs.map(r => r.id === reqId ? { ...r, files: [...(r.files || []), newFile] } : r);
-
-      if (editingProject) {
-        setEditingProject({
-          ...editingProject,
-          requirements: updateReqs(editingProject.requirements || []),
-        });
-      } else {
-        setProjectForm({
-          ...projectForm,
-          requirements: updateReqs(projectForm.requirements),
-        });
+    Array.from(files).forEach(file => {
+      if (file.size > 15 * 1024 * 1024) {
+        alert(`"${file.name}" is too large! Max 15MB per file.`);
+        return;
       }
-    };
-    reader.readAsDataURL(file);
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const newFile: ProjectFile = {
+          name: file.name,
+          data: reader.result as string,
+          type: file.type || 'application/octet-stream',
+        };
+
+        if (editingProject) {
+          setEditingProject(prev => ({
+            ...prev!,
+            projectFiles: [...(prev!.projectFiles || []), newFile]
+          }));
+        } else {
+          setProjectForm(prev => ({
+            ...prev,
+            projectFiles: [...prev.projectFiles, newFile]
+          }));
+        }
+      };
+      reader.readAsDataURL(file);
+    });
   };
 
-  const removeRequirementFile = (reqId: string, fileIndex: number) => {
-    const updateReqs = (reqs: Requirement[]) =>
-      reqs.map(r => r.id === reqId ? { ...r, files: r.files?.filter((_, i) => i !== fileIndex) } : r);
-
+  const removeProjectFile = (index: number) => {
     if (editingProject) {
-      setEditingProject({
-        ...editingProject,
-        requirements: updateReqs(editingProject.requirements || []),
-      });
+      setEditingProject(prev => ({
+        ...prev!,
+        projectFiles: prev!.projectFiles?.filter((_, i) => i !== index) || []
+      }));
     } else {
-      setProjectForm({
-        ...projectForm,
-        requirements: updateReqs(projectForm.requirements),
-      });
+      setProjectForm(prev => ({
+        ...prev,
+        projectFiles: prev.projectFiles.filter((_, i) => i !== index)
+      }));
     }
   };
 
@@ -377,29 +376,30 @@ const ClientDetail = () => {
   const handleProjectSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsActionLoading(true);
-    const isEdit = !!editingProject;
 
+    const isEdit = !!editingProject;
     const url = isEdit
       ? `${import.meta.env.VITE_API_BASE}/api/clientProject/${editingProject?._id}`
       : `${import.meta.env.VITE_API_BASE}/api/clients/${id}/projects`;
 
     const currentReqs = isEdit ? editingProject!.requirements || [] : projectForm.requirements;
+    const currentFiles = isEdit ? editingProject!.projectFiles || [] : projectForm.projectFiles;
 
     const payload = {
       title: isEdit ? editingProject!.title : projectForm.title,
-      category: isEdit ? editingProject!.category : projectForm.category,
+      category: isEdit ? editingProject!.category || "Web App" : projectForm.category,
       totalAmount: Number(isEdit ? editingProject!.totalAmount : projectForm.totalAmount),
       advancePaid: Number(isEdit ? editingProject!.advancePaid : projectForm.advancePaid),
       status: isEdit ? editingProject!.status : projectForm.status,
-      liveUrl: isEdit ? editingProject!.liveUrl : projectForm.liveUrl,
-      description: isEdit ? editingProject!.description : projectForm.description,
-      startDate: isEdit ? editingProject!.startDate : projectForm.startDate,
-      deadline: isEdit ? editingProject!.deadline : projectForm.deadline,
+      liveUrl: isEdit ? editingProject!.liveUrl || "" : projectForm.liveUrl,
+      description: isEdit ? editingProject!.description || "" : projectForm.description,
+      startDate: isEdit ? editingProject!.startDate || "" : projectForm.startDate,
+      deadline: isEdit ? editingProject!.deadline || "" : projectForm.deadline,
       requirements: currentReqs.map(r => ({
         text: r.text,
         createdAt: r.createdAt,
-        files: r.files,
       })),
+      projectFiles: currentFiles,
     };
 
     try {
@@ -411,14 +411,19 @@ const ClientDetail = () => {
         },
         body: JSON.stringify(payload),
       });
+
       if (res.ok) {
         setIsProjectModalOpen(false);
         setEditingProject(null);
         resetProjectForm();
         fetchData();
+      } else {
+        const errorData = await res.json();
+        alert(`Error: ${errorData.message || "Failed to save"}`);
       }
     } catch (error) {
       console.error("Project save error:", error);
+      alert("Network error. Please try again.");
     } finally {
       setIsActionLoading(false);
     }
@@ -487,7 +492,7 @@ const ClientDetail = () => {
   const resetProjectForm = () => {
     setProjectForm({
       title: "", category: "Web App", totalAmount: "", advancePaid: "", status: "Active",
-      liveUrl: "", startDate: "", deadline: "", description: "", requirements: []
+      liveUrl: "", startDate: "", deadline: "", description: "", requirements: [], projectFiles: []
     });
     setNewRequirementText("");
   };
@@ -526,6 +531,7 @@ const ClientDetail = () => {
       deadline: project.deadline?.split('T')[0] || "",
       description: project.description || "",
       requirements: project.requirements || [],
+      projectFiles: project.projectFiles || [],
     });
     setIsProjectModalOpen(true);
   };
@@ -599,7 +605,6 @@ const ClientDetail = () => {
             </ResponsiveContainer>
           </CardContent>
         </Card>
-
         <Card className="shadow-md">
           <CardHeader><CardTitle>Collection Rate</CardTitle></CardHeader>
           <CardContent className="h-[300px]">
@@ -612,7 +617,6 @@ const ClientDetail = () => {
             </ResponsiveContainer>
           </CardContent>
         </Card>
-
         <Card className="shadow-md">
           <CardHeader><CardTitle>Financial Summary</CardTitle></CardHeader>
           <CardContent>
@@ -668,7 +672,6 @@ const ClientDetail = () => {
               </Button>
             </CardContent>
           </Card>
-
           <Card className="bg-primary/5 border-primary/20">
             <CardHeader><CardTitle className="text-base">Quick Actions</CardTitle></CardHeader>
             <CardContent className="flex flex-col gap-2">
@@ -734,14 +737,12 @@ const ClientDetail = () => {
                             </Button>
                           </div>
                         </div>
-
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
                           <div><p className="text-xs font-semibold text-muted-foreground uppercase">Value</p><p className="text-lg font-bold">₹{project.totalAmount?.toLocaleString()}</p></div>
                           <div><p className="text-xs font-semibold text-muted-foreground uppercase">Paid</p><p className="text-lg font-bold text-emerald-600">₹{project.advancePaid?.toLocaleString()}</p></div>
                           <div><p className="text-xs font-semibold text-muted-foreground uppercase">Balance</p><p className="text-lg font-bold text-orange-600">₹{project.remainingAmount?.toLocaleString()}</p></div>
                           <div><p className="text-xs font-semibold text-muted-foreground uppercase">Deadline</p><p className="text-sm font-medium">{project.deadline ? new Date(project.deadline).toLocaleDateString() : "No Date"}</p></div>
                         </div>
-
                         <div className="space-y-2">
                           <div className="flex justify-between text-xs font-medium uppercase text-muted-foreground">
                             <span>Project Health</span>
@@ -808,7 +809,7 @@ const ClientDetail = () => {
         </div>
       </div>
 
-      {/* PROJECT MODAL WITH REQUIREMENTS */}
+      {/* PROJECT MODAL */}
       <Dialog open={isProjectModalOpen} onOpenChange={setIsProjectModalOpen}>
         <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -829,7 +830,6 @@ const ClientDetail = () => {
                   required
                 />
               </div>
-
               <div className="space-y-2">
                 <label className="text-sm font-semibold">Project Category</label>
                 <Select
@@ -849,7 +849,6 @@ const ClientDetail = () => {
                   </SelectContent>
                 </Select>
               </div>
-
               <div className="space-y-2">
                 <label className="text-sm font-semibold">Contract Value (₹)</label>
                 <Input
@@ -862,7 +861,6 @@ const ClientDetail = () => {
                   required
                 />
               </div>
-
               <div className="space-y-2">
                 <label className="text-sm font-semibold">Advance Received (₹)</label>
                 <Input
@@ -874,7 +872,6 @@ const ClientDetail = () => {
                   }
                 />
               </div>
-
               <div className="space-y-2">
                 <label className="text-sm font-semibold">Status</label>
                 <Select
@@ -893,7 +890,6 @@ const ClientDetail = () => {
                   </SelectContent>
                 </Select>
               </div>
-
               <div className="space-y-2">
                 <label className="text-sm font-semibold">Deadline</label>
                 <Input
@@ -920,69 +916,82 @@ const ClientDetail = () => {
             </div>
 
             {/* REQUIREMENTS SECTION */}
-            <div className="space-y-4">
-              <label className="text-sm font-semibold">Requirements</label>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Add a new requirement..."
-                  value={newRequirementText}
-                  onChange={(e) => setNewRequirementText(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addRequirement())}
-                />
-                <Button type="button" onClick={addRequirement} size="icon">
-                  <Plus className="w-4 h-4" />
-                </Button>
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <label className="text-sm font-semibold">Requirements</label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Add a new requirement..."
+                    value={newRequirementText}
+                    onChange={(e) => setNewRequirementText(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addRequirement())}
+                  />
+                  <Button type="button" onClick={addRequirement} size="icon">
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                <div className="space-y-3 max-h-64 overflow-y-auto">
+                  {(editingProject ? editingProject.requirements : projectForm.requirements)?.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">No requirements added yet.</p>
+                  ) : (
+                    (editingProject ? editingProject.requirements : projectForm.requirements)?.map((req, idx) => (
+                      <Card key={req.id} className="p-4">
+                        <div className="flex justify-between items-start gap-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="font-medium">#{idx + 1}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {new Date(req.createdAt).toLocaleString()}
+                              </span>
+                            </div>
+                            <p>{req.text}</p>
+                          </div>
+                          <Button type="button" variant="ghost" size="icon" onClick={() => removeRequirement(req.id)}>
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </Card>
+                    ))
+                  )}
+                </div>
               </div>
 
-              <div className="space-y-3 max-h-96 overflow-y-auto">
-                {(editingProject ? editingProject.requirements : projectForm.requirements)?.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">No requirements added yet.</p>
-                ) : (
-                  (editingProject ? editingProject.requirements : projectForm.requirements)?.map((req, idx) => (
-                    <Card key={req.id} className="p-4">
-                      <div className="flex justify-between items-start gap-4">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="font-medium">#{idx + 1}</span>
-                            <span className="text-xs text-muted-foreground">
-                              {new Date(req.createdAt).toLocaleString()}
-                            </span>
-                          </div>
-                          <p className="mb-3">{req.text}</p>
+              {/* SINGLE PROJECT-LEVEL FILE UPLOAD */}
+              <div className="space-y-3">
+                <label className="text-sm font-semibold">Project Attachments (Any number of files)</label>
+                <div className="border-2 border-dashed rounded-lg p-6 text-center">
+                  <label className="cursor-pointer block">
+                    <div className="flex flex-col items-center gap-3">
+                      <Upload className="w-10 h-10 text-muted-foreground" />
+                      <p className="text-sm font-medium">Click to upload files</p>
+                      <p className="text-xs text-muted-foreground">Images, PDFs, Docs • Max 15MB each</p>
+                    </div>
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
+                      className="hidden"
+                      onChange={handleProjectFileUpload}
+                    />
+                  </label>
+                </div>
 
-                          {req.files && req.files.length > 0 && (
-                            <div className="flex flex-wrap gap-2 mb-3">
-                              {req.files.map((file, fIdx) => (
-                                <div key={fIdx} className="flex items-center gap-1 text-xs bg-muted px-2 py-1 rounded">
-                                  {file.type.startsWith('image/') ? <ImageIcon className="w-3 h-3" /> : <FileText className="w-3 h-3" />}
-                                  <span className="truncate max-w-32">{file.name}</span>
-                                  <Button type="button" variant="ghost" size="icon" className="h-4 w-4" onClick={() => removeRequirementFile(req.id, fIdx)}>
-                                    <X className="w-3 h-3" />
-                                  </Button>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-
-                          <label className="inline-block">
-                            <Button type="button" variant="outline" size="sm" asChild>
-                              <span><Upload className="w-3 h-3 mr-1" /> Attach File</span>
-                            </Button>
-                            <input
-                              type="file"
-                              accept="image/*,.pdf,.doc,.docx"
-                              className="hidden"
-                              onChange={(e) => handleRequirementFileUpload(req.id, e)}
-                            />
-                          </label>
+                {(editingProject ? editingProject.projectFiles : projectForm.projectFiles)?.length > 0 && (
+                  <div className="space-y-2 mt-4">
+                    <p className="text-xs font-medium text-muted-foreground">Uploaded Files:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {(editingProject ? editingProject.projectFiles : projectForm.projectFiles)?.map((file, idx) => (
+                        <div key={idx} className="flex items-center gap-2 text-xs bg-muted px-3 py-2 rounded">
+                          {file.type.startsWith('image/') ? <ImageIcon className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
+                          <span className="truncate max-w-40">{file.name}</span>
+                          <Button type="button" variant="ghost" size="icon" className="h-5 w-5" onClick={() => removeProjectFile(idx)}>
+                            <X className="w-3 h-3" />
+                          </Button>
                         </div>
-
-                        <Button type="button" variant="ghost" size="icon" onClick={() => removeRequirement(req.id)}>
-                          <Trash2 className="w-4 h-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </Card>
-                  ))
+                      ))}
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
@@ -1011,9 +1020,7 @@ const ClientDetail = () => {
                 value={paymentForm.projectId}
                 onValueChange={(val) => setPaymentForm({ ...paymentForm, projectId: val })}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a project..." />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Select a project..." /></SelectTrigger>
                 <SelectContent>
                   {projects.map(p => (
                     <SelectItem key={p._id} value={p._id}>{p.title}</SelectItem>
@@ -1021,7 +1028,6 @@ const ClientDetail = () => {
                 </SelectContent>
               </Select>
             </div>
-
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-semibold">Amount (₹)</label>
@@ -1042,7 +1048,6 @@ const ClientDetail = () => {
                 />
               </div>
             </div>
-
             <div className="space-y-2">
               <label className="text-sm font-semibold">Payment Method</label>
               <Select
@@ -1059,7 +1064,6 @@ const ClientDetail = () => {
                 </SelectContent>
               </Select>
             </div>
-
             <div className="space-y-2">
               <label className="text-sm font-semibold">Payment Proof (Screenshot)</label>
               <div className="border-2 border-dashed rounded-lg p-4 text-center">
@@ -1087,7 +1091,6 @@ const ClientDetail = () => {
                 )}
               </div>
             </div>
-
             <div className="space-y-2">
               <label className="text-sm font-semibold">Notes (Optional)</label>
               <Textarea
@@ -1097,7 +1100,6 @@ const ClientDetail = () => {
                 rows={2}
               />
             </div>
-
             <DialogFooter>
               <Button type="submit" disabled={isActionLoading}>
                 {isActionLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
