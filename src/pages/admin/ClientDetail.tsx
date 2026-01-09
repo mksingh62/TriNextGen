@@ -248,26 +248,28 @@ const ClientDetail = () => {
     return { donutData, radialData, collectionRate };
   }, [projects, stats]);
 
-  /* ---------- PAYMENT SCREENSHOT HANDLING ---------- */
-  const handleScreenshotChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (!file.type.startsWith('image/')) {
-        alert('Please upload an image file');
-        return;
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        alert('File size must be less than 5MB');
-        return;
-      }
-      setPaymentForm({ ...paymentForm, screenshot: file });
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setScreenshotPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+const handleScreenshotChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  if (!file.type.startsWith('image/')) {
+    alert('Please upload an image file');
+    return;
+  }
+
+  if (file.size > 10 * 1024 * 1024) { // Original >10MB block kar do
+    alert('Image too large! Please choose a smaller screenshot (under 10MB).');
+    return;
+  }
+
+  // Compress karo
+  const compressedBase64 = await compressPaymentScreenshot(file);
+  if (compressedBase64) {
+    setScreenshotPreview(compressedBase64);
+    // File state mein original file rakho (for form), lekin send karenge compressed base64
+    setPaymentForm({ ...paymentForm, screenshot: file });
+  }
+};
 
   const removeScreenshot = () => {
     setPaymentForm({ ...paymentForm, screenshot: null });
@@ -321,7 +323,38 @@ const ClientDetail = () => {
       });
     }
   };
+/* ---------- PAYMENT SCREENSHOT COMPRESSION (NEW) ---------- */
+const compressPaymentScreenshot = async (file: File): Promise<string | null> => {
+  if (!file.type.startsWith('image/')) return null;
 
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d')!;
+        const MAX_WIDTH = 1200;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > MAX_WIDTH) {
+          height = (height * MAX_WIDTH) / width;
+          width = MAX_WIDTH;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const compressed = canvas.toDataURL('image/jpeg', 0.7); // 70% quality
+        resolve(compressed);
+      };
+      img.src = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  });
+};
   /* ---------- CLIENT-SIDE COMPRESSION FOR PROJECT FILES (PREVENTS 413 ERROR) ---------- */
   const compressAndAddFile = async (file: File): Promise<ProjectFile | null> => {
     if (file.type.startsWith('image/')) {
@@ -495,37 +528,40 @@ const ClientDetail = () => {
   };
 
   /* ---------- PAYMENT OPERATIONS ---------- */
-  const handleAddPayment = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsActionLoading(true);
-    try {
-      let screenshotBase64 = null;
-      if (paymentForm.screenshot) {
-        screenshotBase64 = screenshotPreview;
-      }
-      const res = await fetch(`${import.meta.env.VITE_API_BASE}/api/clients/${id}/payments`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          ...paymentForm,
-          amount: Number(paymentForm.amount),
-          screenshot: screenshotBase64,
-        }),
-      });
-      if (res.ok) {
-        setIsPaymentModalOpen(false);
-        resetPaymentForm();
-        fetchData();
-      }
-    } catch (error) {
-      console.error("Payment error:", error);
-    } finally {
-      setIsActionLoading(false);
+ const handleAddPayment = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setIsActionLoading(true);
+  try {
+    const screenshotBase64 = screenshotPreview; // ← Yeh ab compressed hai
+
+    const res = await fetch(`${import.meta.env.VITE_API_BASE}/api/clients/${id}/payments`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        ...paymentForm,
+        amount: Number(paymentForm.amount),
+        screenshot: screenshotBase64, // ← Safe size
+      }),
+    });
+
+    if (res.ok) {
+      setIsPaymentModalOpen(false);
+      resetPaymentForm();
+      fetchData();
+    } else {
+      const errorData = await res.json().catch(() => ({}));
+      alert(`Error: ${errorData.message || "Failed to log payment"}`);
     }
-  };
+  } catch (error) {
+    console.error("Payment error:", error);
+    alert("Network error. Try with a smaller screenshot.");
+  } finally {
+    setIsActionLoading(false);
+  }
+};
 
   /* ---------- HELPERS ---------- */
   const resetProjectForm = () => {
