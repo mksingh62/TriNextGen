@@ -532,7 +532,18 @@ const compressPaymentScreenshot = async (file: File): Promise<string | null> => 
   e.preventDefault();
   setIsActionLoading(true);
   try {
-    const screenshotBase64 = screenshotPreview; // ← Yeh ab compressed hai
+    const payload: any = {
+      projectId: paymentForm.projectId || "", // General ke liye blank
+      amount: Number(paymentForm.amount),
+      paymentDate: paymentForm.paymentDate,
+      paymentMethod: paymentForm.paymentMethod,
+      notes: paymentForm.notes || "",
+    };
+
+    // Sirf tab screenshot bhejo jab preview hai aur string valid hai
+    if (screenshotPreview && screenshotPreview.startsWith('data:image/')) {
+      payload.screenshot = screenshotPreview;
+    }
 
     const res = await fetch(`${import.meta.env.VITE_API_BASE}/api/clients/${id}/payments`, {
       method: "POST",
@@ -540,24 +551,21 @@ const compressPaymentScreenshot = async (file: File): Promise<string | null> => 
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({
-        ...paymentForm,
-        amount: Number(paymentForm.amount),
-        screenshot: screenshotBase64, // ← Safe size
-      }),
+      body: JSON.stringify(payload),
     });
 
     if (res.ok) {
       setIsPaymentModalOpen(false);
       resetPaymentForm();
       fetchData();
+      alert("Payment logged successfully!");
     } else {
       const errorData = await res.json().catch(() => ({}));
       alert(`Error: ${errorData.message || "Failed to log payment"}`);
     }
   } catch (error) {
     console.error("Payment error:", error);
-    alert("Network error. Try with a smaller screenshot.");
+    alert("Network error. Try again.");
   } finally {
     setIsActionLoading(false);
   }
@@ -891,30 +899,30 @@ const compressPaymentScreenshot = async (file: File): Promise<string | null> => 
                             <TableCell>{new Date(payment.paymentDate).toLocaleDateString()}</TableCell>
                             <TableCell className="font-medium">{projects.find(p => p._id === payment.projectId)?.title || "General"}</TableCell>
                             <TableCell><Badge variant="outline">{payment.paymentMethod}</Badge></TableCell>
-                            <TableCell>
-                              {payment.screenshot && payment.screenshot.trim() !== "" ? (
-                                <div className="flex gap-2">
-                                  <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    className="h-8 w-8" 
-                                    onClick={() => viewScreenshot(payment.screenshot)}
-                                  >
-                                    <Eye className="w-4 h-4" />
-                                  </Button>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    className="h-8 w-8" 
-                                    onClick={() => downloadScreenshot(payment.screenshot, payment._id)}
-                                  >
-                                    <Download className="w-4 h-4" />
-                                  </Button>
-                                </div>
-                              ) : (
-                                <span className="text-xs text-muted-foreground">No proof</span>
-                              )}
-                            </TableCell>
+                           <TableCell>
+                            {payment.screenshot && typeof payment.screenshot === 'string' && payment.screenshot.trim().length > 100 ? (
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={() => viewScreenshot(payment.screenshot)}
+                                >
+                                  <Eye className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={() => downloadScreenshot(payment.screenshot, payment._id)}
+                                >
+                                  <Download className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">No proof</span>
+                            )}
+                          </TableCell>
                             <TableCell className="text-right font-bold text-emerald-600">₹{payment.amount?.toLocaleString()}</TableCell>
                           </TableRow>
                         ))
@@ -1216,10 +1224,20 @@ const compressPaymentScreenshot = async (file: File): Promise<string | null> => 
           <form onSubmit={handleAddPayment} className="space-y-4 py-4">
             <div className="space-y-2">
               <label className="text-sm font-semibold">Select Project</label>
-              <Select
-                value={paymentForm.projectId}
-                onValueChange={(val) => setPaymentForm({ ...paymentForm, projectId: val })}
-              >
+             <Select
+  value={paymentForm.projectId}
+  onValueChange={(val) => setPaymentForm({ ...paymentForm, projectId: val })}
+>
+  <SelectTrigger className={paymentForm.projectId ? "" : "border-red-500"}>
+    <SelectValue placeholder="Select a project (recommended)" />
+  </SelectTrigger>
+  <SelectContent>
+    <SelectItem value="">General (No project)</SelectItem>
+    {projects.map(p => (
+      <SelectItem key={p._id} value={p._id}>{p.title}</SelectItem>
+    ))}
+  </SelectContent>
+</Select>
                 <SelectTrigger><SelectValue placeholder="Select a project..." /></SelectTrigger>
                 <SelectContent>
                   {projects.map(p => (
