@@ -536,10 +536,11 @@ const ClientDetail = () => {
     setIsProjectModalOpen(true);
   };
 
-  const openRequirementsModal = (project: Project) => {
-    setViewingProject(project);
-    setIsRequirementsModalOpen(true);
-  };
+const openRequirementsModal = (project: Project) => {
+  if (!project) return; // Safety
+  setViewingProject(project);
+  setIsRequirementsModalOpen(true);
+};
 
   const downloadFile = (file: ProjectFile) => {
     const link = document.createElement('a');
@@ -1027,74 +1028,81 @@ const ClientDetail = () => {
         </DialogContent>
       </Dialog>
 
-      {/* REQUIREMENTS VIEW MODAL */}
-      <Dialog open={isRequirementsModalOpen} onOpenChange={setIsRequirementsModalOpen}>
-        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{viewingProject?.title} - Requirements & Attachments</DialogTitle>
-            <DialogDescription>View, copy requirements, and manage attachments.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-6 py-4">
-            <div className="space-y-4">
-              <label className="text-sm font-semibold">Requirements</label>
-              <div className="space-y-3 max-h-64 overflow-y-auto">
-                {viewingProject?.requirements?.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">No requirements.</p>
-                ) : (
-                  viewingProject.requirements.map((req, idx) => (
-                    <Card key={req.id} className="p-4">
-                      <div className="flex justify-between items-start gap-4">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="font-medium">#{idx + 1}</span>
-                            <span className="text-xs text-muted-foreground">
-                              {new Date(req.createdAt).toLocaleString()}
-                            </span>
-                          </div>
-                          <p>{req.text}</p>
-                        </div>
-                        <Button variant="ghost" size="icon" onClick={() => copyRequirement(req.text)}>
-                          <Copy className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </Card>
-                  ))
-                )}
-              </div>
-            </div>
-            <div className="space-y-4">
-              <label className="text-sm font-semibold">Attachments</label>
-              <div className="space-y-3 max-h-64 overflow-y-auto">
-                {viewingProject?.projectFiles?.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">No attachments.</p>
-                ) : (
-                  viewingProject.projectFiles.map((file, idx) => (
-                    <Card key={idx} className="p-4">
-                      <div className="flex justify-between items-center gap-4">
-                        <div className="flex items-center gap-2">
-                          {file.type.startsWith('image/') ? <ImageIcon className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
-                          <span className="truncate max-w-md">{file.name}</span>
-                        </div>
-                        <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => viewFile(file)}>
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon" onClick={() => downloadFile(file)}>
-                            <Download className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </Card>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button onClick={() => setIsRequirementsModalOpen(false)}>Close</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+    {/* REQUIREMENTS VIEW MODAL */}
+<Dialog open={isRequirementsModalOpen} onOpenChange={setIsRequirementsModalOpen}>
+  <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+    <DialogHeader>
+      <DialogTitle>
+        {viewingProject ? viewingProject.title : "Project"} - Requirements & Attachments
+      </DialogTitle>
+      <DialogDescription>
+        View, copy requirements, and manage attachments.
+      </DialogDescription>
+    </DialogHeader>
+    <div className="space-y-6 py-4">
+      {/* REQUIREMENTS SECTION */}
+      <div className="space-y-4">
+        <label className="text-sm font-semibold">Requirements</label>
+        <div className="space-y-3 max-h-64 overflow-y-auto">
+          {!viewingProject || !viewingProject.requirements || viewingProject.requirements.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">No requirements.</p>
+          ) : (
+            viewingProject.requirements.map((req, idx) => (
+              <Card key={req.id} className="p-4">
+                <div className="flex justify-between items-start gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="font-medium">#{idx + 1}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(req.createdAt).toLocaleString()}
+                      </span>
+                    </div>
+                    <p>{req.text}</p>
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={() => copyRequirement(req.text)}>
+                    <Copy className="w-4 h-4" />
+                  </Button>
+                </div>
+              </Card>
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* ATTACHMENTS SECTION */}
+      <div className="space-y-4">
+        <label className="text-sm font-semibold">Attachments</label>
+        <div className="space-y-3 max-h-64 overflow-y-auto">
+          {!viewingProject || !viewingProject.projectFiles || viewingProject.projectFiles.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">No attachments.</p>
+          ) : (
+            viewingProject.projectFiles.map((file, idx) => (
+              <Card key={idx} className="p-4">
+                <div className="flex justify-between items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    {file.type.startsWith('image/') ? <ImageIcon className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
+                    <span className="truncate max-w-md">{file.name}</span>
+                  </div>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="icon" onClick={() => viewFile(file)}>
+                      <Eye className="w-4 h-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => downloadFile(file)}>
+                      <Download className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+    <DialogFooter>
+      <Button onClick={() => setIsRequirementsModalOpen(false)}>Close</Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
 
       {/* FILE VIEW MODAL (FOR IMAGES) */}
       <Dialog open={!!viewingFile} onOpenChange={() => setViewingFile(null)}>
