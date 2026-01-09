@@ -42,20 +42,12 @@ import {
   FolderKanban,
   Plus,
   TrendingUp,
-  Wallet,
-  Calendar,
-  Edit2,
-  Trash2,
-  DollarSign,
-  FileText,
   CheckCircle2,
   Clock,
-  AlertCircle,
   ExternalLink,
   Phone,
   Mail,
   ArrowLeft,
-  MoreVertical,
   Loader2,
   Layers,
   Globe,
@@ -66,9 +58,12 @@ import {
   Image as ImageIcon,
   X,
   Eye,
-  Download
+  Download,
+  Edit2,
+  Trash2,
+  FileText
 } from "lucide-react";
-// Recharts for visualization
+// Recharts
 import {
   BarChart,
   Bar,
@@ -82,7 +77,6 @@ import {
   Cell,
   RadialBarChart,
   RadialBar,
-  PolarAngleAxis,
   Legend
 } from 'recharts';
 
@@ -90,6 +84,17 @@ import {
 /* TYPES */
 /* -------------------------------------------------------------------------- */
 type ProjectCategory = "Web App" | "Mobile App" | "UI/UX Design" | "SEO/Marketing" | "Maintenance";
+
+interface Requirement {
+  id: string;                    // temporary client-side ID
+  text: string;
+  createdAt: string;              // ISO string
+  files?: {
+    name: string;
+    data: string;                // base64
+    type: string;
+  }[];
+}
 
 interface Project {
   _id: string;
@@ -103,6 +108,7 @@ interface Project {
   startDate?: string;
   deadline?: string;
   description?: string;
+  requirements?: Requirement[];
 }
 
 interface Payment {
@@ -112,7 +118,7 @@ interface Payment {
   paymentDate: string;
   paymentMethod: string;
   notes?: string;
-  screenshot?: string; // Base64 or URL
+  screenshot?: string;
 }
 
 interface Client {
@@ -145,7 +151,6 @@ const ClientDetail = () => {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [isActionLoading, setIsActionLoading] = useState(false);
-  const [categoryFilter, setCategoryFilter] = useState<string>("all");
 
   /* ---------- MODAL STATES ---------- */
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
@@ -165,7 +170,10 @@ const ClientDetail = () => {
     startDate: "",
     deadline: "",
     description: "",
+    requirements: [] as Requirement[],
   });
+
+  const [newRequirementText, setNewRequirementText] = useState("");
 
   const [paymentForm, setPaymentForm] = useState({
     projectId: "",
@@ -175,7 +183,6 @@ const ClientDetail = () => {
     notes: "",
     screenshot: null as File | null,
   });
-
   const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
 
   /* ---------- DATA FETCHING ---------- */
@@ -229,15 +236,12 @@ const ClientDetail = () => {
       acc[p.status] = (acc[p.status] || 0) + 1;
       return acc;
     }, {});
-
     const donutData = Object.keys(statusCounts).map(status => ({
       name: status,
       value: statusCounts[status]
     }));
-
     const collectionRate = stats.totalDealValue > 0 ? Math.round((stats.totalPaid / stats.totalDealValue) * 100) : 0;
     const radialData = [{ name: 'Paid', value: collectionRate, fill: '#10b981' }];
-
     return { donutData, radialData, collectionRate };
   }, [projects, stats]);
 
@@ -245,21 +249,15 @@ const ClientDetail = () => {
   const handleScreenshotChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validate file type
       if (!file.type.startsWith('image/')) {
         alert('Please upload an image file');
         return;
       }
-      
-      // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         alert('File size must be less than 5MB');
         return;
       }
-
       setPaymentForm({ ...paymentForm, screenshot: file });
-
-      // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setScreenshotPreview(reader.result as string);
@@ -285,32 +283,125 @@ const ClientDetail = () => {
     link.click();
   };
 
+  /* ---------- REQUIREMENT HANDLERS ---------- */
+  const addRequirement = () => {
+    if (!newRequirementText.trim()) return;
+
+    const newReq: Requirement = {
+      id: Date.now().toString(),
+      text: newRequirementText.trim(),
+      createdAt: new Date().toISOString(),
+      files: [],
+    };
+
+    if (editingProject) {
+      setEditingProject({
+        ...editingProject,
+        requirements: [...(editingProject.requirements || []), newReq],
+      });
+    } else {
+      setProjectForm({
+        ...projectForm,
+        requirements: [...projectForm.requirements, newReq],
+      });
+    }
+    setNewRequirementText("");
+  };
+
+  const removeRequirement = (reqId: string) => {
+    if (editingProject) {
+      setEditingProject({
+        ...editingProject,
+        requirements: editingProject.requirements?.filter(r => r.id !== reqId) || [],
+      });
+    } else {
+      setProjectForm({
+        ...projectForm,
+        requirements: projectForm.requirements.filter(r => r.id !== reqId),
+      });
+    }
+  };
+
+  const handleRequirementFileUpload = (reqId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      alert("File size must be less than 10MB");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const newFile = {
+        name: file.name,
+        data: reader.result as string,
+        type: file.type,
+      };
+
+      const updateReqs = (reqs: Requirement[]) =>
+        reqs.map(r => r.id === reqId ? { ...r, files: [...(r.files || []), newFile] } : r);
+
+      if (editingProject) {
+        setEditingProject({
+          ...editingProject,
+          requirements: updateReqs(editingProject.requirements || []),
+        });
+      } else {
+        setProjectForm({
+          ...projectForm,
+          requirements: updateReqs(projectForm.requirements),
+        });
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removeRequirementFile = (reqId: string, fileIndex: number) => {
+    const updateReqs = (reqs: Requirement[]) =>
+      reqs.map(r => r.id === reqId ? { ...r, files: r.files?.filter((_, i) => i !== fileIndex) } : r);
+
+    if (editingProject) {
+      setEditingProject({
+        ...editingProject,
+        requirements: updateReqs(editingProject.requirements || []),
+      });
+    } else {
+      setProjectForm({
+        ...projectForm,
+        requirements: updateReqs(projectForm.requirements),
+      });
+    }
+  };
+
   /* ---------- PROJECT OPERATIONS ---------- */
   const handleProjectSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsActionLoading(true);
     const isEdit = !!editingProject;
+
     const url = isEdit
       ? `${import.meta.env.VITE_API_BASE}/api/clientProject/${editingProject?._id}`
       : `${import.meta.env.VITE_API_BASE}/api/clients/${id}/projects`;
-    const payload = isEdit
-      ? {
-          title: editingProject!.title,
-          category: editingProject!.category,
-          totalAmount: Number(editingProject!.totalAmount),
-          advancePaid: Number(editingProject!.advancePaid),
-          status: editingProject!.status,
-          liveUrl: editingProject!.liveUrl,
-          description: editingProject!.description,
-          startDate: editingProject!.startDate,
-          deadline: editingProject!.deadline,
-        }
-      : {
-          ...projectForm,
-          totalAmount: Number(projectForm.totalAmount),
-          advancePaid: Number(projectForm.advancePaid),
-          category: projectForm.category,
-        };
+
+    const currentReqs = isEdit ? editingProject!.requirements || [] : projectForm.requirements;
+
+    const payload = {
+      title: isEdit ? editingProject!.title : projectForm.title,
+      category: isEdit ? editingProject!.category : projectForm.category,
+      totalAmount: Number(isEdit ? editingProject!.totalAmount : projectForm.totalAmount),
+      advancePaid: Number(isEdit ? editingProject!.advancePaid : projectForm.advancePaid),
+      status: isEdit ? editingProject!.status : projectForm.status,
+      liveUrl: isEdit ? editingProject!.liveUrl : projectForm.liveUrl,
+      description: isEdit ? editingProject!.description : projectForm.description,
+      startDate: isEdit ? editingProject!.startDate : projectForm.startDate,
+      deadline: isEdit ? editingProject!.deadline : projectForm.deadline,
+      requirements: currentReqs.map(r => ({
+        text: r.text,
+        createdAt: r.createdAt,
+        files: r.files,
+      })),
+    };
+
     try {
       const res = await fetch(url, {
         method: isEdit ? "PUT" : "POST",
@@ -363,14 +454,11 @@ const ClientDetail = () => {
   const handleAddPayment = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsActionLoading(true);
-    
     try {
-      // Convert screenshot to base64 if exists
       let screenshotBase64 = null;
       if (paymentForm.screenshot) {
         screenshotBase64 = screenshotPreview;
       }
-
       const res = await fetch(`${import.meta.env.VITE_API_BASE}/api/clients/${id}/payments`, {
         method: "POST",
         headers: {
@@ -383,7 +471,6 @@ const ClientDetail = () => {
           screenshot: screenshotBase64,
         }),
       });
-      
       if (res.ok) {
         setIsPaymentModalOpen(false);
         resetPaymentForm();
@@ -400,8 +487,9 @@ const ClientDetail = () => {
   const resetProjectForm = () => {
     setProjectForm({
       title: "", category: "Web App", totalAmount: "", advancePaid: "", status: "Active",
-      liveUrl: "", startDate: "", deadline: "", description: ""
+      liveUrl: "", startDate: "", deadline: "", description: "", requirements: []
     });
+    setNewRequirementText("");
   };
 
   const resetPaymentForm = () => {
@@ -423,6 +511,23 @@ const ClientDetail = () => {
   const getCategoryIcon = (cat: ProjectCategory) => {
     const Icon = CATEGORY_MAP[cat]?.icon || Layers;
     return <Icon className="w-4 h-4" />;
+  };
+
+  const openEditModal = (project: Project) => {
+    setEditingProject(project);
+    setProjectForm({
+      title: project.title,
+      category: project.category || "Web App",
+      totalAmount: project.totalAmount.toString(),
+      advancePaid: project.advancePaid.toString(),
+      status: project.status,
+      liveUrl: project.liveUrl || "",
+      startDate: project.startDate?.split('T')[0] || "",
+      deadline: project.deadline?.split('T')[0] || "",
+      description: project.description || "",
+      requirements: project.requirements || [],
+    });
+    setIsProjectModalOpen(true);
   };
 
   if (loading) {
@@ -477,74 +582,44 @@ const ClientDetail = () => {
         </Card>
       </div>
 
-      {/* ADVANCE ANALYTICS SECTION */}
+      {/* ANALYTICS SECTION */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* DONUT CHART */}
         <Card className="shadow-md">
-          <CardHeader>
-            <CardTitle>Project Status Distribution</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle>Project Status Distribution</CardTitle></CardHeader>
           <CardContent className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie
-                  data={analytics.donutData}
-                  innerRadius={60}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  paddingAngle={5}
-                  dataKey="value"
-                >
+                <Pie data={analytics.donutData} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
                   {analytics.donutData.map((_, index) => (
                     <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip />
-                <Legend />
+                <Tooltip /><Legend />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        {/* RADIAL CHART */}
         <Card className="shadow-md">
-          <CardHeader>
-            <CardTitle>Collection Rate</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle>Collection Rate</CardTitle></CardHeader>
           <CardContent className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <RadialBarChart cx="50%" cy="50%" innerRadius="10%" outerRadius="80%" barSize={10} data={analytics.radialData}>
-                <RadialBar
-                  label={{ position: 'insideStart', fill: '#fff' }}
-                  background
-                  dataKey="value"
-                />
-                <Legend iconSize={10} layout="vertical" verticalAlign="middle" wrapperStyle={{ top: 0, right: 0, transform: 'translate(0, 0)' }} />
+                <RadialBar background dataKey="value" />
+                <Legend iconSize={10} layout="vertical" verticalAlign="middle" />
                 <Tooltip />
               </RadialBarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        {/* FINANCIAL SUMMARY */}
         <Card className="shadow-md">
-          <CardHeader>
-            <CardTitle>Financial Summary</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle>Financial Summary</CardTitle></CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div>
-                <p className="text-sm text-muted-foreground">Total Value</p>
-                <p className="text-2xl font-bold">₹{stats.totalDealValue.toLocaleString()}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Collected</p>
-                <p className="text-2xl font-bold text-emerald-600">₹{stats.totalPaid.toLocaleString()}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Remaining</p>
-                <p className="text-2xl font-bold text-orange-600">₹{stats.totalRemaining.toLocaleString()}</p>
-              </div>
+              <div><p className="text-sm text-muted-foreground">Total Value</p><p className="text-2xl font-bold">₹{stats.totalDealValue.toLocaleString()}</p></div>
+              <div><p className="text-sm text-muted-foreground">Collected</p><p className="text-2xl font-bold text-emerald-600">₹{stats.totalPaid.toLocaleString()}</p></div>
+              <div><p className="text-sm text-muted-foreground">Remaining</p><p className="text-2xl font-bold text-orange-600">₹{stats.totalRemaining.toLocaleString()}</p></div>
             </div>
           </CardContent>
         </Card>
@@ -554,21 +629,17 @@ const ClientDetail = () => {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-primary" />
-            Financial Overview per Project
+            <TrendingUp className="w-5 h-5 text-primary" /> Financial Overview per Project
           </CardTitle>
           <CardDescription>Comparison between total contract value and amount collected</CardDescription>
         </CardHeader>
         <CardContent className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+            <BarChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
               <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
-              <YAxis fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `₹${value}`} />
-              <Tooltip
-                cursor={{ fill: 'transparent' }}
-                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-              />
+              <YAxis fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `₹${v}`} />
+              <Tooltip />
               <Bar dataKey="total" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Total Value" barSize={40} />
               <Bar dataKey="paid" fill="#10b981" radius={[4, 4, 0, 0]} name="Paid Amount" barSize={40} />
             </BarChart>
@@ -580,9 +651,7 @@ const ClientDetail = () => {
         {/* LEFT COLUMN: CLIENT PROFILE */}
         <div className="lg:col-span-1 space-y-6">
           <Card>
-            <CardHeader>
-              <CardTitle>Client Info</CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle>Client Info</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-3 text-sm">
                 <div className="p-2 bg-muted rounded-full"><Mail className="w-4 h-4" /></div>
@@ -592,21 +661,16 @@ const ClientDetail = () => {
                 <div className="p-2 bg-muted rounded-full"><Phone className="w-4 h-4" /></div>
                 <span>{client.phone || "No phone linked"}</span>
               </div>
-              <Badge className={getStatusColor(client.status)}>
-                {client.status}
-              </Badge>
+              <Badge className={getStatusColor(client.status)}>{client.status}</Badge>
               <hr />
-              <div className="pt-2">
-                <Button variant="outline" className="w-full justify-start" size="sm">
-                  <Edit2 className="w-3 h-3 mr-2" /> Edit Profile
-                </Button>
-              </div>
+              <Button variant="outline" className="w-full justify-start" size="sm">
+                <Edit2 className="w-3 h-3 mr-2" /> Edit Profile
+              </Button>
             </CardContent>
           </Card>
+
           <Card className="bg-primary/5 border-primary/20">
-            <CardHeader>
-              <CardTitle className="text-base">Quick Actions</CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle className="text-base">Quick Actions</CardTitle></CardHeader>
             <CardContent className="flex flex-col gap-2">
               <Button onClick={() => { resetProjectForm(); setIsProjectModalOpen(true); }} className="w-full">
                 <Plus className="w-4 h-4 mr-2" /> New Project
@@ -625,6 +689,7 @@ const ClientDetail = () => {
               <TabsTrigger value="projects">Active Projects</TabsTrigger>
               <TabsTrigger value="payments">Payment History</TabsTrigger>
             </TabsList>
+
             <TabsContent value="projects" className="space-y-6">
               {projects.length === 0 ? (
                 <div className="text-center py-20 border-2 border-dashed rounded-xl">
@@ -654,45 +719,29 @@ const ClientDetail = () => {
                             <p className="text-sm text-muted-foreground line-clamp-2 max-w-2xl">
                               {project.description || "No description provided."}
                             </p>
+                            {project.requirements && project.requirements.length > 0 && (
+                              <p className="text-xs text-muted-foreground mt-2">
+                                {project.requirements.length} Requirement{project.requirements.length > 1 ? 's' : ''}
+                              </p>
+                            )}
                           </div>
                           <div className="flex gap-1">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => { setEditingProject(project); setIsProjectModalOpen(true); }}
-                            >
+                            <Button variant="ghost" size="icon" onClick={() => openEditModal(project)}>
                               <Edit2 className="w-4 h-4" />
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="text-destructive hover:bg-destructive/10"
-                              onClick={() => handleDeleteProject(project._id)}
-                            >
+                            <Button variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10" onClick={() => handleDeleteProject(project._id)}>
                               <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
                         </div>
+
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
-                          <div>
-                            <p className="text-xs font-semibold text-muted-foreground uppercase">Value</p>
-                            <p className="text-lg font-bold">₹{project.totalAmount?.toLocaleString()}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs font-semibold text-muted-foreground uppercase">Paid</p>
-                            <p className="text-lg font-bold text-emerald-600">₹{project.advancePaid?.toLocaleString()}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs font-semibold text-muted-foreground uppercase">Balance</p>
-                            <p className="text-lg font-bold text-orange-600">₹{project.remainingAmount?.toLocaleString()}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs font-semibold text-muted-foreground uppercase">Deadline</p>
-                            <p className="text-sm font-medium">
-                              {project.deadline ? new Date(project.deadline).toLocaleDateString() : "No Date"}
-                            </p>
-                          </div>
+                          <div><p className="text-xs font-semibold text-muted-foreground uppercase">Value</p><p className="text-lg font-bold">₹{project.totalAmount?.toLocaleString()}</p></div>
+                          <div><p className="text-xs font-semibold text-muted-foreground uppercase">Paid</p><p className="text-lg font-bold text-emerald-600">₹{project.advancePaid?.toLocaleString()}</p></div>
+                          <div><p className="text-xs font-semibold text-muted-foreground uppercase">Balance</p><p className="text-lg font-bold text-orange-600">₹{project.remainingAmount?.toLocaleString()}</p></div>
+                          <div><p className="text-xs font-semibold text-muted-foreground uppercase">Deadline</p><p className="text-sm font-medium">{project.deadline ? new Date(project.deadline).toLocaleDateString() : "No Date"}</p></div>
                         </div>
+
                         <div className="space-y-2">
                           <div className="flex justify-between text-xs font-medium uppercase text-muted-foreground">
                             <span>Project Health</span>
@@ -702,12 +751,7 @@ const ClientDetail = () => {
                         </div>
                       </div>
                       {project.liveUrl && (
-                        <a
-                          href={project.liveUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="flex items-center justify-center gap-2 py-2 bg-muted/50 text-xs font-medium hover:bg-muted transition-colors border-t"
-                        >
+                        <a href={project.liveUrl} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 py-2 bg-muted/50 text-xs font-medium hover:bg-muted transition-colors border-t">
                           <ExternalLink className="w-3 h-3" /> Visit Live Site
                         </a>
                       )}
@@ -716,13 +760,12 @@ const ClientDetail = () => {
                 ))
               )}
             </TabsContent>
+
             <TabsContent value="payments">
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <div>
-                    <CardTitle>Transaction Ledger</CardTitle>
-                    <CardDescription>Comprehensive record of all funds received.</CardDescription>
-                  </div>
+                <CardHeader>
+                  <CardTitle>Transaction Ledger</CardTitle>
+                  <CardDescription>Comprehensive record of all funds received.</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Table>
@@ -737,48 +780,22 @@ const ClientDetail = () => {
                     </TableHeader>
                     <TableBody>
                       {payments.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={5} className="text-center py-10 text-muted-foreground">
-                            No transactions recorded yet.
-                          </TableCell>
-                        </TableRow>
+                        <TableRow><TableCell colSpan={5} className="text-center py-10 text-muted-foreground">No transactions recorded yet.</TableCell></TableRow>
                       ) : (
                         payments.map((payment) => (
                           <TableRow key={payment._id}>
                             <TableCell>{new Date(payment.paymentDate).toLocaleDateString()}</TableCell>
-                            <TableCell className="font-medium">
-                              {projects.find(p => p._id === payment.projectId)?.title || "General"}
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant="outline">{payment.paymentMethod}</Badge>
-                            </TableCell>
+                            <TableCell className="font-medium">{projects.find(p => p._id === payment.projectId)?.title || "General"}</TableCell>
+                            <TableCell><Badge variant="outline">{payment.paymentMethod}</Badge></TableCell>
                             <TableCell>
                               {payment.screenshot ? (
                                 <div className="flex gap-2">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8"
-                                    onClick={() => viewScreenshot(payment.screenshot!)}
-                                  >
-                                    <Eye className="w-4 h-4" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8"
-                                    onClick={() => downloadScreenshot(payment.screenshot!, payment._id)}
-                                  >
-                                    <Download className="w-4 h-4" />
-                                  </Button>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => viewScreenshot(payment.screenshot!)}><Eye className="w-4 h-4" /></Button>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => downloadScreenshot(payment.screenshot!, payment._id)}><Download className="w-4 h-4" /></Button>
                                 </div>
-                              ) : (
-                                <span className="text-xs text-muted-foreground">No proof</span>
-                              )}
+                              ) : <span className="text-xs text-muted-foreground">No proof</span>}
                             </TableCell>
-                            <TableCell className="text-right font-bold text-emerald-600">
-                              ₹{payment.amount?.toLocaleString()}
-                            </TableCell>
+                            <TableCell className="text-right font-bold text-emerald-600">₹{payment.amount?.toLocaleString()}</TableCell>
                           </TableRow>
                         ))
                       )}
@@ -790,17 +807,15 @@ const ClientDetail = () => {
           </Tabs>
         </div>
       </div>
-      
-      {/* ---------- MODAL: ADD/EDIT PROJECT ---------- */}
+
+      {/* PROJECT MODAL WITH REQUIREMENTS */}
       <Dialog open={isProjectModalOpen} onOpenChange={setIsProjectModalOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingProject ? "Update Project" : "Launch New Project"}</DialogTitle>
-            <DialogDescription>
-              Define the scope, financials, and timeline for this undertaking.
-            </DialogDescription>
+            <DialogDescription>Define the scope, financials, and timeline for this undertaking.</DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleProjectSubmit} className="space-y-4 py-4">
+          <form onSubmit={handleProjectSubmit} className="space-y-6 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2 space-y-2">
                 <label className="text-sm font-semibold">Project Title</label>
@@ -808,24 +823,23 @@ const ClientDetail = () => {
                   placeholder="e.g. E-commerce Overhaul"
                   value={editingProject ? editingProject.title : projectForm.title}
                   onChange={(e) => editingProject
-                    ? setEditingProject({ ...editingProject, title: e.target.value })
+                    ? setEditingProject({ ...editingProject!, title: e.target.value })
                     : setProjectForm({ ...projectForm, title: e.target.value })
                   }
                   required
                 />
               </div>
+
               <div className="space-y-2">
                 <label className="text-sm font-semibold">Project Category</label>
                 <Select
                   value={editingProject ? editingProject.category || "Web App" : projectForm.category}
                   onValueChange={(val) => editingProject
-                    ? setEditingProject({ ...editingProject, category: val })
-                    : setProjectForm({ ...projectForm, category: val })
+                    ? setEditingProject({ ...editingProject!, category: val as ProjectCategory })
+                    : setProjectForm({ ...projectForm, category: val as ProjectCategory })
                   }
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Web App">Web App</SelectItem>
                     <SelectItem value="Mobile App">Mobile App</SelectItem>
@@ -835,41 +849,42 @@ const ClientDetail = () => {
                   </SelectContent>
                 </Select>
               </div>
+
               <div className="space-y-2">
                 <label className="text-sm font-semibold">Contract Value (₹)</label>
                 <Input
                   type="number"
                   value={editingProject ? editingProject.totalAmount : projectForm.totalAmount}
                   onChange={(e) => editingProject
-                    ? setEditingProject({ ...editingProject, totalAmount: Number(e.target.value) })
+                    ? setEditingProject({ ...editingProject!, totalAmount: Number(e.target.value) })
                     : setProjectForm({ ...projectForm, totalAmount: e.target.value })
                   }
                   required
                 />
               </div>
+
               <div className="space-y-2">
                 <label className="text-sm font-semibold">Advance Received (₹)</label>
                 <Input
                   type="number"
                   value={editingProject ? editingProject.advancePaid : projectForm.advancePaid}
                   onChange={(e) => editingProject
-                    ? setEditingProject({ ...editingProject, advancePaid: Number(e.target.value) })
+                    ? setEditingProject({ ...editingProject!, advancePaid: Number(e.target.value) })
                     : setProjectForm({ ...projectForm, advancePaid: e.target.value })
                   }
                 />
               </div>
+
               <div className="space-y-2">
                 <label className="text-sm font-semibold">Status</label>
                 <Select
                   value={editingProject ? editingProject.status : projectForm.status}
                   onValueChange={(val) => editingProject
-                    ? setEditingProject({ ...editingProject, status: val })
+                    ? setEditingProject({ ...editingProject!, status: val })
                     : setProjectForm({ ...projectForm, status: val })
                   }
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Active">Active</SelectItem>
                     <SelectItem value="In Progress">In Progress</SelectItem>
@@ -878,29 +893,100 @@ const ClientDetail = () => {
                   </SelectContent>
                 </Select>
               </div>
+
               <div className="space-y-2">
                 <label className="text-sm font-semibold">Deadline</label>
                 <Input
                   type="date"
                   value={editingProject ? editingProject.deadline?.split('T')[0] || "" : projectForm.deadline}
                   onChange={(e) => editingProject
-                    ? setEditingProject({ ...editingProject, deadline: e.target.value })
+                    ? setEditingProject({ ...editingProject!, deadline: e.target.value })
                     : setProjectForm({ ...projectForm, deadline: e.target.value })
                   }
                 />
               </div>
             </div>
+
             <div className="space-y-2">
               <label className="text-sm font-semibold">Description</label>
               <Textarea
                 placeholder="Briefly describe project goals..."
                 value={editingProject ? editingProject.description || "" : projectForm.description}
                 onChange={(e) => editingProject
-                  ? setEditingProject({ ...editingProject, description: e.target.value })
+                  ? setEditingProject({ ...editingProject!, description: e.target.value })
                   : setProjectForm({ ...projectForm, description: e.target.value })
                 }
               />
             </div>
+
+            {/* REQUIREMENTS SECTION */}
+            <div className="space-y-4">
+              <label className="text-sm font-semibold">Requirements</label>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Add a new requirement..."
+                  value={newRequirementText}
+                  onChange={(e) => setNewRequirementText(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addRequirement())}
+                />
+                <Button type="button" onClick={addRequirement} size="icon">
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
+
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {(editingProject ? editingProject.requirements : projectForm.requirements)?.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">No requirements added yet.</p>
+                ) : (
+                  (editingProject ? editingProject.requirements : projectForm.requirements)?.map((req, idx) => (
+                    <Card key={req.id} className="p-4">
+                      <div className="flex justify-between items-start gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="font-medium">#{idx + 1}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {new Date(req.createdAt).toLocaleString()}
+                            </span>
+                          </div>
+                          <p className="mb-3">{req.text}</p>
+
+                          {req.files && req.files.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mb-3">
+                              {req.files.map((file, fIdx) => (
+                                <div key={fIdx} className="flex items-center gap-1 text-xs bg-muted px-2 py-1 rounded">
+                                  {file.type.startsWith('image/') ? <ImageIcon className="w-3 h-3" /> : <FileText className="w-3 h-3" />}
+                                  <span className="truncate max-w-32">{file.name}</span>
+                                  <Button type="button" variant="ghost" size="icon" className="h-4 w-4" onClick={() => removeRequirementFile(req.id, fIdx)}>
+                                    <X className="w-3 h-3" />
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          <label className="inline-block">
+                            <Button type="button" variant="outline" size="sm" asChild>
+                              <span><Upload className="w-3 h-3 mr-1" /> Attach File</span>
+                            </Button>
+                            <input
+                              type="file"
+                              accept="image/*,.pdf,.doc,.docx"
+                              className="hidden"
+                              onChange={(e) => handleRequirementFileUpload(req.id, e)}
+                            />
+                          </label>
+                        </div>
+
+                        <Button type="button" variant="ghost" size="icon" onClick={() => removeRequirement(req.id)}>
+                          <Trash2 className="w-4 h-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </Card>
+                  ))
+                )}
+              </div>
+            </div>
+
             <DialogFooter>
               <Button type="submit" disabled={isActionLoading}>
                 {isActionLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -911,7 +997,7 @@ const ClientDetail = () => {
         </DialogContent>
       </Dialog>
 
-      {/* ---------- MODAL: ADD PAYMENT WITH SCREENSHOT ---------- */}
+      {/* PAYMENT MODAL */}
       <Dialog open={isPaymentModalOpen} onOpenChange={setIsPaymentModalOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
@@ -935,7 +1021,7 @@ const ClientDetail = () => {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-semibold">Amount (₹)</label>
@@ -963,9 +1049,7 @@ const ClientDetail = () => {
                 value={paymentForm.paymentMethod}
                 onValueChange={(val) => setPaymentForm({ ...paymentForm, paymentMethod: val })}
               >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
                   <SelectItem value="UPI">UPI</SelectItem>
@@ -981,18 +1065,8 @@ const ClientDetail = () => {
               <div className="border-2 border-dashed rounded-lg p-4 text-center">
                 {screenshotPreview ? (
                   <div className="relative">
-                    <img 
-                      src={screenshotPreview} 
-                      alt="Payment proof preview" 
-                      className="max-h-48 mx-auto rounded-lg"
-                    />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="icon"
-                      className="absolute top-2 right-2"
-                      onClick={removeScreenshot}
-                    >
+                    <img src={screenshotPreview} alt="Payment proof preview" className="max-h-48 mx-auto rounded-lg" />
+                    <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2" onClick={removeScreenshot}>
                       <X className="w-4 h-4" />
                     </Button>
                   </div>
@@ -1034,7 +1108,7 @@ const ClientDetail = () => {
         </DialogContent>
       </Dialog>
 
-      {/* ---------- MODAL: VIEW SCREENSHOT ---------- */}
+      {/* SCREENSHOT VIEW MODAL */}
       <Dialog open={isScreenshotViewOpen} onOpenChange={setIsScreenshotViewOpen}>
         <DialogContent className="sm:max-w-[700px]">
           <DialogHeader>
@@ -1043,23 +1117,14 @@ const ClientDetail = () => {
           </DialogHeader>
           <div className="py-4">
             {viewingScreenshot && (
-              <img 
-                src={viewingScreenshot} 
-                alt="Payment proof" 
-                className="w-full rounded-lg"
-              />
+              <img src={viewingScreenshot} alt="Payment proof" className="w-full rounded-lg" />
             )}
           </div>
           <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => viewingScreenshot && downloadScreenshot(viewingScreenshot, 'payment')}
-            >
+            <Button variant="outline" onClick={() => viewingScreenshot && downloadScreenshot(viewingScreenshot, 'payment')}>
               <Download className="w-4 h-4 mr-2" /> Download
             </Button>
-            <Button onClick={() => setIsScreenshotViewOpen(false)}>
-              Close
-            </Button>
+            <Button onClick={() => setIsScreenshotViewOpen(false)}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
