@@ -175,22 +175,22 @@ const Services = () => {
   }
 
   return (
-    <section id="services" className="py-20 bg-gradient-to-br from-background to-secondary/10">
+    <section id="services" className="py-12 sm:py-16 md:py-20 bg-gradient-to-br from-background to-secondary/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16 animate-fade-in">
-          <Badge variant="secondary" className="mb-4 px-4 py-2 text-sm font-medium">
+        <div className="text-left lg:text-center mb-10 sm:mb-12 md:mb-16 animate-fade-in">
+          <Badge variant="secondary" className="mb-3 sm:mb-4 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium">
             Our Services
           </Badge>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4 sm:mb-6">
             Comprehensive Digital Solutions
           </h2>
-          <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed break-words hyphens-auto">
+          <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed break-words hyphens-auto px-2 sm:px-0">
             We offer a full range of digital services to help your business thrive in the modern landscape.
             From concept to deployment, we've got you covered.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {services.map((service, index) => {
             const IconComponent = serviceIcons[service.icon] || Code;
             return (
@@ -199,29 +199,29 @@ const Services = () => {
                 className="shadow-medium border-0 bg-card/80 backdrop-blur-sm hover:shadow-strong transition-all duration-300 hover-lift hover-glow card-professional overflow-hidden"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
-                <CardHeader className="p-5 md:p-6">
-                  <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center mb-3 md:mb-4">
-                    <IconComponent className="w-6 h-6 text-white" />
+                <CardHeader className="p-4 sm:p-5 md:p-6">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary rounded-lg flex items-center justify-center mb-3 sm:mb-4">
+                    <IconComponent className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                   </div>
-                  <CardTitle className="text-lg md:text-xl font-bold text-foreground break-words">
+                  <CardTitle className="text-base sm:text-lg md:text-xl font-bold text-foreground break-words">
                     {service.title}
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-5 pt-0 md:p-6 md:pt-0">
-                  <p className="text-base md:text-muted-foreground md:text-base leading-snug md:leading-relaxed mb-4 break-words hyphens-auto">
+                <CardContent className="p-4 pt-0 sm:p-5 sm:pt-0 md:p-6 md:pt-0">
+                  <p className="text-sm sm:text-base md:text-muted-foreground md:text-base leading-snug md:leading-relaxed mb-3 sm:mb-4 break-words hyphens-auto">
                     {service.description}
                   </p>
-                  <ul className="space-y-2">
+                  <ul className="space-y-1.5 sm:space-y-2">
                     {service.features.map((feature, idx) => (
                       <li key={idx} className="flex items-center">
-                        <div className="w-1.5 h-1.5 bg-primary rounded-full mr-2"></div>
-                        <span className="text-sm text-foreground break-words hyphens-auto">{feature}</span>
+                        <div className="w-1.5 h-1.5 bg-primary rounded-full mr-2 flex-shrink-0"></div>
+                        <span className="text-xs sm:text-sm text-foreground break-words hyphens-auto">{feature}</span>
                       </li>
                     ))}
                   </ul>
-                  <Button variant="outline" className="w-full mt-6 group">
+                  <Button variant="outline" className="w-full mt-4 sm:mt-6 group text-sm sm:text-base">
                     Learn More
-                    <Zap className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    <Zap className="ml-2 w-3 h-3 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </CardContent>
               </Card>

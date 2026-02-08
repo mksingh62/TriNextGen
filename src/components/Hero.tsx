@@ -20,7 +20,7 @@ import {
   Rocket,
   Target,
   Lightbulb
-  ,BrainCircuit,
+  , BrainCircuit,
   HeartHandshake,
   Flame
 } from 'lucide-react';
@@ -77,6 +77,7 @@ const Hero = () => {
     <>
       <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20 bg-cover bg-center md:bg-fixed" style={{ backgroundImage: "url('/web_background.jpg')" }}>
 
+<<<<<<< Updated upstream
       {/* Main Content */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-foreground">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start lg:items-center min-h-[calc(100vh-8rem)]">
@@ -227,145 +228,285 @@ const Hero = () => {
                   <div className="text-xs text-muted-foreground break-words hyphens-auto">
                     {item.label}
                   </div>
+=======
+        {/* Main Content */}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 text-foreground">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 items-start lg:items-center min-h-[calc(100vh-4rem)] sm:min-h-[calc(100vh-6rem)]">
+            {/* Left Column - Main Content */}
+            <div className="text-left lg:text-left">
+              <div className="animate-fade-in">
+                {/* Badge */}
+                <div className="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-primary/10 backdrop-blur-sm border border-primary/30 text-primary text-xs sm:text-sm font-semibold mb-4 sm:mb-6 md:mb-8 drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]">
+                  <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+                  Innovative Software Solutions
+>>>>>>> Stashed changes
                 </div>
-                );
-              })}
-            </div>
-            </div>
-      </div>
 
-      {/* Scroll Indicator */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce hidden md:block">
-        <div className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center">
-          <div className="w-1 h-3 bg-white/70 rounded-full mt-2"></div>
-        </div>
+                {/* Main Heading */}
+                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-foreground mb-4 sm:mb-6 leading-tight animate-slide-up">
+                  <span className="inline-block animate-float bg-gradient-to-r from-[#1125A1] to-[#5EFA54] bg-clip-text text-transparent">
+                    Building the
+                  </span>
+                  <span className="block gradient-text-primary">
+                    Future of Software
+                  </span>
+                </h1>
+
+                {/* Subheading */}
+                <p className="text-base sm:text-lg md:text-xl text-foreground mb-6 sm:mb-8 max-w-2xl leading-relaxed animate-fade-in font-semibold break-words hyphens-auto px-2 sm:px-0" style={{ animationDelay: '0.5s' }}>
+                  TriNextGen delivers cutting-edge software solutions that transform businesses and accelerate digital innovation.
+                  Experience the power of modern technology with our expert team.
+                </p>
+
+                {/* CTA Buttons */}
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start items-stretch sm:items-center animate-fade-in px-2 sm:px-0" style={{ animationDelay: '0.8s' }}>
+                  <Button
+                    onClick={() => scrollToSection('contact')}
+                    size="lg"
+                    className="bg-primary text-primary-foreground hover:bg-primary-dark transition-all duration-300 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold group hover-lift hover-glow w-full sm:w-auto"
+                  >
+                    Start Your Project
+                    <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                  <Button
+                    onClick={() => scrollToSection('services')}
+                    variant="outline"
+                    size="lg"
+                    className="border-primary text-primary hover:bg-primary/10 backdrop-blur-sm px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold hover-lift hover-glow w-full sm:w-auto"
+                  >
+                    Our Services
+                  </Button>
+                </div>
+
+              </div>
+            </div>
+<<<<<<< Updated upstream
+            </div>
       </div>
+=======
+
+            {/* Right Column - Animated Showcase */}
+            <div className="relative min-h-[280px] sm:min-h-[300px] lg:min-h-full animate-slide-in-right mt-6 sm:mt-8 lg:mt-0" style={{ animationDelay: '0.5s' }}>
+              {/* Enhanced Stats - Now relative on mobile */}
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-8 sm:mb-12 lg:absolute lg:top-0 lg:right-0 lg:w-full lg:max-w-md lg:mb-8">
+                {achievements.map((item, index) => {
+                  return (
+                    <div
+                      key={index}
+                      className="bg-card/60 dark:bg-card/30 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 animate-scale-in overflow-hidden"
+                      style={{ animationDelay: `${1 + index * 0.1}s` }}
+                    >
+                      <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">
+                        {item.emoji}
+                      </div>
+                      <div className="text-lg sm:text-xl font-bold text-foreground mb-1">
+                        <span>{item.number}</span>
+                      </div>
+                      <div className="text-xs sm:text-sm text-muted-foreground break-words hyphens-auto leading-tight">
+                        {item.label}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Animation - Now relative on mobile */}
+              <div
+                ref={tiltRef}
+                onMouseMove={handleMouseMove}
+                onMouseLeave={handleMouseLeave}
+                className="relative mx-auto lg:absolute lg:bottom-0 lg:-right-8 w-64 h-64 sm:w-72 sm:h-72 lg:w-80 lg:h-80 will-change-transform"
+                style={{ transform: `perspective(1000px) rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg) scale(0.75) sm:scale(0.8)` }}
+              >
+                {/* Rotating ring - darker */}
+                <div className="absolute inset-0 rounded-full border-2 border-black/10 dark:border-white/30" />
+                <div className="absolute inset-0 rounded-full border border-black/10 dark:border-white/40 blur-sm" />
+
+                {/* Orbit container */}
+                <div className="absolute inset-0 animate-[orbitWobble_20s_ease-in-out_infinite]">
+                  {/* Top */}
+                  <div className="absolute left-1/2 -translate-x-1/2 -top-2 w-12 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center shadow-strong hover-scale hover-glow animate-[floatY_3s_ease-in-out_infinite]">
+                    <Code className="w-6 h-6 text-white" />
+                  </div>
+                  {/* Right */}
+                  <div className="absolute top-1/2 -translate-y-1/2 -right-2 w-12 h-12 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center shadow-strong hover-scale hover-glow animate-[floatY_3.4s_ease-in-out_infinite]" style={{ animationDelay: '0.2s' }}>
+                    <Smartphone className="w-6 h-6 text-white" />
+                  </div>
+                  {/* Bottom */}
+                  <div className="absolute left-1/2 -translate-x-1/2 -bottom-2 w-12 h-12 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center shadow-strong hover-scale hover-glow animate-[floatY_2.8s_ease-in-out_infinite]" style={{ animationDelay: '0.4s' }}>
+                    <Cloud className="w-6 h-6 text-white" />
+                  </div>
+                  {/* Left */}
+                  <div className="absolute top-1/2 -translate-y-1/2 -left-2 w-12 h-12 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 flex items-center justify-center shadow-strong hover-scale hover-glow animate-[floatY_3.2s_ease-in-out_infinite]" style={{ animationDelay: '0.6s' }}>
+                    <Database className="w-6 h-6 text-white" />
+                  </div>
+                </div>
+
+                {/* Inner orbit (counter-rotate) */}
+                <div className="absolute inset-8 animate-[orbitWobble_14s_ease-in-out_infinite_reverse]">
+                  <div className="absolute left-1/2 -translate-x-1/2 top-0 w-10 h-10 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 flex items-center justify-center shadow-strong hover-scale hover-glow animate-[floatY_2.6s_ease-in-out_infinite]">
+                    <Zap className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-gradient-to-r from-rose-500 to-red-500 flex items-center justify-center shadow-strong hover-scale hover-glow animate-[floatY_3s_ease-in-out_infinite]" style={{ animationDelay: '0.15s' }}>
+                    <Shield className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="absolute left-1/2 -translate-x-1/2 bottom-0 w-10 h-10 rounded-full bg-gradient-to-r from-indigo-500 to-sky-500 flex items-center justify-center shadow-strong hover-scale hover-glow animate-[floatY_2.4s_ease-in-out_infinite]" style={{ animationDelay: '0.3s' }}>
+                    <Lightbulb className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-gradient-to-r from-teal-500 to-emerald-500 flex items-center justify-center shadow-strong hover-scale hover-glow animate-[floatY_2.2s_ease-in-out_infinite]" style={{ animationDelay: '0.45s' }}>
+                    <Globe className="w-5 h-5 text-white" />
+                  </div>
+                </div>
+
+                {/* Center logo/mark - cooler icon */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="relative w-28 h-28 rounded-2xl bg-gradient-to-br from-primary to-primary-light shadow-strong hover-lift hover-glow" style={{ animation: 'glowPulse 3s ease-in-out infinite' }}>
+                    <div className="absolute inset-0 rounded-2xl bg-white/10" />
+                    <div className="absolute -inset-1 rounded-3xl blur-2xl bg-primary/20" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Rocket className="w-12 h-12 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] animate-[floatY_3s_ease-in-out_infinite]" />
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+>>>>>>> Stashed changes
+
+        {/* Scroll Indicator */}
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce hidden md:block">
+          <div className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center">
+            <div className="w-1 h-3 bg-white/70 rounded-full mt-2"></div>
+          </div>
+        </div>
       </section>
 
-      <section className="py-20 bg-cover bg-center md:bg-fixed" style={{ backgroundImage: "url('/web_background.jpg')" }}>
+      <section className="py-12 sm:py-16 md:py-20 bg-cover bg-center md:bg-fixed" style={{ backgroundImage: "url('/web_background.jpg')" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="rounded-lg py-12 text-card-foreground shadow-sm shadow-medium border-0 bg-card/50 backdrop-blur-sm">
-            <div className="text-center max-w-5xl mx-auto px-4 sm:px-6">
-              <h2 className="text-2xl md:text-4xl font-bold text-foreground mb-8 md:mb-12 leading-tight break-words hyphens-auto">
+          <div className="rounded-lg py-8 sm:py-10 md:py-12 text-card-foreground shadow-sm shadow-medium border-0 bg-card/50 backdrop-blur-sm">
+            <div className="text-left lg:text-center max-w-5xl mx-auto px-4 sm:px-6">
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-6 sm:mb-8 md:mb-12 leading-tight break-words hyphens-auto">
                 Where Business Meets Technology — TriNextGen
               </h2>
-              <div className="text-center md:text-left space-y-8 md:space-y-12">
-                <div className="space-y-6">
-                  <p className="text-base md:text-lg text-foreground leading-snug md:leading-relaxed break-words hyphens-auto">
-                    We craft innovative web, mobile, and IT solutions that empower businesses to grow faster, smarter, and stronger.   
+              <div className="text-left md:text-left space-y-6 sm:space-y-8 md:space-y-12">
+                <div className="space-y-4 sm:space-y-6">
+                  <p className="text-sm sm:text-base md:text-lg text-foreground leading-snug md:leading-relaxed break-words hyphens-auto">
+                    We craft innovative web, mobile, and IT solutions that empower businesses to grow faster, smarter, and stronger.
                     With future-ready technology and client-focused strategies, we transform your vision into digital success.                  </p>
-                  <p className="text-base md:text-lg text-foreground leading-snug md:leading-relaxed break-words hyphens-auto">
+                  <p className="text-sm sm:text-base md:text-lg text-foreground leading-snug md:leading-relaxed break-words hyphens-auto">
                     the truth most founders quietly face:
                   </p>
-                  <div className="bg-gradient-to-r from-yellow-400/10 via-red-400/10 to-primary/10 p-6 rounded-xl border border-foreground/10 shadow-lg backdrop-blur-sm">
-                    <div className="flex items-start gap-4">
+                  <div className="bg-gradient-to-r from-yellow-400/10 via-red-400/10 to-primary/10 p-4 sm:p-6 rounded-xl border border-foreground/10 shadow-lg backdrop-blur-sm">
+                    <div className="flex items-start gap-3 sm:gap-4">
                       <div className="flex-shrink-0 mt-1">
-                        <Lightbulb className="w-6 h-6 text-yellow-400" />
+                        <Lightbulb className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400" />
                       </div>
-                      <p className="text-base md:text-lg font-medium text-foreground/90 break-words hyphens-auto">
+                      <p className="text-sm sm:text-base md:text-lg font-medium text-foreground/90 break-words hyphens-auto">
                         <span className="font-bold text-green-500">87% of startups struggle</span> — not because their ideas are weak, but because <span className="font-bold text-foreground">execution takes too long.</span>
                       </p>
                     </div>
                   </div>
-                  <h3 className="text-xl md:text-2xl font-bold mt-8 mb-4" style={{ color: 'rgba(0, 167, 173, 1)' }}>
-                     That's Where We Come In.
+                  <h3 className="text-lg sm:text-xl md:text-2xl font-bold mt-6 sm:mt-8 mb-3 sm:mb-4" style={{ color: 'rgba(0, 167, 173, 1)' }}>
+                    That's Where We Come In.
                   </h3>
-                  <p className="text-base md:text-lg text-foreground leading-snug md:leading-relaxed break-words hyphens-auto">
-                    We’re more than developers — <span className="font-bold text-[#1125A1]">we’re your startup’s growth partners.</span>
+                  <p className="text-sm sm:text-base md:text-lg text-foreground leading-snug md:leading-relaxed break-words hyphens-auto">
+                    We're more than developers — <span className="font-bold text-[#1125A1]">we're your startup's growth partners.</span>
                   </p>
-                  <p className="text-base md:text-lg text-foreground leading-snug md:leading-relaxed break-words hyphens-auto">
+                  <p className="text-sm sm:text-base md:text-lg text-foreground leading-snug md:leading-relaxed break-words hyphens-auto">
                     In weeks <span className="font-bold text-[#1125A1]">not months</span>, we turn bold ideas into MVPs that are fast, functional, and <span className="font-bold text-[#1125A1]">ready to wow investors & users.</span> — that's fast, functional, and founder-approved.
                   </p>
-                  <h3 className="text-xl md:text-2xl font-bold text-foreground mt-8 mb-4">
+                  <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground mt-6 sm:mt-8 mb-3 sm:mb-4">
                     🤝 What Makes Us Different?
                   </h3>
-                  <p className="text-base md:text-lg text-foreground leading-snug md:leading-relaxed break-words hyphens-auto">
+                  <p className="text-sm sm:text-base md:text-lg text-foreground leading-snug md:leading-relaxed break-words hyphens-auto">
                     We don't wait months to "kick things off." We believe in building fast, iterating smart, and delivering real value early.
                   </p>
-                  <div className="my-10 md:my-12">
+                  <div className="my-6 sm:my-8 md:my-10 lg:my-12">
                     <div className="relative">
                       {/* Connecting line */}
                       <div className="absolute left-8 top-8 bottom-8 w-0.5 bg-border -translate-x-1/2 hidden md:block" />
 
-                      <div className="space-y-8 md:space-y-10">
+                      <div className="space-y-4 sm:space-y-6 md:space-y-8 lg:space-y-10">
                         {/* Step 1 */}
-                        <div className="bg-gradient-to-r from-blue-500/10 to-primary/10 p-6 rounded-xl border border-foreground/10 shadow-lg backdrop-blur-sm">
-                          <div className="flex items-start gap-6">
-                            <div className="flex-shrink-0 w-16 h-16 rounded-full bg-card/60 backdrop-blur-sm border border-border flex items-center justify-center text-blue-400 shadow-md">
-                              <BrainCircuit className="w-8 h-8" />
+                        <div className="bg-gradient-to-r from-blue-500/10 to-primary/10 p-4 sm:p-6 rounded-xl border border-foreground/10 shadow-lg backdrop-blur-sm">
+                          <div className="flex items-start gap-4 sm:gap-6">
+                            <div className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full bg-card/60 backdrop-blur-sm border border-border flex items-center justify-center text-blue-400 shadow-md">
+                              <BrainCircuit className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8" />
                             </div>
                             <div>
-                              <h4 className="text-xl font-bold text-foreground mb-1">Backed by AI</h4>
-                              <p className="text-sm md:text-base text-muted-foreground break-words hyphens-auto">We leverage artificial intelligence to accelerate development and deliver smarter, more efficient solutions from day one.</p>
+                              <h4 className="text-lg sm:text-xl font-bold text-foreground mb-1">Backed by AI</h4>
+                              <p className="text-xs sm:text-sm md:text-base text-muted-foreground break-words hyphens-auto">We leverage artificial intelligence to accelerate development and deliver smarter, more efficient solutions from day one.</p>
                             </div>
                           </div>
                         </div>
                         {/* Step 2 */}
-                        <div className="bg-gradient-to-r from-green-500/10 to-primary/10 p-6 rounded-xl border border-foreground/10 shadow-lg backdrop-blur-sm">
-                          <div className="flex items-start gap-6">
-                            <div className="flex-shrink-0 w-16 h-16 rounded-full bg-card/60 backdrop-blur-sm border border-border flex items-center justify-center text-green-400 shadow-md">
-                              <HeartHandshake className="w-8 h-8" />
+                        <div className="bg-gradient-to-r from-green-500/10 to-primary/10 p-4 sm:p-6 rounded-xl border border-foreground/10 shadow-lg backdrop-blur-sm">
+                          <div className="flex items-start gap-4 sm:gap-6">
+                            <div className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full bg-card/60 backdrop-blur-sm border border-border flex items-center justify-center text-green-400 shadow-md">
+                              <HeartHandshake className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8" />
                             </div>
                             <div>
-                              <h4 className="text-xl font-bold text-foreground mb-1">Run by Humans Who Care</h4>
-                              <p className="text-sm md:text-base text-muted-foreground break-words hyphens-auto">Our experienced team acts as your dedicated partner, ensuring your vision is understood and executed with passion.</p>
+                              <h4 className="text-lg sm:text-xl font-bold text-foreground mb-1">Run by Humans Who Care</h4>
+                              <p className="text-xs sm:text-sm md:text-base text-muted-foreground break-words hyphens-auto">Our experienced team acts as your dedicated partner, ensuring your vision is understood and executed with passion.</p>
                             </div>
                           </div>
                         </div>
                         {/* Step 3 */}
-                        <div className="bg-gradient-to-r from-orange-500/10 to-primary/10 p-6 rounded-xl border border-foreground/10 shadow-lg backdrop-blur-sm">
-                          <div className="flex items-start gap-6">
-                            <div className="flex-shrink-0 w-16 h-16 rounded-full bg-card/60 backdrop-blur-sm border border-border flex items-center justify-center text-orange-400 shadow-md">
-                              <Flame className="w-8 h-8" />
+                        <div className="bg-gradient-to-r from-orange-500/10 to-primary/10 p-4 sm:p-6 rounded-xl border border-foreground/10 shadow-lg backdrop-blur-sm">
+                          <div className="flex items-start gap-4 sm:gap-6">
+                            <div className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full bg-card/60 backdrop-blur-sm border border-border flex items-center justify-center text-orange-400 shadow-md">
+                              <Flame className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8" />
                             </div>
                             <div>
-                              <h4 className="text-xl font-bold text-foreground mb-1">Designed for Momentum</h4>
-                              <p className="text-sm md:text-base text-muted-foreground break-words hyphens-auto">We focus on rapid iteration and early delivery, turning your ideas into a functional product in weeks, not months.</p>
+                              <h4 className="text-lg sm:text-xl font-bold text-foreground mb-1">Designed for Momentum</h4>
+                              <p className="text-xs sm:text-sm md:text-base text-muted-foreground break-words hyphens-auto">We focus on rapid iteration and early delivery, turning your ideas into a functional product in weeks, not months.</p>
                             </div>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                  <h3 className="text-xl md:text-2xl font-bold text-foreground mt-8 mb-4">
+                  <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground mt-6 sm:mt-8 mb-3 sm:mb-4">
                     📦 Reality for Most Founders
                   </h3>
-                  <div className="mt-12">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-8 md:gap-x-8 md:gap-y-12 relative">
+                  <div className="mt-6 sm:mt-8 md:mt-12">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 sm:gap-x-6 md:gap-x-8 gap-y-6 sm:gap-y-8 md:gap-y-12 relative">
                       {/* Vertical line for desktop */}
                       <div className="hidden md:block absolute top-0 bottom-0 left-1/2 w-0.5 bg-border -translate-x-1/2"></div>
 
                       {/* The Usual Path */}
-                      <div className="space-y-12 md:pr-8 md:text-right">
-                        <h4 className="text-xl font-bold text-red-500 mb-6 text-center md:text-right">❌ The Usual Path</h4>
+                      <div className="space-y-6 sm:space-y-8 md:space-y-12 md:pr-8 md:text-right">
+                        <h4 className="text-lg sm:text-xl font-bold text-red-500 mb-4 sm:mb-6 text-left md:text-right">❌ The Usual Path</h4>
                         <div className="relative">
                           <div className="hidden md:block absolute top-1/2 -right-12 w-4 h-4 bg-red-500 rounded-full border-4 border-background -translate-y-1/2"></div>
-                          <p className="text-sm md:text-base text-muted-foreground break-words hyphens-auto">Hiring takes 3–6 months and costs $200K+.</p>
+                          <p className="text-xs sm:text-sm md:text-base text-muted-foreground break-words hyphens-auto">Hiring takes 3–6 months and costs $200K+.</p>
                         </div>
                         <div className="relative">
                           <div className="hidden md:block absolute top-1/2 -right-12 w-4 h-4 bg-red-500 rounded-full border-4 border-background -translate-y-1/2"></div>
-                          <p className="text-sm md:text-base text-muted-foreground break-words hyphens-auto">Building an MVP takes 6–12 months.</p>
+                          <p className="text-xs sm:text-sm md:text-base text-muted-foreground break-words hyphens-auto">Building an MVP takes 6–12 months.</p>
                         </div>
                         <div className="relative">
                           <div className="hidden md:block absolute top-1/2 -right-12 w-4 h-4 bg-red-500 rounded-full border-4 border-background -translate-y-1/2"></div>
-                          <p className="text-sm md:text-base text-muted-foreground break-words hyphens-auto">90% of tech hires don't work out.</p>
+                          <p className="text-xs sm:text-sm md:text-base text-muted-foreground break-words hyphens-auto">90% of tech hires don't work out.</p>
                         </div>
                       </div>
 
                       {/* With TriNextGen */}
-                      <div className="space-y-12 md:pl-8">
-                        <h4 className="text-xl font-bold text-green-500 mb-6 text-center md:text-left">✅ With TriNextGen</h4>
-                        <div className="relative"><div className="hidden md:block absolute top-1/2 -left-12 w-4 h-4 bg-green-500 rounded-full border-4 border-background -translate-y-1/2"></div><p className="text-sm md:text-base text-muted-foreground break-words hyphens-auto">No hiring delays — your team is ready from Day 1.</p></div>
-                        <div className="relative"><div className="hidden md:block absolute top-1/2 -left-12 w-4 h-4 bg-green-500 rounded-full border-4 border-background -translate-y-1/2"></div><p className="text-sm md:text-base text-muted-foreground break-words hyphens-auto">MVP in just <span className="font-bold text-primary">6 weeks</span>.</p></div>
-                        <div className="relative"><div className="hidden md:block absolute top-1/2 -left-12 w-4 h-4 bg-green-500 rounded-full border-4 border-background -translate-y-1/2"></div><p className="text-sm md:text-base text-muted-foreground break-words hyphens-auto">Get a battle-tested, AI-augmented team.</p></div>
+                      <div className="space-y-6 sm:space-y-8 md:space-y-12 md:pl-8">
+                        <h4 className="text-lg sm:text-xl font-bold text-green-500 mb-4 sm:mb-6 text-left md:text-left">✅ With TriNextGen</h4>
+                        <div className="relative"><div className="hidden md:block absolute top-1/2 -left-12 w-4 h-4 bg-green-500 rounded-full border-4 border-background -translate-y-1/2"></div><p className="text-xs sm:text-sm md:text-base text-muted-foreground break-words hyphens-auto">No hiring delays — your team is ready from Day 1.</p></div>
+                        <div className="relative"><div className="hidden md:block absolute top-1/2 -left-12 w-4 h-4 bg-green-500 rounded-full border-4 border-background -translate-y-1/2"></div><p className="text-xs sm:text-sm md:text-base text-muted-foreground break-words hyphens-auto">MVP in just <span className="font-bold text-primary">6 weeks</span>.</p></div>
+                        <div className="relative"><div className="hidden md:block absolute top-1/2 -left-12 w-4 h-4 bg-green-500 rounded-full border-4 border-background -translate-y-1/2"></div><p className="text-xs sm:text-sm md:text-base text-muted-foreground break-words hyphens-auto">Get a battle-tested, AI-augmented team.</p></div>
                       </div>
                     </div>
                   </div>
-                  <div className="text-center mt-8">
-                    <h3 className="text-xl md:text-2xl font-bold text-foreground mb-4">
+                  <div className="text-left lg:text-center mt-6 sm:mt-8">
+                    <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground mb-3 sm:mb-4">
                       🌱 Let's Build Something Real
                     </h3>
-                    <p className="text-base md:text-lg text-muted-foreground leading-snug md:leading-relaxed break-words hyphens-auto">
+                    <p className="text-sm sm:text-base md:text-lg text-muted-foreground leading-snug md:leading-relaxed break-words hyphens-auto">
                       No jargon. No fluff. Just a team that cares as much as you do — and knows how to build what users love.
                     </p>
                   </div>
@@ -376,26 +517,26 @@ const Hero = () => {
         </div>
       </section>
 
-      <section className="py-20 bg-cover bg-center md:bg-fixed" style={{ backgroundImage: "url('/web_background.jpg')" }}>
+      <section className="py-12 sm:py-16 md:py-20 bg-cover bg-center md:bg-fixed" style={{ backgroundImage: "url('/web_background.jpg')" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Section Header */}
-          <div className="text-center mb-16 animate-fade-in">
+          <div className="text-left lg:text-center mb-10 sm:mb-12 md:mb-16 animate-fade-in">
             {/* <Badge variant="secondary" className="mb-4 px-4 py-2 text-sm font-medium">
               Why Choose Us?
             </Badge> */}
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4 sm:mb-6">
               Why Founders Choose TriNextGen
             </h2>
-            <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed break-words hyphens-auto">
+            <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed break-words hyphens-auto px-2 sm:px-0">
               We're more than just a development shop. We're your strategic partner in building successful digital products.
             </p>
           </div>
 
           {/* Grid of advantages */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {/* Card 1: Rapid MVP Delivery */}
             <Card className="shadow-medium hover:shadow-strong transition-all duration-300 border-0 bg-card/80 backdrop-blur-sm group hover:-translate-y-2 animate-scale-in hover-lift hover-glow card-professional overflow-hidden">
-              <CardContent className="p-6 md:p-8 text-center break-words">
+              <CardContent className="p-6 md:p-8 text-left lg:text-center break-words">
                 <div className="inline-flex items-center justify-center w-16 h-16 mb-6 rounded-full bg-primary/10 text-primary group-hover:scale-110 transition-transform">
                   <Rocket className="w-8 h-8" />
                 </div>
@@ -408,7 +549,7 @@ const Hero = () => {
 
             {/* Card 2: AI-Augmented Team */}
             <Card className="shadow-medium hover:shadow-strong transition-all duration-300 border-0 bg-card/80 backdrop-blur-sm group hover:-translate-y-2 animate-scale-in hover-lift hover-glow card-professional overflow-hidden" style={{ animationDelay: '0.1s' }}>
-              <CardContent className="p-6 md:p-8 text-center break-words">
+              <CardContent className="p-6 md:p-8 text-left lg:text-center break-words">
                 <div className="inline-flex items-center justify-center w-16 h-16 mb-6 rounded-full bg-primary/10 text-primary group-hover:scale-110 transition-transform">
                   <BrainCircuit className="w-8 h-8" />
                 </div>
@@ -421,7 +562,7 @@ const Hero = () => {
 
             {/* Card 3: True Partnership */}
             <Card className="shadow-medium hover:shadow-strong transition-all duration-300 border-0 bg-card/80 backdrop-blur-sm group hover:-translate-y-2 animate-scale-in hover-lift hover-glow card-professional overflow-hidden" style={{ animationDelay: '0.2s' }}>
-              <CardContent className="p-6 md:p-8 text-center break-words">
+              <CardContent className="p-6 md:p-8 text-left lg:text-center break-words">
                 <div className="inline-flex items-center justify-center w-16 h-16 mb-6 rounded-full bg-primary/10 text-primary group-hover:scale-110 transition-transform">
                   <HeartHandshake className="w-8 h-8" />
                 </div>
@@ -435,64 +576,7 @@ const Hero = () => {
         </div>
       </section>
 
-      <section className="py-20 bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('/web_background.jpg')" }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Section Header */}
-          <div className="text-center mb-16 animate-fade-in">
-            {/* <Badge variant="secondary" className="mb-4 px-4 py-2 text-sm font-medium">
-              Why Choose Us?
-            </Badge> */}
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">
-              The TriNextGen Advantage
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed break-words hyphens-auto">
-              We're more than just a development shop. We're your strategic partner in building successful digital products.
-            </p>
-          </div>
 
-          {/* Grid of advantages */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Card 1: Rapid MVP Delivery */}
-            <Card className="shadow-medium hover:shadow-strong transition-all duration-300 border-0 bg-card/80 backdrop-blur-sm group hover:-translate-y-2 animate-scale-in hover-lift hover-glow card-professional overflow-hidden">
-              <CardContent className="p-6 md:p-8 text-center break-words">
-                <div className="inline-flex items-center justify-center w-16 h-16 mb-6 rounded-full bg-primary/10 text-primary group-hover:scale-110 transition-transform">
-                  <Rocket className="w-8 h-8" />
-                </div>
-                <h3 className="text-lg md:text-xl font-bold text-foreground mb-3">Rapid MVP Delivery</h3>
-                <p className="text-base md:text-muted-foreground md:text-base leading-snug md:leading-relaxed break-words hyphens-auto">
-                  Launch your user-ready MVP in just 6 weeks. We turn your vision into a functional product at startup speed, giving you a crucial head start.
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Card 2: AI-Augmented Team */}
-            <Card className="shadow-medium hover:shadow-strong transition-all duration-300 border-0 bg-card/80 backdrop-blur-sm group hover:-translate-y-2 animate-scale-in hover-lift hover-glow card-professional overflow-hidden" style={{ animationDelay: '0.1s' }}>
-              <CardContent className="p-6 md:p-8 text-center break-words">
-                <div className="inline-flex items-center justify-center w-16 h-16 mb-6 rounded-full bg-primary/10 text-primary group-hover:scale-110 transition-transform">
-                  <BrainCircuit className="w-8 h-8" />
-                </div>
-                <h3 className="text-lg md:text-xl font-bold text-foreground mb-3">AI-Augmented Team</h3>
-                <p className="text-base md:text-muted-foreground md:text-base leading-snug md:leading-relaxed break-words hyphens-auto">
-                  Our team is enhanced by AI, not replaced by it. This blend of human expertise and machine intelligence ensures faster, smarter, and more reliable development.
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Card 3: True Partnership */}
-            <Card className="shadow-medium hover:shadow-strong transition-all duration-300 border-0 bg-card/80 backdrop-blur-sm group hover:-translate-y-2 animate-scale-in hover-lift hover-glow card-professional overflow-hidden" style={{ animationDelay: '0.2s' }}>
-              <CardContent className="p-6 md:p-8 text-center break-words">
-                <div className="inline-flex items-center justify-center w-16 h-16 mb-6 rounded-full bg-primary/10 text-primary group-hover:scale-110 transition-transform">
-                  <HeartHandshake className="w-8 h-8" />
-                </div>
-                <h3 className="text-lg md:text-xl font-bold text-foreground mb-3">True Partnership</h3>
-                <p className="text-base md:text-muted-foreground md:text-base leading-snug md:leading-relaxed break-words hyphens-auto">
-                  We integrate with your team like co-founders. Your goals are our goals. We're invested in your success with transparent communication and dedicated support.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
     </>
   );
 };

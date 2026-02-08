@@ -60,6 +60,8 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Allow background scrolling when mobile menu is open for better UX
+
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
     element?.scrollIntoView({ behavior: 'smooth' });
@@ -94,21 +96,18 @@ const Navbar = () => {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-smooth border-b border-gray-400 ${isScrolled
-        ? 'bg-background/50 backdrop-blur-md shadow-medium'
-        : 'bg-transparent'
-        }`}
+      className={`fixed top-0 left-0 right-0 z-50 transition-smooth border-b border-gray-400 `}
         
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16 md:h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link
               to="/"
-              className="flex items-center space-x-2 text-2xl font-bold text-primary hover:scale-105 transition-smooth"
+              className="flex items-center space-x-2 text-xl md:text-2xl font-bold text-primary hover:scale-105 transition-smooth"
             >
-              <img src="/logo9.png" alt="TriNextGen Logo" className="h-14 w-auto" />
+              <img src="/logo9.png" alt="TriNextGen Logo" className="h-10 w-auto md:h-14" />
               {/* <span>TriNextGen</span> */}
             </Link>
           </div>
@@ -232,16 +231,18 @@ const Navbar = () => {
               variant="ghost"
               size="sm"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="h-11 w-11 p-0 hover:bg-secondary/60 active:scale-95 transition-all duration-200"
+              aria-label="Toggle mobile menu"
             >
-              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
             </Button>
           </div>
         </div>
 
         {/* Mobile Navigation */}
         {isMobileMenuOpen && (
-          <div className="md:hidden absolute top-16 left-20 right-4 bg-background/95 backdrop-blur-md border border-border rounded-lg shadow-medium max-h-[calc(100vh-6rem)] overflow-y-auto">
-            <div className="px-3 pt-3 pb-3 space-y-1">
+          <div className="md:hidden absolute left-15 right-2 top-16 bg-background/98 backdrop-blur-2xl border border-border shadow-2xl z-40 max-h-80 overflow-y-auto animate-in slide-in-from-top duration-300 rounded-lg transform-gpu" style={{ willChange: 'transform' }}>
+            <div className="px-3 py-3 space-y-1">
               {navItems.map((item) => {
                 const isSectionOnly = item.label === 'Home' || item.label === 'Contact';
                 if (isHome && isSectionOnly) {
@@ -249,7 +250,7 @@ const Navbar = () => {
                     <button
                       key={item.id}
                       onClick={() => scrollToSection(item.id)}
-                      className="block px-3 py-2 text-base font-medium text-foreground hover:text-primary hover:bg-secondary transition-smooth w-full text-left"
+                      className="block px-3 py-3 text-base font-medium text-foreground hover:text-primary hover:bg-secondary/60 transition-all duration-200 w-full text-left rounded-md active:bg-secondary/80 active:scale-[0.98]"
                     >
                       {item.label}
                     </button>
@@ -259,7 +260,7 @@ const Navbar = () => {
                   <Link
                     key={item.id}
                     to={resolveHref(item.label, item.href, item.id)}
-                    className="block px-3 py-2 text-base font-medium text-foreground hover:text-primary hover:bg-secondary transition-smooth w-full text-left"
+                    className="block px-3 py-3 text-base font-medium text-foreground hover:text-primary hover:bg-secondary/60 transition-all duration-200 w-full text-left rounded-md active:bg-secondary/80 active:scale-[0.98]"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     {item.label}
@@ -267,8 +268,8 @@ const Navbar = () => {
                 );
               })}
               {/* Mobile Menu Links for other items */}
-              <Link to="/about" className="block px-3 py-1.5 text-sm font-medium text-foreground hover:text-primary hover:bg-secondary transition-smooth w-full text-left rounded" onClick={() => setIsMobileMenuOpen(false)}>About</Link>
-              <Link to="/services" className="block px-3 py-1.5 text-sm font-medium text-foreground hover:text-primary hover:bg-secondary transition-smooth w-full text-left rounded" onClick={() => setIsMobileMenuOpen(false)}>Services</Link>
+              <Link to="/about" className="block px-4 py-3 text-base font-medium text-foreground hover:text-primary hover:bg-secondary/50 transition-smooth w-full text-left rounded-md active:bg-secondary" onClick={() => setIsMobileMenuOpen(false)}>About</Link>
+              <Link to="/services" className="block px-4 py-3 text-base font-medium text-foreground hover:text-primary hover:bg-secondary/50 transition-smooth w-full text-left rounded-md active:bg-secondary" onClick={() => setIsMobileMenuOpen(false)}>Services</Link>
               {/* Mobile Services Links */}
               {/* <div className="px-3 py-1.5 text-sm font-medium text-foreground">Services</div>
               <div className="pl-4 space-y-0.5">
@@ -280,20 +281,20 @@ const Navbar = () => {
               </div> */}
               <Link
                 to="/careers"
-                className="block px-3 py-1.5 text-sm font-medium text-foreground hover:text-primary hover:bg-secondary transition-smooth w-full text-left rounded"
+                className="block px-3 py-3 text-base font-medium text-foreground hover:text-primary hover:bg-secondary/60 transition-all duration-200 w-full text-left rounded-md active:bg-secondary/80 active:scale-[0.98]"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Careers
               </Link>
-              <button onClick={() => { scrollToSection('contact'); setIsMobileMenuOpen(false); }} className="block px-3 py-1.5 text-sm font-medium text-foreground hover:text-primary hover:bg-secondary transition-smooth w-full text-left rounded">Contact</button>
-              <div className="mt-2 pt-2 border-t border-border space-y-1.5">
-                {/* <div className="px-3">
+              <button onClick={() => { scrollToSection('contact'); setIsMobileMenuOpen(false); }} className="block px-3 py-3 text-base font-medium text-foreground hover:text-primary hover:bg-secondary/60 transition-all duration-200 w-full text-left rounded-md active:bg-secondary/80 active:scale-[0.98]">Contact</button>
+              <div className="mt-4 pt-4 border-t border-border space-y-3">
+                {/* <div className="px-4">
                   <ThemeToggle />
                 </div> */}
-                <div className="px-3">
+                <div className="px-4">
                   <Button
                     onClick={() => (isHome ? scrollToSection('contact') : setIsMobileMenuOpen(false))}
-                    className="w-full bg-primary hover:bg-primary-dark text-sm py-2"
+                    className="w-full bg-primary hover:bg-primary-dark text-base py-3 font-semibold shadow-lg hover:shadow-xl transition-all duration-200 active:scale-[0.98]"
                   >
                     Get Started
                   </Button>

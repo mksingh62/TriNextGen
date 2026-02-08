@@ -130,25 +130,25 @@ const Contact = () => {
   ];
 
   return (
-    <section id="contact" className="py-20 bg-cover bg-center md:bg-fixed" style={{ backgroundImage: "url('/web_background.jpg')" }}>
+    <section id="contact" className="py-12 sm:py-16 md:py-20 bg-cover bg-center md:bg-fixed" style={{ backgroundImage: "url('/web_background.jpg')" }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center mb-16 animate-fade-in">
-          <Badge variant="secondary" className="mb-4 px-4 py-2 text-sm font-medium">
+        <div className="text-left lg:text-center mb-10 sm:mb-12 md:mb-16 animate-fade-in">
+          <Badge variant="secondary" className="mb-3 sm:mb-4 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium">
             Get In Touch
           </Badge>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4 sm:mb-6">
             Let's Start Building Together
           </h2>
-          <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed break-words hyphens-auto">
+          <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed break-words hyphens-auto px-2 sm:px-0">
             Ready to transform your ideas into reality? Get in touch with our team to discuss your project
             and discover how TriNextGen can help accelerate your digital transformation.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
           {/* Contact Information */}
-          <div className="lg:col-span-1 space-y-6">
+          <div className="lg:col-span-1 space-y-4 sm:space-y-6">
             {contactInfo.map((info, index) => {
               const IconComponent = info.icon;
               return (
@@ -157,26 +157,26 @@ const Contact = () => {
                   className={`shadow-medium border-0 bg-card/80 backdrop-blur-sm hover:shadow-strong transition-all duration-300 animate-slide-up hover-lift hover-glow card-professional overflow-hidden`}
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  <CardContent className="p-5 md:p-6">
-                    <div className="flex items-start space-x-4">
-                      <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
-                        <IconComponent className="w-6 h-6 text-white" />
+                  <CardContent className="p-4 sm:p-5 md:p-6">
+                    <div className="flex items-start space-x-3 sm:space-x-4">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
+                        <IconComponent className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                       </div>
-                      <div>
-                        <h3 className="font-semibold text-foreground mb-1">{info.label}</h3>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-foreground mb-1 text-sm sm:text-base">{info.label}</h3>
                         {info.label === 'Email' ? (
                           <a 
                             href={`mailto:${info.value}`} 
-                            className="text-primary font-medium mb-1 hover:underline break-words"
+                            className="text-primary font-medium mb-1 hover:underline break-words text-sm sm:text-base"
                             target="_blank"
                             rel="noopener noreferrer"
                           >
                             {info.value}
                           </a>
                         ) : (
-                          <p className="text-primary font-medium mb-1 break-words hyphens-auto">{info.value}</p>
+                          <p className="text-primary font-medium mb-1 break-words hyphens-auto text-sm sm:text-base">{info.value}</p>
                         )}
-                        <p className="text-sm text-muted-foreground break-words hyphens-auto">{info.description}</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground break-words hyphens-auto">{info.description}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -186,22 +186,22 @@ const Contact = () => {
 
             {/* Response Time */}
             <Card className="shadow-medium border-0 bg-card/80 backdrop-blur-sm">
-              <CardContent className="p-6">
-                <div className="flex items-center space-x-3 mb-4">
-                  <Clock className="w-5 h-5 text-primary" />
-                  <h3 className="font-semibold text-foreground">Response Time</h3>
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex items-center space-x-3 mb-3 sm:mb-4">
+                  <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                  <h3 className="font-semibold text-foreground text-sm sm:text-base">Response Time</h3>
                 </div>
-                <div className="space-y-2 text-sm text-muted-foreground">
+                <div className="space-y-2 text-xs sm:text-sm text-muted-foreground">
                   <div className="flex items-center space-x-2">
-                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 flex-shrink-0" />
                     <span>Email: Within 4 hours</span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 flex-shrink-0" />
                     <span>Phone: Immediate during business hours</span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 flex-shrink-0" />
                     <span>Meeting: Within 24 hours</span>
                   </div>
                 </div>
@@ -212,14 +212,14 @@ const Contact = () => {
           {/* Contact Form */}
           <div className="lg:col-span-2">
             <Card className="shadow-medium border-0 bg-card/80 backdrop-blur-sm animate-scale-in hover-lift hover-glow card-professional overflow-hidden">
-              <CardHeader className="p-5 md:p-6">
-                <CardTitle className="text-xl md:text-2xl font-bold text-foreground">
+              <CardHeader className="p-4 sm:p-5 md:p-6">
+                <CardTitle className="text-lg sm:text-xl md:text-2xl font-bold text-foreground">
                   Send us a Message
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-5 md:p-6 pt-0">
-                <form onSubmit={handleSubmit} className="space-y-5 md:space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
+              <CardContent className="p-4 sm:p-5 md:p-6 pt-0">
+                <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5 md:space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 md:gap-6">
                     <div className="space-y-2">
                       <Label htmlFor="name" className="text-foreground font-medium">
                         Full Name *
@@ -305,17 +305,17 @@ const Contact = () => {
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full bg-primary hover:bg-primary-dark hover:shadow-medium transition-all duration-300 py-3 text-lg font-semibold group"
+                    className="w-full bg-primary hover:bg-primary-dark hover:shadow-medium transition-all duration-300 py-3 sm:py-3.5 text-base sm:text-lg font-semibold group"
                   >
                     {isSubmitting ? (
-                      <div className="flex items-center">
+                      <div className="flex items-center justify-center">
                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
                         Sending Message...
                       </div>
                     ) : (
-                      <div className="flex items-center">
+                      <div className="flex items-center justify-center">
                         Send Message
-                        <Send className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                        <Send className="ml-2 w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
                       </div>
                     )}
                   </Button>

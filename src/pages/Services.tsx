@@ -183,7 +183,7 @@ const Services = () => {
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Section Header */}
-            <div className="text-center mb-16 animate-fade-in">
+            <div className="text-left lg:text-center mb-16 animate-fade-in">
               <Badge
                 variant="secondary"
                 className="mb-4 px-4 py-2 text-sm font-medium"
@@ -251,7 +251,7 @@ const Services = () => {
             </div>
 
             {/* Process Section (How We Work) */}
-            <div className="text-center my-20 animate-fade-in">
+            <div className="text-left lg:text-center my-20 animate-fade-in">
               <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
                 How We Work
               </h2>
@@ -266,7 +266,7 @@ const Services = () => {
                 return (
                   <Card
                     key={step.title}
-                    className="text-center p-6 shadow-medium hover:shadow-strong transition-all duration-300 border-0 bg-card/80 backdrop-blur-sm group hover:-translate-y-2 animate-scale-in hover-lift"
+                    className="text-left lg:text-center p-6 shadow-medium hover:shadow-strong transition-all duration-300 border-0 bg-card/80 backdrop-blur-sm group hover:-translate-y-2 animate-scale-in hover-lift"
                     style={{ animationDelay: `${index * 0.1}s` }}
                   >
                     <div className="inline-flex items-center justify-center w-16 h-16 mb-6 rounded-full bg-primary/10 text-primary group-hover:scale-110 transition-transform">
@@ -282,7 +282,7 @@ const Services = () => {
             {/* CTA Section */}
             <div className="animate-slide-up">
               <Card className="rounded-lg text-card-foreground shadow-sm shadow-medium border-0 bg-card/50 backdrop-blur-sm">
-                <CardContent className="p-8 text-center">
+                <CardContent className="p-8 text-left lg:text-center">
                   <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
                     Ready to Transform Your Business?
                   </h3>

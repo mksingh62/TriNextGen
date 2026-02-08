@@ -95,7 +95,7 @@ const About = () => {
                                         {/* Hero */}
                                         
                                        <section className="py-16 bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('/web_background.jpg')" }}>
-                                          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                                          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-left lg:text-center">
                                             <div className="animate-fade-in">
                                               {/* <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 mb-4">About Us</div> */}
                                               <h1 className="text-4xl md:text-5xl font-extrabold text-foreground leading-tight mb-4 animate-slide-up">
@@ -170,7 +170,7 @@ const About = () => {
                                         <section id="team" className="py-16 bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('/web_background.jpg')" }}>
                                                   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                                                             {/* Section Header */}
-                                                            <div className="text-center mb-16 animate-fade-in">
+                                                            <div className="text-left lg:text-center mb-16 animate-fade-in">
                                                                       <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">
                                                                                 Meet Our Team
                                                                       </h2>
@@ -189,7 +189,7 @@ const About = () => {
                                                                                           style={{ animationDelay: `${index * 0.2}s` }}
                                                                                 >
                                                                                           <CardContent className="p-8">
-                                                                                                    <div className="flex flex-col items-center text-center">
+                                                                                                    <div className="flex flex-col items-center text-left lg:text-center">
                                                                                                               <img
                                                                                                                         src={founder.image}
                                                                                                                         alt={founder.name}

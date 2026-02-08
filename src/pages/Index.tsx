@@ -11,7 +11,7 @@ const Index = () => {
   return (
     <div className="min-h-screen">
       <Hero />
-      
+
       {/* Quick Links Section */}
       {/* <section className="py-12 bg-secondary/10">
         <div className="container mx-auto px-4">
@@ -43,10 +43,10 @@ const Index = () => {
           </div>
         </div>
       </section> */}
-      
+
       {/* <Services /> */}
       <Contact />
-      
+
       {/* CTA Section */}
       <Chatbot />
       {/* <section className="py-20 bg-gradient-to-r from-primary to-secondary">
